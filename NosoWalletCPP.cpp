@@ -1,4 +1,4 @@
-// Start of wxWidgets "Hello World" Program
+// Start of wxWidgets "Hello World" Program  https://docs.wxwidgets.org/3.2.2.1/plat_msw_install.html#msw_build_apps
 #include <wx/wx.h>
 
 class MyApp : public wxApp
@@ -72,3 +72,4 @@ void MyFrame::OnAbout(wxCommandEvent& event)
 void MyFrame::OnHello(wxCommandEvent& event)
 {
     wxLogMessage("Hello world from wxWidgets!");
+}
