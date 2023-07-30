@@ -9,8 +9,11 @@ public:
 private:
 
 	void OnConnectButtonClicked(wxCommandEvent& evt); //Call Connect to Main net and Get NODESATUS
+	void OnDownloadSummaryButtonClicked(wxCommandEvent& evt);
 	void OnClose(wxCloseEvent& evt);
 	wxStaticText* CurrentBlock;
+	wxStaticText* GetSummaryText;
+
 
 
 };

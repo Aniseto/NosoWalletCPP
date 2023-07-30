@@ -12,12 +12,18 @@
 MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {   //Constructor Base class
 	wxPanel* panel = new wxPanel(this);
 
-	wxButton* Connect_Button = new wxButton(panel, wxID_ANY, "Connect", wxPoint(1, 1), wxSize(100, 25));
-    wxStaticText* CurrentBlockText = new wxStaticText(panel, wxID_ANY, "Current Block: ", wxPoint(115, 4));
+	wxButton* Connect_Button = new wxButton(panel, wxID_ANY, "Connect", wxPoint(1, 1), wxSize(150, 25));
+    wxButton* Download_Summary = new wxButton(panel, wxID_ANY, "Download Summary", wxPoint(1,26), wxSize(150, 25));
+
+    wxStaticText* CurrentBlockText = new wxStaticText(panel, wxID_ANY, "Current Block: ", wxPoint(165, 4));
+    wxStaticText* SummaryText = new wxStaticText(panel, wxID_ANY, "Summary Processed: ", wxPoint(165, 35));
+
     //wxStaticText* CurrentBlock = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(200, 4));
-    CurrentBlock = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(200, 4));
+    CurrentBlock = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(285, 4));
+    GetSummaryText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(285, 26));
 
     Connect_Button->Bind(wxEVT_BUTTON, &MainFrame::OnConnectButtonClicked, this);
+    Download_Summary->Bind(wxEVT_BUTTON, &MainFrame::OnDownloadSummaryButtonClicked, this);
     this->Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
 
 
@@ -26,6 +32,14 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
 
     
 } 
+
+void MainFrame::OnDownloadSummaryButtonClicked(wxCommandEvent& evt)
+{
+    std::string DefaultNodeIp = "20.199.50.27";						//PENDDING: Send commmand to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
+    int DefaultNodePort = 8080;
+    std::string GETZIPSUMARY_COMMAND = "GETZIPSUMARY\n";
+    std::string GetZipSummaryResponse = SendStringToNode(DefaultNodeIp, DefaultNodePort, GETZIPSUMARY_COMMAND);
+}
 
 void MainFrame::OnConnectButtonClicked(wxCommandEvent& evt)
 
