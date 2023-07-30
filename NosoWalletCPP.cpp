@@ -2,35 +2,79 @@
 // Includes: 
 #include <wx/wx.h>
 #include "MainFrame.h"
-#include <wx/spinctrl.h>
-
-enum IDs {
-	CONNECT_BUTTON_ID=2 //Connect Button ID.
-};
+#include "DataStructures.h"
+#include "Communication.h"
 
 
-//Event Table
-
-wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
-EVT_BUTTON(CONNECT_BUTTON_ID, MainFrame::OnConnectButtonClicked)
-
-wxEND_EVENT_TABLE()
 
 
 
 MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {   //Constructor Base class
 	wxPanel* panel = new wxPanel(this);
 
-	wxButton* Connect_Button = new wxButton(panel, CONNECT_BUTTON_ID, "Connect", wxPoint(1, 1), wxSize(100, 25));
-	
+	wxButton* Connect_Button = new wxButton(panel, wxID_ANY, "Connect", wxPoint(1, 1), wxSize(100, 25));
+    wxStaticText* CurrentBlockText = new wxStaticText(panel, wxID_ANY, "Current Block: ", wxPoint(115, 4));
+    //wxStaticText* CurrentBlock = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(200, 4));
+    CurrentBlock = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(200, 4));
 
-	CreateStatusBar(); // Create Status Bar Bottom Window.
+    Connect_Button->Bind(wxEVT_BUTTON, &MainFrame::OnConnectButtonClicked, this);
+    this->Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
+
+
+	wxStatusBar* statusBar =CreateStatusBar(); // Create Status Bar Bottom Window.
+    statusBar->SetDoubleBuffered(true);
+
+    
 } 
 
 void MainFrame::OnConnectButtonClicked(wxCommandEvent& evt)
 
 {
-	wxLogStatus("Connecting to Mainet");
+	wxLogStatus("Connecting to Noso Mainet...");
+	std::string NODESTATUS_COMMAND= "NODESTATUS\n";
+	std::string DefaultNodeIp = "20.199.50.27";						//PENDDING: Send commmand to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
+	int DefaultNodePort = 8080;										//PENDING: Set PORT from List of Nodes.
+	std::string NodeStatus = SendStringToNode(DefaultNodeIp, DefaultNodePort, NODESTATUS_COMMAND);
+    std::istringstream NodeStatusIss(NodeStatus);
+    NodeStatusData data;
+    //NODESTATUS 4 117969 0 0 65B69 0.4.1Aa1 1688913930 C4A6A 266 45996FF8BFA3287267CE2CE8746D3E02 FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF1 1688913600 NpryectdevepmentfundsGE 0 62 FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF1 27D68 9E57A 54526 7DEA3"
+
+    NodeStatusIss >> data.NodeStatus;
+    NodeStatusIss >> data.Peers;
+    NodeStatusIss >> data.BlockNumber;
+    NodeStatusIss >> data.Pending;
+    NodeStatusIss >> data.Delta;
+    NodeStatusIss >> data.Headers;
+    NodeStatusIss >> data.Version;
+    NodeStatusIss >> data.UTCTIme;
+    NodeStatusIss >> data.MNsHash;
+    NodeStatusIss >> data.MNsCount;
+    NodeStatusIss >> data.LastBlockHash;
+    NodeStatusIss >> data.BestHashDiff;
+    NodeStatusIss >> data.LastBlockTimeEnd;
+    NodeStatusIss >> data.LastBLockMiner;
+    NodeStatusIss >> data.ChecksCount;
+    NodeStatusIss >> data.LastBlockPoW;
+    NodeStatusIss >> data.LastBlockDiff;
+    NodeStatusIss >> data.Summary;
+    NodeStatusIss >> data.GVTHash;
+    NodeStatusIss >> data.NosoCFG;
+    NodeStatusIss >> data.PSOHash;
+
+    std::string CurrentBlockString = std::to_string(data.BlockNumber); //Transform from Integer to String
+    CurrentBlock->SetLabel(wxString(CurrentBlockString));              // Modify Static text to show Current Block
+
+    //MainFrame
+    //MainFrame
+    //CurrentBlock
+	//this->CurrentBlock
+	wxLogStatus("Connected, NODESTATUS SAVED.");
+
+}
+
+void MainFrame::OnClose(wxCloseEvent& evt) {
+    wxLogMessage("Wallet Closed");
+    evt.Skip();
 
 }
 

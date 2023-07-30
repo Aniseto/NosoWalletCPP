@@ -8,7 +8,9 @@ public:
 
 private:
 
-	void OnConnectButtonClicked(wxCommandEvent& evt); //Call Connect to Mainet and Get NODESATUS
-	wxDECLARE_EVENT_TABLE();
+	void OnConnectButtonClicked(wxCommandEvent& evt); //Call Connect to Main net and Get NODESATUS
+	void OnClose(wxCloseEvent& evt);
+	wxStaticText* CurrentBlock;
+
 
 };
