@@ -12,7 +12,9 @@ private:
 	void OnDownloadSummaryButtonClicked(wxCommandEvent& evt);
 	void OnClose(wxCloseEvent& evt);
 	wxStaticText* CurrentBlock;
-	wxStaticText* GetSummaryText;
+	wxStaticText* GetSumaryText;
+	wxStaticText* TotalNosoAddessesLoadedText;
+	wxStaticText* TotalNosoAddessesLoadedValue;
 
 
 

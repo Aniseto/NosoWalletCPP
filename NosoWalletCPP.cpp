@@ -4,7 +4,7 @@
 #include "MainFrame.h"
 #include "DataStructures.h"
 #include "Communication.h"
-
+#include <fstream>
 
 
 
@@ -15,12 +15,16 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
 	wxButton* Connect_Button = new wxButton(panel, wxID_ANY, "Connect", wxPoint(1, 1), wxSize(150, 25));
     wxButton* Download_Summary = new wxButton(panel, wxID_ANY, "Download Summary", wxPoint(1,26), wxSize(150, 25));
 
-    wxStaticText* CurrentBlockText = new wxStaticText(panel, wxID_ANY, "Current Block: ", wxPoint(165, 4));
-    wxStaticText* SummaryText = new wxStaticText(panel, wxID_ANY, "Summary Processed: ", wxPoint(165, 35));
+    wxStaticText* CurrentBlockText = new wxStaticText(panel, wxID_ANY, "-Current Block: ", wxPoint(165, 4));
+    wxStaticText* SummaryText = new wxStaticText(panel, wxID_ANY, "-Sumary Processed: ", wxPoint(165, 35));
+    wxStaticText* TotalNosoAddessesLoadedText = new wxStaticText(panel, wxID_ANY, "-Total Noso Addesses Loaded : ", wxPoint(400, 35));
+    //wxStaticText* TotalNosoAddessesLoadedValue = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(550, 35));
+    
 
     //wxStaticText* CurrentBlock = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(200, 4));
     CurrentBlock = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(285, 4));
-    GetSummaryText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(285, 26));
+    GetSumaryText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(285, 35));
+    TotalNosoAddessesLoadedValue = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(575, 35));
 
     Connect_Button->Bind(wxEVT_BUTTON, &MainFrame::OnConnectButtonClicked, this);
     Download_Summary->Bind(wxEVT_BUTTON, &MainFrame::OnDownloadSummaryButtonClicked, this);
@@ -35,10 +39,46 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
 
 void MainFrame::OnDownloadSummaryButtonClicked(wxCommandEvent& evt)
 {
-    std::string DefaultNodeIp = "20.199.50.27";						//PENDDING: Send commmand to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
+    std::string DefaultNodeIp = "20.199.50.27";						//PENDING: Send commmand to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
     int DefaultNodePort = 8080;
     std::string GETZIPSUMARY_COMMAND = "GETZIPSUMARY\n";
-    std::string GetZipSummaryResponse = SendStringToNode(DefaultNodeIp, DefaultNodePort, GETZIPSUMARY_COMMAND);
+    std::string GetZipSumaryResponse = SendStringToNode(DefaultNodeIp, DefaultNodePort, GETZIPSUMARY_COMMAND);
+    GetSumaryText->SetLabel(wxString(GetZipSumaryResponse));              // Modify Static text to show Current Block
+    
+    
+
+    //Unzip File
+    system(".\\utils\\minizip\\minizip.exe -x -o .\\summary.zip");
+
+
+ 
+    std::ifstream inputFile(".\\data\\sumary.psk", std::ios::binary);
+    if (!inputFile) {
+        std::cout << "Cannot open the file." << std::endl;
+        //return void; 
+    }
+    else {
+        std::cout << "File Opened!";
+    }
+
+    inputFile.seekg(0, std::ios::end); // Move pointer to end file
+    std::streampos fileSize = inputFile.tellg(); // Getting file Size
+    inputFile.seekg(0, std::ios::beg); // Moving pointer to the beginning 
+    size_t numRecords = fileSize / sizeof(TSummaryData); // Calculate number of registers
+
+    TotalNosoAddessesLoadedValue->SetLabel(wxString(std::to_string(numRecords)));
+
+    //std::cout << endl << "NOSO Addressess loaded : " << numRecords << std::endl;
+
+    std::vector<TSummaryData> dataVector(numRecords);
+
+    inputFile.read(reinterpret_cast<char*>(dataVector.data()), fileSize);
+
+    inputFile.close();
+
+   
+  
+         
 }
 
 void MainFrame::OnConnectButtonClicked(wxCommandEvent& evt)
@@ -78,10 +118,7 @@ void MainFrame::OnConnectButtonClicked(wxCommandEvent& evt)
     std::string CurrentBlockString = std::to_string(data.BlockNumber); //Transform from Integer to String
     CurrentBlock->SetLabel(wxString(CurrentBlockString));              // Modify Static text to show Current Block
 
-    //MainFrame
-    //MainFrame
-    //CurrentBlock
-	//this->CurrentBlock
+
 	wxLogStatus("Connected, NODESTATUS SAVED.");
 
 }

@@ -49,7 +49,7 @@ std::string SendStringToNode(const std::string& ip, int port, const std::string&
 
     if (message == "GETZIPSUMARY\n")
     {
-        std::string response = "SUMARY REQUESTED AND SAVED\n";
+        std::string response = "Sumary Downloaded\n";
         std::remove("summary.zip");
         std::ofstream outputFile("summary.zip", std::ios::binary);
         char buffer[1024];
