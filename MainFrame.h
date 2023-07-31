@@ -13,8 +13,8 @@ private:
 	void OnClose(wxCloseEvent& evt);
 	wxStaticText* CurrentBlock;
 	wxStaticText* GetSumaryText;
-	wxStaticText* TotalNosoAddessesLoadedText;
-	wxStaticText* TotalNosoAddessesLoadedValue;
+	wxStaticText* TotalNosoAddressesLoadedText;
+	wxStaticText* TotalNosoAddressesLoadedValue;
 
 
 

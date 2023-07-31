@@ -16,15 +16,18 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
     wxButton* Download_Summary = new wxButton(panel, wxID_ANY, "Download Summary", wxPoint(1,26), wxSize(150, 25));
 
     wxStaticText* CurrentBlockText = new wxStaticText(panel, wxID_ANY, "-Current Block: ", wxPoint(165, 4));
+    CurrentBlockText->SetFont(wxFontInfo(8).Bold());
     wxStaticText* SummaryText = new wxStaticText(panel, wxID_ANY, "-Sumary Processed: ", wxPoint(165, 35));
-    wxStaticText* TotalNosoAddessesLoadedText = new wxStaticText(panel, wxID_ANY, "-Total Noso Addesses Loaded : ", wxPoint(400, 35));
+    SummaryText->SetFont(wxFontInfo(8).Bold());
+    wxStaticText* TotalNosoAddressesLoadedText = new wxStaticText(panel, wxID_ANY, "-Total Noso Addesses Loaded : ", wxPoint(400, 35));
+    TotalNosoAddressesLoadedText->SetFont(wxFontInfo(8).Bold());
     //wxStaticText* TotalNosoAddessesLoadedValue = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(550, 35));
     
 
     //wxStaticText* CurrentBlock = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(200, 4));
     CurrentBlock = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(285, 4));
     GetSumaryText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(285, 35));
-    TotalNosoAddessesLoadedValue = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(575, 35));
+    TotalNosoAddressesLoadedValue = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(575, 35));
 
     Connect_Button->Bind(wxEVT_BUTTON, &MainFrame::OnConnectButtonClicked, this);
     Download_Summary->Bind(wxEVT_BUTTON, &MainFrame::OnDownloadSummaryButtonClicked, this);
@@ -66,7 +69,7 @@ void MainFrame::OnDownloadSummaryButtonClicked(wxCommandEvent& evt)
     inputFile.seekg(0, std::ios::beg); // Moving pointer to the beginning 
     size_t numRecords = fileSize / sizeof(TSummaryData); // Calculate number of registers
 
-    TotalNosoAddessesLoadedValue->SetLabel(wxString(std::to_string(numRecords)));
+    TotalNosoAddressesLoadedValue->SetLabel(wxString(std::to_string(numRecords)));
 
     //std::cout << endl << "NOSO Addressess loaded : " << numRecords << std::endl;
 
