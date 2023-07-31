@@ -8,33 +8,43 @@
 
 
 
-
 MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {   //Constructor Base class
 	wxPanel* panel = new wxPanel(this);
 
 	wxButton* Connect_Button = new wxButton(panel, wxID_ANY, "Connect", wxPoint(1, 1), wxSize(150, 25));
     wxButton* Download_Summary = new wxButton(panel, wxID_ANY, "Download Summary", wxPoint(1,26), wxSize(150, 25));
     wxButton* SyncMainNetTime = new wxButton(panel, wxID_ANY, "Sync MainNet Time", wxPoint(1, 51), wxSize(150, 25));
+    wxButton* GetMasterNodeList = new wxButton(panel, wxID_ANY, "Get Master Node List", wxPoint(1, 76), wxSize(150, 25));
 
     wxStaticText* CurrentBlockText = new wxStaticText(panel, wxID_ANY, "-Current Block: ", wxPoint(165, 6.25));
     CurrentBlockText->SetFont(wxFontInfo(8).Bold());
-    wxStaticText* SummaryText = new wxStaticText(panel, wxID_ANY, "-Sumary Processed: ", wxPoint(165, 32.25));
+    wxStaticText* SummaryText = new wxStaticText(panel, wxID_ANY, "-Summary Processed: ", wxPoint(165, 32.25));
     SummaryText->SetFont(wxFontInfo(8).Bold());
     wxStaticText* TotalNosoAddressesLoadedText = new wxStaticText(panel, wxID_ANY, "-Total Noso Addesses Loaded : ", wxPoint(400, 35));
     TotalNosoAddressesLoadedText->SetFont(wxFontInfo(8).Bold());
     wxStaticText* MainNetTime = new wxStaticText(panel, wxID_ANY, "-MainNetTime:  ", wxPoint(165, 58.25));
     MainNetTime->SetFont(wxFontInfo(8).Bold());
-    
+    wxStaticText* MasterNodeList = new wxStaticText(panel, wxID_ANY, "-MasterNodeList:  ", wxPoint(165, 81.53));
+    MasterNodeList->SetFont(wxFontInfo(8).Bold());
+
 
     //wxStaticText* CurrentBlock = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(200, 4));
     CurrentBlock = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(285, 6.25));
     GetSumaryText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(285, 32.25));
     TotalNosoAddressesLoadedValue = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(575, 35));
     MainNetTimeText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(285, 58.25));
+    MasterNodeListText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(285, 81.53));
+
+    //TextBox Definition
+    TextBox = new wxTextCtrl(panel, wxID_ANY, "Text Box", wxPoint(1, 200), wxSize(680, 250), wxTE_MULTILINE);
+
+
+
 
     SyncMainNetTime->Bind(wxEVT_BUTTON, &MainFrame::OnSyncMainNetTimeButtonClicked, this);
     Connect_Button->Bind(wxEVT_BUTTON, &MainFrame::OnConnectButtonClicked, this);
     Download_Summary->Bind(wxEVT_BUTTON, &MainFrame::OnDownloadSummaryButtonClicked, this);
+    GetMasterNodeList->Bind(wxEVT_BUTTON, &MainFrame::GetMasterNodeList, this);
     this->Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
 
 
@@ -83,7 +93,6 @@ void MainFrame::OnDownloadSummaryButtonClicked(wxCommandEvent& evt)
 
     inputFile.close();
 
-   
   
          
 }
@@ -132,18 +141,39 @@ void MainFrame::OnConnectButtonClicked(wxCommandEvent& evt)
 
 
 void MainFrame::OnSyncMainNetTimeButtonClicked(wxCommandEvent& evt) {
-    
-    std::string MainNetTime= std::to_string(GetMainetTimeStamp());
 
-    MainNetTimeText->SetLabel(MainNetTime);
 
+    MainNetTimeText->SetLabel(std::to_string(GetMainetTimeStamp()));
 
 }
+
+void MainFrame::OnTimer(wxTimerEvent& event) {
+
+   
+
+ 
+   // Pending automatic Time showind Date and Time updated every second and synced to Main Net or NTP Servers.
+}
+
+
+
+
 
 
 void MainFrame::OnClose(wxCloseEvent& evt) {
     wxLogMessage("Wallet Closed");
     evt.Skip();
+
+}
+
+void MainFrame::GetMasterNodeList(wxCommandEvent& evt)
+{
+    std::string NODESTATUS_COMMAND = "NSLMNS\n";
+    std::string DefaultNodeIp = "20.199.50.27";						//PENDDING: Send commmand to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
+    int DefaultNodePort = 8080;										//PENDING: Set PORT from List of Nodes.
+    std::string MasterNodeListString = SendStringToNode(DefaultNodeIp, DefaultNodePort, NODESTATUS_COMMAND);
+    TextBox->SetLabel(MasterNodeListString);
+    MasterNodeListText->SetLabel("Master Node List OK");
 
 }
 
