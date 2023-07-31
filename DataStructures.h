@@ -45,3 +45,23 @@
     };
 #pragma pack(pop)
 
+    // Wallet Struct Data
+
+#pragma pack(push, 1)
+    struct WalletData {
+
+        char Empty[1]; //Due pascal original file
+        char Hash[40]; // Public address HashEl hash publico o direccion
+        char Empty2[1]; //Due Pascal original file
+        char Custom[40]; // Custom Name
+        char Empty3[1];  //Due Pascal original file
+        char PublicKey[255]; // Public Key
+        char Empty4[1]; // Due pascal original file
+        char PrivateKey[255]; // Private Key
+        int64_t Balance; // Last balance from this address
+        int64_t Pending; // Last pending payment
+        int64_t Score; // Address status.
+        int64_t LastOP;// Time from the last operation in UnixTime Format
+
+    };
+#pragma pack(pop)
