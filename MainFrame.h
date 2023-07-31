@@ -17,13 +17,12 @@ private:
 	void OnSyncMainNetTimeButtonClicked(wxCommandEvent& evt);
 	void OnClose(wxCloseEvent& evt);
 	void GetMasterNodeList(wxCommandEvent& evt);
+	void GenerateKeys(wxCommandEvent& evt);
 
 	
 	//Time Sync NTP
 	wxStaticText* CurrentBlock;
 	wxStaticText* GetSumaryText;
-	
-
 
 	//Noso Addresses Control
 	wxStaticText* TotalNosoAddressesLoadedText;
@@ -41,6 +40,8 @@ private:
 
 	//Text VBox to show data
 	wxTextCtrl* TextBox;
+
+	wxStaticText* GenerateKeysText;
  
 
 

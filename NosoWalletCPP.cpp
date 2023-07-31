@@ -5,17 +5,28 @@
 #include "DataStructures.h"
 #include "Communication.h"
 #include <fstream>
+#include <cryptopp/eccrypto.h>
+#include <cryptopp/osrng.h>
+#include <cryptopp/oids.h>
+#include <cryptopp/hex.h>
+#include <cryptopp/cryptlib.h>
 
 
 
 MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {   //Constructor Base class
 	wxPanel* panel = new wxPanel(this);
 
+    //Button Definitions
+
 	wxButton* Connect_Button = new wxButton(panel, wxID_ANY, "Connect", wxPoint(1, 1), wxSize(150, 25));
     wxButton* Download_Summary = new wxButton(panel, wxID_ANY, "Download Summary", wxPoint(1,26), wxSize(150, 25));
     wxButton* SyncMainNetTime = new wxButton(panel, wxID_ANY, "Sync MainNet Time", wxPoint(1, 51), wxSize(150, 25));
     wxButton* GetMasterNodeList = new wxButton(panel, wxID_ANY, "Get Master Node List", wxPoint(1, 76), wxSize(150, 25));
+    wxButton* GenerateKeysButton = new wxButton(panel, wxID_ANY, "Generate Keys", wxPoint(1, 100), wxSize(150, 25));
+    
 
+    //Static Text Definitions
+    
     wxStaticText* CurrentBlockText = new wxStaticText(panel, wxID_ANY, "-Current Block: ", wxPoint(165, 6.25));
     CurrentBlockText->SetFont(wxFontInfo(8).Bold());
     wxStaticText* SummaryText = new wxStaticText(panel, wxID_ANY, "-Summary Processed: ", wxPoint(165, 32.25));
@@ -26,27 +37,28 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
     MainNetTime->SetFont(wxFontInfo(8).Bold());
     wxStaticText* MasterNodeList = new wxStaticText(panel, wxID_ANY, "-MasterNodeList:  ", wxPoint(165, 81.53));
     MasterNodeList->SetFont(wxFontInfo(8).Bold());
+    wxStaticText* GenerateKeysText= new wxStaticText(panel, wxID_ANY, "-Generate Keys:  ", wxPoint(165, 104.81));
+    GenerateKeysText->SetFont(wxFontInfo(8).Bold());
 
-
-    //wxStaticText* CurrentBlock = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(200, 4));
+    //Dynamic object creation
     CurrentBlock = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(285, 6.25));
     GetSumaryText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(285, 32.25));
     TotalNosoAddressesLoadedValue = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(575, 35));
     MainNetTimeText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(285, 58.25));
     MasterNodeListText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(285, 81.53));
-
-    //TextBox Definition
     TextBox = new wxTextCtrl(panel, wxID_ANY, "Text Box", wxPoint(1, 200), wxSize(680, 250), wxTE_MULTILINE);
+    GenerateKeysText= new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(285, 104.81));
 
-
-
+    //Bind Operations to Button event
 
     SyncMainNetTime->Bind(wxEVT_BUTTON, &MainFrame::OnSyncMainNetTimeButtonClicked, this);
     Connect_Button->Bind(wxEVT_BUTTON, &MainFrame::OnConnectButtonClicked, this);
     Download_Summary->Bind(wxEVT_BUTTON, &MainFrame::OnDownloadSummaryButtonClicked, this);
     GetMasterNodeList->Bind(wxEVT_BUTTON, &MainFrame::GetMasterNodeList, this);
+    GenerateKeysButton->Bind(wxEVT_BUTTON, &MainFrame::GenerateKeys, this);
     this->Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
 
+    //Status Bar creation
 
 	wxStatusBar* statusBar =CreateStatusBar(); // Create Status Bar Bottom Window.
     statusBar->SetDoubleBuffered(true);
@@ -152,7 +164,7 @@ void MainFrame::OnTimer(wxTimerEvent& event) {
    
 
  
-   // Pending automatic Time showind Date and Time updated every second and synced to Main Net or NTP Servers.
+   // Pending automatic Time showing Date and Time updated every second and synced to Main Net or NTP Servers.
 }
 
 
@@ -177,6 +189,57 @@ void MainFrame::GetMasterNodeList(wxCommandEvent& evt)
 
 }
 
+void MainFrame::GenerateKeys(wxCommandEvent& evt)
+{
+    CryptoPP::AutoSeededRandomPool rng;
+
+    // Generar el par de claves ECDSA secp256k1
+    CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey privateKey;
+    privateKey.Initialize(rng, CryptoPP::ASN1::secp256k1());
+
+    CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey publicKey;
+    privateKey.MakePublicKey(publicKey);
+
+    //Print Private and Public Key generated:
+
+    
+    
+    //std::cout << "PUBLIC KEY: ";
+    TextBox->AppendText("\nPUBLIC KEY: ");
+    CryptoPP::HexEncoder publicHex;
+    publicKey.Save(publicHex);
+    publicHex.MessageEnd();
+    CryptoPP::word64 size = publicHex.MaxRetrievable();
+    if (size)
+    {
+        std::string encoded(size, 0);
+        publicHex.Get(reinterpret_cast<CryptoPP::byte*>(&encoded[0]), encoded.size());
+        //TextBox->Appen
+        TextBox->AppendText(encoded);
+        //std::cout << encoded << std::endl;
+    }
+
+    
+    //std::cout << "PRIVATE KEY: ";
+    TextBox->AppendText("\nPRIVATE KEY : ");
+    CryptoPP::HexEncoder privateHex;
+    privateKey.Save(privateHex);
+    privateHex.MessageEnd();
+    size = privateHex.MaxRetrievable();
+    if (size)
+    {
+        std::string encoded(size, 0);
+        privateHex.Get(reinterpret_cast<CryptoPP::byte*>(&encoded[0]), encoded.size());
+        TextBox->AppendText(encoded);
+        //std::cout << encoded << std::endl;
+    }
+    
+    
+    
+    
+    //TextBox->SetLabel("PrivateKey: %c",to_string(privatekey))
+
+}
 
 /*
 wxButton* button = new wxButton(panel, wxID_ANY, "New NOSO Address", wxPoint(150, 50), wxSize(100, 35));
