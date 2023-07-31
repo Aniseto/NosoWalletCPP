@@ -14,21 +14,25 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
 
 	wxButton* Connect_Button = new wxButton(panel, wxID_ANY, "Connect", wxPoint(1, 1), wxSize(150, 25));
     wxButton* Download_Summary = new wxButton(panel, wxID_ANY, "Download Summary", wxPoint(1,26), wxSize(150, 25));
+    wxButton* SyncMainNetTime = new wxButton(panel, wxID_ANY, "Sync MainNet Time", wxPoint(1, 51), wxSize(150, 25));
 
-    wxStaticText* CurrentBlockText = new wxStaticText(panel, wxID_ANY, "-Current Block: ", wxPoint(165, 4));
+    wxStaticText* CurrentBlockText = new wxStaticText(panel, wxID_ANY, "-Current Block: ", wxPoint(165, 6.25));
     CurrentBlockText->SetFont(wxFontInfo(8).Bold());
-    wxStaticText* SummaryText = new wxStaticText(panel, wxID_ANY, "-Sumary Processed: ", wxPoint(165, 35));
+    wxStaticText* SummaryText = new wxStaticText(panel, wxID_ANY, "-Sumary Processed: ", wxPoint(165, 32.25));
     SummaryText->SetFont(wxFontInfo(8).Bold());
     wxStaticText* TotalNosoAddressesLoadedText = new wxStaticText(panel, wxID_ANY, "-Total Noso Addesses Loaded : ", wxPoint(400, 35));
     TotalNosoAddressesLoadedText->SetFont(wxFontInfo(8).Bold());
-    //wxStaticText* TotalNosoAddessesLoadedValue = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(550, 35));
+    wxStaticText* MainNetTime = new wxStaticText(panel, wxID_ANY, "-MainNetTime:  ", wxPoint(165, 58.25));
+    MainNetTime->SetFont(wxFontInfo(8).Bold());
     
 
     //wxStaticText* CurrentBlock = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(200, 4));
-    CurrentBlock = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(285, 4));
-    GetSumaryText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(285, 35));
+    CurrentBlock = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(285, 6.25));
+    GetSumaryText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(285, 32.25));
     TotalNosoAddressesLoadedValue = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(575, 35));
+    MainNetTimeText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(285, 58.25));
 
+    SyncMainNetTime->Bind(wxEVT_BUTTON, &MainFrame::OnSyncMainNetTimeButtonClicked, this);
     Connect_Button->Bind(wxEVT_BUTTON, &MainFrame::OnConnectButtonClicked, this);
     Download_Summary->Bind(wxEVT_BUTTON, &MainFrame::OnDownloadSummaryButtonClicked, this);
     this->Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
@@ -125,6 +129,17 @@ void MainFrame::OnConnectButtonClicked(wxCommandEvent& evt)
 	wxLogStatus("Connected, NODESTATUS SAVED.");
 
 }
+
+
+void MainFrame::OnSyncMainNetTimeButtonClicked(wxCommandEvent& evt) {
+    
+    std::string MainNetTime= std::to_string(GetMainetTimeStamp());
+
+    MainNetTimeText->SetLabel(MainNetTime);
+
+
+}
+
 
 void MainFrame::OnClose(wxCloseEvent& evt) {
     wxLogMessage("Wallet Closed");

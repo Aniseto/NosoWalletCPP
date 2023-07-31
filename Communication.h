@@ -3,6 +3,7 @@
 #include <boost\asio.hpp> //Boost Library //vcpkg install boost:x64-windows-static https://www.boost.org/
 #include <iostream>
 #include <fstream>
+#include <vector>
 
 
 std::string SendStringToNode(const std::string& ip, int port, const std::string& message) {
@@ -80,4 +81,15 @@ std::string SendStringToNode(const std::string& ip, int port, const std::string&
     WSACleanup();
     return respuesta;
 
+}
+
+int GetMainetTimeStamp()
+{
+    std::string ip = "20.199.50.27";
+    int port = 8080;
+    std::string command = "NSLTIME\n";
+    std::string TimeString = SendStringToNode(ip, port, command);
+    int TimeInt = stoi(TimeString);
+    //cout << "Time Integer" << TimeInt << endl; // Control String to check answer.
+    return TimeInt;
 }
