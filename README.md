@@ -16,11 +16,11 @@ Remember to add respective Headers and Libs on your Visual studio solution Prope
 
 ## Build with CMake
 
-We are providing the `CMakeLists.txt` file to allow you to build this project with CMake
+We are providing the `CMakeLists.txt` file to allow you to build this project with CMake.
 
 ### Building under Linux
 
-In order to compile this project under Linux you'll need to have the above libraries installed in your system
+In order to compile this project under Linux you'll need to have the above libraries installed in your system.
 
 **For Ubuntu**
 
