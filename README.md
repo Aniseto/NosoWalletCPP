@@ -14,4 +14,18 @@ Follow how to install those libraries from respective Websites, if using Visual 
 
 Remember to add respective Headers and Libs on your Visual studio solution Properties.
 
+## Build with CMake
 
+We are providing the `CMakeLists.txt` file to allow you to build this project with CMake
+
+### Building under Linux
+
+In order to compile this project under Linux you'll need to have the above libraries installed in your system
+
+**For Ubuntu**
+
+```console
+$ sudo apt install -y libboost-all-dev libcrypto++-dev libwxgtk3.2-dev
+```
+
+We are also providing the file `build_with_cmake.sh` as a quick way of invoking all the necessary commands in order to build with CMake.
