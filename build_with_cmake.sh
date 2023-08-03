@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SOURCE_PATH=/home/gcarreno/Programming/Noso/NosoWalletCPP
+SOURCE_PATH=.
 BUILD_PATH=${SOURCE_PATH}/build
 
 echo "###################################"
