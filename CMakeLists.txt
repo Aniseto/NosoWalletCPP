@@ -28,4 +28,5 @@ add_executable(NosoWalletCPP
 # add the libs to the linker
 target_link_libraries(NosoWalletCPP PRIVATE
   ${wxWidgets_LIBRARIES}
+  crypto++
 )
