@@ -1,17 +1,27 @@
-#include <string>
 #pragma once
+#include <string>
 #include <boost/asio.hpp> //Boost Library //vcpkg install boost:x64-windows-static https://www.boost.org/
 #include <iostream>
 #include <fstream>
 #include <vector>
 
+#ifndef _WIN32
+#include<sys/socket.h>
+#define SOCKET int
+#define INVALID_SOCKET -1
+#define WSACleanup() void()
+#define closesocket(s) close(s)
+#define SOCKET_ERROR -1
+#endif
 
 std::string SendStringToNode(const std::string& ip, int port, const std::string& message) {
+#ifdef _WIN32
     WSADATA wsaData; // Wsdata Variable
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
         std::cerr << "Error Initializing Winsock." << std::endl;
         return "Error Initializing Winsock.";
     }
+#endif
 
     // Create TCP socket
     SOCKET socketCliente = socket(AF_INET, SOCK_STREAM, 0);
