@@ -103,3 +103,16 @@ int GetMainetTimeStamp()
     //cout << "Time Integer" << TimeInt << endl; // Control String to check answer.
     return TimeInt;
 }
+
+//Get Master Node config String
+
+std::string GetMasterNodeConf()
+{
+    std::string ip = "20.199.50.27";
+    int port = 8080;
+    std::string messageGetMasterNodeConfig = "NSLCFG\n";
+    std::string responseGetMasterNodeConfig = SendStringToNode(ip, port, messageGetMasterNodeConfig);
+    return responseGetMasterNodeConfig;
+
+}
+

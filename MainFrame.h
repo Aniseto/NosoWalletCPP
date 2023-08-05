@@ -18,6 +18,7 @@ private:
 	void OnClose(wxCloseEvent& evt);
 	void GetMasterNodeList(wxCommandEvent& evt);
 	void GenerateKeys(wxCommandEvent& evt);
+	void GetMasterNodeConfig(wxCommandEvent& evt);
 
 	
 	//Time Sync NTP

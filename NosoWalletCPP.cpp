@@ -23,6 +23,7 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
     wxButton* SyncMainNetTime = new wxButton(panel, wxID_ANY, "Sync MainNet Time", wxPoint(1, 51), wxSize(150, 25));
     wxButton* GetMasterNodeList = new wxButton(panel, wxID_ANY, "Get Master Node List", wxPoint(1, 76), wxSize(150, 25));
     wxButton* GenerateKeysButton = new wxButton(panel, wxID_ANY, "Generate Keys", wxPoint(1, 100), wxSize(150, 25));
+    wxButton* GetMasterNodeConfigButton = new wxButton(panel, wxID_ANY, "Get Master Node config", wxPoint(1, 124), wxSize(150, 25));
     
 
     //Static Text Definitions
@@ -39,15 +40,17 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
     MasterNodeList->SetFont(wxFontInfo(8).Bold());
     wxStaticText* GenerateKeysText= new wxStaticText(panel, wxID_ANY, "-Generate Keys:  ", wxPoint(165, 104.81));
     GenerateKeysText->SetFont(wxFontInfo(8).Bold());
+    wxStaticText* GetMasterNodeconfigText = new wxStaticText(panel, wxID_ANY, "-Get Master Node Config:  ", wxPoint(165, 128.09));
+    GetMasterNodeconfigText->SetFont(wxFontInfo(8).Bold());
 
     //Dynamic object creation
-    CurrentBlock = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(285, 6.25));
-    GetSumaryText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(285, 32.25));
+    CurrentBlock = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 6.25));
+    GetSumaryText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 32.25));
     TotalNosoAddressesLoadedValue = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(575, 35));
-    MainNetTimeText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(285, 58.25));
-    MasterNodeListText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(285, 81.53));
+    MainNetTimeText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 58.25));
+    MasterNodeListText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 81.53));
     TextBox = new wxTextCtrl(panel, wxID_ANY, "Text Box", wxPoint(1, 200), wxSize(680, 250), wxTE_MULTILINE);
-    GenerateKeysText= new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(285, 104.81));
+    GenerateKeysText= new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 104.81));
 
     //Bind Operations to Button event
 
@@ -56,6 +59,7 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
     Download_Summary->Bind(wxEVT_BUTTON, &MainFrame::OnDownloadSummaryButtonClicked, this);
     GetMasterNodeList->Bind(wxEVT_BUTTON, &MainFrame::GetMasterNodeList, this);
     GenerateKeysButton->Bind(wxEVT_BUTTON, &MainFrame::GenerateKeys, this);
+    GetMasterNodeConfigButton->Bind(wxEVT_BUTTON, &MainFrame::GetMasterNodeConfig, this);
     this->Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
 
     //Status Bar creation
@@ -238,6 +242,15 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     
     
     //TextBox->SetLabel("PrivateKey: %c",to_string(privatekey))
+
+}
+
+void MainFrame::GetMasterNodeConfig(wxCommandEvent& evt)
+{
+    std::string MasterNodeConfig = GetMasterNodeConf();
+    TextBox->Clear();
+    TextBox->AppendText(MasterNodeConfig);
+
 
 }
 
