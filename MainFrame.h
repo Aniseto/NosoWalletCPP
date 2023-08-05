@@ -19,6 +19,7 @@ private:
 	void GetMasterNodeList(wxCommandEvent& evt);
 	void GenerateKeys(wxCommandEvent& evt);
 	void GetMasterNodeConfig(wxCommandEvent& evt);
+	bool UnzipFile(const wxString& zipFileName, const wxString& outputDir);
 
 	
 	//Time Sync NTP

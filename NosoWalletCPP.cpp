@@ -1,6 +1,8 @@
 // Start of wxWidgets "Hello World" Program  https://docs.wxwidgets.org/3.2.2.1/plat_msw_install.html#msw_build_apps
 // Includes: 
 #include <wx/wx.h>
+#include <wx/zipstrm.h>
+#include <wx/wfstream.h>
 #include "MainFrame.h"
 #include "DataStructures.h"
 #include "Communication.h"
@@ -78,10 +80,15 @@ void MainFrame::OnDownloadSummaryButtonClicked(wxCommandEvent& evt)
     std::string GetZipSumaryResponse = SendStringToNode(DefaultNodeIp, DefaultNodePort, GETZIPSUMARY_COMMAND);
     GetSumaryText->SetLabel(wxString(GetZipSumaryResponse));              // Modify Static text to show Current Block
     
+    wxString zipFileName = "summary.zip";
+    wxString outputDir = ".\\";
+    UnzipFile(zipFileName, outputDir);
+
     
 
     //Unzip File
-    system(".\\utils\\minizip\\minizip.exe -x -o .\\summary.zip");
+    //system(".\\utils\\minizip\\minizip.exe -x -o .\\summary.zip");
+
 
 
  
@@ -254,6 +261,65 @@ void MainFrame::GetMasterNodeConfig(wxCommandEvent& evt)
 
 }
 
+
+
+bool MainFrame::UnzipFile(const wxString& zipFileName, const wxString& outputDir)   //https://docs.wxwidgets.org/3.1/overview_archive.html
+{
+    wxFileInputStream fis(zipFileName);
+
+    if (!fis.IsOk())
+    {
+        wxLogError(wxS("Couldn't open the file '%s'."), zipFileName);
+        return false;
+    }
+
+    wxZipInputStream zis(fis);
+    std::unique_ptr<wxZipEntry> upZe;
+
+    while (upZe.reset(zis.GetNextEntry()), upZe) // != nullptr
+    {
+        // Access meta-data.
+        wxString strFileName = outputDir + wxFileName::GetPathSeparator() + upZe->GetName();
+        int nPermBits = upZe->GetMode();
+        wxFileName fn;
+
+        if (upZe->IsDir()) // This entry is a directory.
+            fn.AssignDir(strFileName);
+        else // This entry is a regular file.
+            fn.Assign(strFileName);
+
+        // Check if the directory exists, and if not, create it recursively.
+        if (!wxDirExists(fn.GetPath()))
+            wxFileName::Mkdir(fn.GetPath(), nPermBits, wxPATH_MKDIR_FULL);
+
+        if (upZe->IsDir()) // This entry is a directory.
+            continue; // Skip the file creation, because this entry is not a regular file, but a directory.
+
+        // Read 'zis' to access the 'upZe's' data.
+        if (!zis.CanRead())
+        {
+            wxLogError(wxS("Couldn't read the zip entry '%s'."), upZe->GetName());
+            return false;
+        }
+
+        wxFileOutputStream fos(strFileName);
+
+        if (!fos.IsOk())
+        {
+            wxLogError(wxS("Couldn't create the file '%s'."), strFileName);
+            return false;
+        }
+
+        zis.Read(fos);
+        //fos.Close();
+        //zis.CloseEntry();
+    }
+
+    //wxMessageBox(wxS("Extraction completed successfully."), wxS("Information"));
+
+    return true;
+}
+
 /*
 wxButton* button = new wxButton(panel, wxID_ANY, "New NOSO Address", wxPoint(150, 50), wxSize(100, 35));
 
@@ -262,6 +328,7 @@ wxCheckBox* checkBox = new wxCheckBox(panel, wxID_ANY, "CheckBox", wxPoint(200, 
 wxStaticText* staticText = new wxStaticText(panel, wxID_ANY, "Static Text", wxPoint(120, 150));
 
 wxTextCtrl* textCtrl = new wxTextCtrl(panel, wxID_ANY, "TextCTRL", wxPoint(500, 145), wxSize(200, -1));
+/*
 
 wxSlider* slider = new wxSlider(panel, wxID_ANY, 25, 0, 100, wxPoint(300,145),wxSize(200,-1));
 
