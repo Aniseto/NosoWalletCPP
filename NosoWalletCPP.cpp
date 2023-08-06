@@ -26,7 +26,6 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
     wxButton* GetMasterNodeList = new wxButton(panel, wxID_ANY, "Get Master Node List", wxPoint(1, 76), wxSize(150, 25));
     wxButton* GenerateKeysButton = new wxButton(panel, wxID_ANY, "Generate Keys", wxPoint(1, 100), wxSize(150, 25));
     wxButton* GetMasterNodeConfigButton = new wxButton(panel, wxID_ANY, "Get Master Node config", wxPoint(1, 124), wxSize(150, 25));
-    
 
     //Static Text Definitions
     
@@ -45,6 +44,7 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
     wxStaticText* GetMasterNodeconfigText = new wxStaticText(panel, wxID_ANY, "-Get Master Node Config:  ", wxPoint(165, 128.09));
     GetMasterNodeconfigText->SetFont(wxFontInfo(8).Bold());
 
+
     //Dynamic object creation
     CurrentBlock = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 6.25));
     GetSumaryText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 32.25));
@@ -53,6 +53,7 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
     MasterNodeListText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 81.53));
     TextBox = new wxTextCtrl(panel, wxID_ANY, "Text Box", wxPoint(1, 200), wxSize(680, 250), wxTE_MULTILINE);
     GenerateKeysText= new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 104.81));
+ 
 
     //Bind Operations to Button event
 
@@ -178,11 +179,6 @@ void MainFrame::OnTimer(wxTimerEvent& event) {
    // Pending automatic Time showing Date and Time updated every second and synced to Main Net or NTP Servers.
 }
 
-
-
-
-
-
 void MainFrame::OnClose(wxCloseEvent& evt) {
     wxLogMessage("Wallet Closed");
     evt.Skip();
@@ -202,20 +198,25 @@ void MainFrame::GetMasterNodeList(wxCommandEvent& evt)
 
 void MainFrame::GenerateKeys(wxCommandEvent& evt)
 {
+    
+    std::string PubSHAHashed = "Empty";
+    std::string Hash1 = "Empty";
+    std::string Hash2 = "Empty";
+    std::string Key = "Empty";
+    std::string Result = "Empty";
+
+    
+    
+
     CryptoPP::AutoSeededRandomPool rng;
 
-    // Generar el par de claves ECDSA secp256k1
+    // Generate ECDSA secp256k1 keys
     CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey privateKey;
     privateKey.Initialize(rng, CryptoPP::ASN1::secp256k1());
 
     CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey publicKey;
     privateKey.MakePublicKey(publicKey);
 
-    //Print Private and Public Key generated:
-
-    
-    
-    //std::cout << "PUBLIC KEY: ";
     TextBox->AppendText("\nPUBLIC KEY: ");
     CryptoPP::HexEncoder publicHex;
     publicKey.Save(publicHex);
@@ -223,29 +224,56 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     CryptoPP::word64 size = publicHex.MaxRetrievable();
     if (size)
     {
-        std::string encoded(size, 0);
-        publicHex.Get(reinterpret_cast<CryptoPP::byte*>(&encoded[0]), encoded.size());
+        std::string encodedPublic(size, 0);
+        publicHex.Get(reinterpret_cast<CryptoPP::byte*>(&encodedPublic[0]), encodedPublic.size());
         //TextBox->Appen
-        TextBox->AppendText(encoded);
+        TextBox->AppendText(encodedPublic);
         //std::cout << encoded << std::endl;
+        std::string Sha256 = PublicKeyToSHA256(encodedPublic);
+        TextBox->AppendText("\n\nSHA256 Public Key encoded\n");
+        TextBox->AppendText(Sha256);
     }
 
     
-    //std::cout << "PRIVATE KEY: ";
-    TextBox->AppendText("\nPRIVATE KEY : ");
+    TextBox->AppendText("\n\nPRIVATE KEY : ");
     CryptoPP::HexEncoder privateHex;
     privateKey.Save(privateHex);
     privateHex.MessageEnd();
     size = privateHex.MaxRetrievable();
     if (size)
     {
-        std::string encoded(size, 0);
-        privateHex.Get(reinterpret_cast<CryptoPP::byte*>(&encoded[0]), encoded.size());
-        TextBox->AppendText(encoded);
+        std::string encodedPrivate(size, 0);
+        privateHex.Get(reinterpret_cast<CryptoPP::byte*>(&encodedPrivate[0]), encodedPrivate.size());
+        TextBox->AppendText(encodedPrivate);
         //std::cout << encoded << std::endl;
     }
     
+
+  
+
     
+    ///Generating NOSO ADDRESS: 
+    /*Algorithm
+    // Generates the public hash from the public key
+function GetAddressFromPublicKey(PubKey:String):String;
+var
+  PubSHAHashed,Hash1,Hash2,clave:String;
+  sumatoria : string;
+Begin
+PubSHAHashed := HashSha256String(PubKey);
+Hash1 := HashMD160String(PubSHAHashed);
+hash1 := BMHexTo58(Hash1,58);
+sumatoria := BMB58resumen(Hash1);
+clave := BMDecTo58(sumatoria);
+hash2 := hash1+clave;
+Result := 'N'+hash2;
+End;   
+    
+    
+    */
+
+
+
     
     
     //TextBox->SetLabel("PrivateKey: %c",to_string(privatekey))
@@ -319,6 +347,31 @@ bool MainFrame::UnzipFile(const wxString& zipFileName, const wxString& outputDir
 
     return true;
 }
+
+std::string MainFrame::PublicKeyToSHA256(const std::string& publicKey)
+{
+ 
+        // Convert the public key to a byte array
+        const byte* publicKeyBytes = reinterpret_cast<const byte*>(publicKey.data());
+        size_t publicKeySize = publicKey.size();
+
+        // Compute the SHA256 hash
+        CryptoPP::SHA256 sha256;
+        byte hash[CryptoPP::SHA256::DIGESTSIZE];
+        sha256.Update(publicKeyBytes, publicKeySize);
+        sha256.Final(hash);
+
+        // Convert the hash to a string
+        std::string hashString;
+        CryptoPP::HexEncoder encoder;
+        encoder.Attach(new CryptoPP::StringSink(hashString));
+        encoder.Put(hash, sizeof(hash));
+        encoder.MessageEnd();
+
+        return hashString;
+   
+}
+
 
 /*
 wxButton* button = new wxButton(panel, wxID_ANY, "New NOSO Address", wxPoint(150, 50), wxSize(100, 35));

@@ -9,6 +9,8 @@ class MainFrame : public wxFrame
 public: 
 	MainFrame(const wxString& title);
 	std::string MasterNodeListString="Empty";
+	std::string GeneratedNosoAddress = "Empty";
+	
 
 private:
 
@@ -20,6 +22,8 @@ private:
 	void GenerateKeys(wxCommandEvent& evt);
 	void GetMasterNodeConfig(wxCommandEvent& evt);
 	bool UnzipFile(const wxString& zipFileName, const wxString& outputDir);
+	std::string PublicKeyToSHA256(const std::string& publicKey);
+	
 
 	
 	//Time Sync NTP
@@ -44,6 +48,12 @@ private:
 	wxTextCtrl* TextBox;
 
 	wxStaticText* GenerateKeysText;
+
+	//Noso AddressText
+
+	wxStaticText* GenerateNOSOAddressText;
+
+
  
 
 

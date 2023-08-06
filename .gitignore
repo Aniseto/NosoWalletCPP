@@ -364,3 +364,8 @@ FodyWeavers.xsd
 
 # CMake build folder
 /build/
+
+#summary.zip and sumary.psk
+
+summary.zip
+/data/summary.psk
