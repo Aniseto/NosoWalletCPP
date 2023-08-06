@@ -12,6 +12,11 @@
 #include <cryptopp/oids.h>
 #include <cryptopp/hex.h>
 #include <cryptopp/cryptlib.h>
+#include <wx/hash.h>
+#include <iostream>
+#include <string>
+#include <cryptopp/ripemd.h>
+
 
 
 
@@ -204,6 +209,7 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     std::string Hash2 = "Empty";
     std::string Key = "Empty";
     std::string Result = "Empty";
+    std::string MD160 = "Empty";
 
     
     
@@ -232,6 +238,9 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
         std::string Sha256 = PublicKeyToSHA256(encodedPublic);
         TextBox->AppendText("\n\nSHA256 Public Key encoded\n");
         TextBox->AppendText(Sha256);
+        MD160 = CalculateMD160(Sha256);
+        TextBox->AppendText("\n\nMD160:\n");
+        TextBox->AppendText(MD160);
     }
 
     
@@ -370,6 +379,24 @@ std::string MainFrame::PublicKeyToSHA256(const std::string& publicKey)
 
         return hashString;
    
+}
+
+std::string MainFrame::CalculateMD160(const std::string& SHA256String)
+
+{
+    CryptoPP::RIPEMD160 hash;
+    byte digest[CryptoPP::RIPEMD160::DIGESTSIZE];
+
+    hash.CalculateDigest(digest, reinterpret_cast<const byte*>(SHA256String.c_str()), SHA256String.length());
+
+    CryptoPP::HexEncoder encoder;
+    std::string hashHex;
+    encoder.Attach(new CryptoPP::StringSink(hashHex));
+    encoder.Put(digest, sizeof(digest));
+    encoder.MessageEnd();
+
+    return hashHex;
+
 }
 
 

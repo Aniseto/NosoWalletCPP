@@ -23,8 +23,9 @@ private:
 	void GetMasterNodeConfig(wxCommandEvent& evt);
 	bool UnzipFile(const wxString& zipFileName, const wxString& outputDir);
 	std::string PublicKeyToSHA256(const std::string& publicKey);
-	
+	std::string CalculateMD160(const std::string& SHA256String);
 
+	
 	
 	//Time Sync NTP
 	wxStaticText* CurrentBlock;
