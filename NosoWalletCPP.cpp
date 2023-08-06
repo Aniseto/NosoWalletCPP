@@ -16,6 +16,10 @@
 #include <iostream>
 #include <string>
 #include <cryptopp/ripemd.h>
+#include <cryptopp/cryptlib.h>
+#include <cryptopp/integer.h>
+#include <cryptopp/algebra.h>
+
 
 
 
@@ -29,7 +33,7 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
     wxButton* Download_Summary = new wxButton(panel, wxID_ANY, "Download Summary", wxPoint(1,26), wxSize(150, 25));
     wxButton* SyncMainNetTime = new wxButton(panel, wxID_ANY, "Sync MainNet Time", wxPoint(1, 51), wxSize(150, 25));
     wxButton* GetMasterNodeList = new wxButton(panel, wxID_ANY, "Get Master Node List", wxPoint(1, 76), wxSize(150, 25));
-    wxButton* GenerateKeysButton = new wxButton(panel, wxID_ANY, "Generate Keys", wxPoint(1, 100), wxSize(150, 25));
+    wxButton* GenerateKeysButton = new wxButton(panel, wxID_ANY, "Generate NOSO Address", wxPoint(1, 100), wxSize(150, 25));
     wxButton* GetMasterNodeConfigButton = new wxButton(panel, wxID_ANY, "Get Master Node config", wxPoint(1, 124), wxSize(150, 25));
 
     //Static Text Definitions
@@ -210,6 +214,7 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     std::string Key = "Empty";
     std::string Result = "Empty";
     std::string MD160 = "Empty";
+    std::string Base58 = "Empty";
 
     
     
@@ -241,6 +246,10 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
         MD160 = CalculateMD160(Sha256);
         TextBox->AppendText("\n\nMD160:\n");
         TextBox->AppendText(MD160);
+        Base58 = EncodeBase58(MD160);
+        TextBox->AppendText("\n\nBase58:\n");
+        TextBox->AppendText(Base58);
+
     }
 
     
@@ -397,6 +406,25 @@ std::string MainFrame::CalculateMD160(const std::string& SHA256String)
 
     return hashHex;
 
+}
+
+std::string MainFrame::EncodeBase58(const std::string& MD160String)
+{
+  
+        CryptoPP::Integer num=58;
+        std::string alphabet[58] = { "1","2","3","4","5","6","7","8","9","A","B","C","D","E","F",
+        "G","H","J","K","L","M","N","P","Q","R","S","T","U","V","W","X","Y","Z","a","b","c",
+        "d","e","f","g","h","i","j","k","m","n","o","p","q","r","s","t","u","v","w","x","y","z" };
+        int base_count = 58; std::string encoded; CryptoPP::Integer div; CryptoPP::Integer mod;
+        while (num >= base_count)
+        {
+            div = num / base_count;   mod = (num - (base_count * div));
+            encoded = alphabet[mod.ConvertToLong()] + encoded;   num = div;
+        }
+        encoded = MD160String + alphabet[num.ConvertToLong()] + encoded;
+        return encoded;
+  
+    
 }
 
 

@@ -24,6 +24,7 @@ private:
 	bool UnzipFile(const wxString& zipFileName, const wxString& outputDir);
 	std::string PublicKeyToSHA256(const std::string& publicKey);
 	std::string CalculateMD160(const std::string& SHA256String);
+	std::string EncodeBase58(const std::string& MD160String);
 
 	
 	
