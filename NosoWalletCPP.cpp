@@ -219,6 +219,7 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     std::string Base58 = "Empty";
     int Checksum = 0;
     std::string CheckSumBase58 = "Empty";
+    std::string NosoAddress = "Empty";
 
     
     
@@ -253,14 +254,18 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
         Base58 = EncodeBase58(MD160);
         TextBox->AppendText("\n\nBase58:\n");
         TextBox->AppendText(Base58);
-        //Checksum = CalculateCheckSum(Base58);
-        Checksum = CalculateCheckSum("3qo1fDmZPEK2q1zv4PHF5b2uXb8x");
+        Checksum = CalculateCheckSum(Base58);
+        //Checksum = CalculateCheckSum("3qo1fDmZPEK2q1zv4PHF5b2uXb8x");
         TextBox->AppendText("\n\nCheckSum:\n");
         TextBox->AppendText(std::to_string(Checksum));
         CheckSumBase58 = EncodeBase58(std::to_string(Checksum));
         TextBox->AppendText("\n\nCheckSumBase58:\n");
         TextBox->AppendText(CheckSumBase58);
 
+        //Final Noso Address: N + Base58 + Base58(CheckSum)
+        NosoAddress = "N" + Base58 + CheckSumBase58;
+        TextBox->AppendText("\n\nNOSO Address:\n");
+        TextBox->AppendText(NosoAddress);
     }
 
     
@@ -424,7 +429,7 @@ std::string MainFrame::EncodeBase58(const std::string& MD160String)
 
     std::string encoded = Botan::base58_encode(reinterpret_cast<const uint8_t*>(MD160String.data()), MD160String.size());
 
-    std::cout << "Encoded: " << encoded << std::endl;
+    //std::cout << "Encoded: " << encoded << std::endl;
     return encoded;
       //https://learnmeabitcoin.com/technical/base58 Test Conversion.
     
