@@ -19,6 +19,8 @@
 #include <cryptopp/cryptlib.h>
 #include <cryptopp/integer.h>
 #include <cryptopp/algebra.h>
+#include <botan/base58.h>
+
 
 
 
@@ -410,20 +412,12 @@ std::string MainFrame::CalculateMD160(const std::string& SHA256String)
 
 std::string MainFrame::EncodeBase58(const std::string& MD160String)
 {
-  
-        CryptoPP::Integer num=58;
-        std::string alphabet[58] = { "1","2","3","4","5","6","7","8","9","A","B","C","D","E","F",
-        "G","H","J","K","L","M","N","P","Q","R","S","T","U","V","W","X","Y","Z","a","b","c",
-        "d","e","f","g","h","i","j","k","m","n","o","p","q","r","s","t","u","v","w","x","y","z" };
-        int base_count = 58; std::string encoded; CryptoPP::Integer div; CryptoPP::Integer mod;
-        while (num >= base_count)
-        {
-            div = num / base_count;   mod = (num - (base_count * div));
-            encoded = alphabet[mod.ConvertToLong()] + encoded;   num = div;
-        }
-        encoded = MD160String + alphabet[num.ConvertToLong()] + encoded;
-        return encoded;
-  
+
+    std::string encoded = Botan::base58_encode(reinterpret_cast<const uint8_t*>(MD160String.data()), MD160String.size());
+
+    std::cout << "Encoded: " << encoded << std::endl;
+    return encoded;
+      //https://learnmeabitcoin.com/technical/base58 Test Conversion.
     
 }
 
