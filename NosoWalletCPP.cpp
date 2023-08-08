@@ -217,6 +217,8 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     std::string Result = "Empty";
     std::string MD160 = "Empty";
     std::string Base58 = "Empty";
+    int Checksum = 0;
+    std::string CheckSumBase58 = "Empty";
 
     
     
@@ -251,6 +253,13 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
         Base58 = EncodeBase58(MD160);
         TextBox->AppendText("\n\nBase58:\n");
         TextBox->AppendText(Base58);
+        //Checksum = CalculateCheckSum(Base58);
+        Checksum = CalculateCheckSum("3qo1fDmZPEK2q1zv4PHF5b2uXb8x");
+        TextBox->AppendText("\n\nCheckSum:\n");
+        TextBox->AppendText(std::to_string(Checksum));
+        CheckSumBase58 = EncodeBase58(std::to_string(Checksum));
+        TextBox->AppendText("\n\nCheckSumBase58:\n");
+        TextBox->AppendText(CheckSumBase58);
 
     }
 
@@ -419,6 +428,20 @@ std::string MainFrame::EncodeBase58(const std::string& MD160String)
     return encoded;
       //https://learnmeabitcoin.com/technical/base58 Test Conversion.
     
+}
+
+int MainFrame::CalculateCheckSum(const std::string& StringChecksum)
+
+{
+        const std::string B58Alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+       size_t total = 0;
+
+        for (size_t counter = 0; counter < StringChecksum.length(); ++counter) {
+            total += B58Alphabet.find(StringChecksum[counter]);
+        }
+
+        return total;
+   
 }
 
 
