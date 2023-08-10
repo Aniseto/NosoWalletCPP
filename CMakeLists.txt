@@ -14,9 +14,13 @@ project(
 )
 
 # Find required packages
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 ## WxWidgets
 find_package(wxWidgets REQUIRED gl core base OPTIONAL_COMPONENTS net)
 include(${wxWidgets_USE_FILE})
+
+## Botan
+find_package(Botan REQUIRED)
 
 # add the executable
 add_executable(NosoWalletCPP
@@ -29,4 +33,5 @@ add_executable(NosoWalletCPP
 target_link_libraries(NosoWalletCPP PRIVATE
   ${wxWidgets_LIBRARIES}
   crypto++
+  Botan::Botan
 )

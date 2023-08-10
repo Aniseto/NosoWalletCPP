@@ -9,6 +9,7 @@ Libraries:
 - WxWidgets(https://www.wxwidgets.org/)
 - Boost(https://www.boost.org/)
 - CryptoPP(https://www.cryptopp.com/)
+- Botan (https://botan.randombit.net/)
 
 Follow how to install those libraries from respective Websites, if using Visual Studio then you can use VCPKG(https://vcpkg.io/en/) package manager to compile and install libraries.
 
@@ -25,7 +26,7 @@ In order to compile this project under Linux you'll need to have the above libra
 **For Ubuntu**
 
 ```console
-$ sudo apt install -y libboost-all-dev libcrypto++-dev libwxgtk3.2-dev
+$ sudo apt install -y libboost-all-dev libcrypto++-dev libwxgtk3.2-dev libbotan-2-dev
 ```
 
 We are also providing the file `build_with_cmake.sh` as a quick way of invoking all the necessary commands in order to build with CMake.
