@@ -386,12 +386,12 @@ std::string MainFrame::PublicKeyToSHA256(const std::string& publicKey)
 {
  
         // Convert the public key to a byte array
-        const byte* publicKeyBytes = reinterpret_cast<const byte*>(publicKey.data());
+        const CryptoPP::byte* publicKeyBytes = reinterpret_cast<const CryptoPP::byte*>(publicKey.data());
         size_t publicKeySize = publicKey.size();
 
         // Compute the SHA256 hash
         CryptoPP::SHA256 sha256;
-        byte hash[CryptoPP::SHA256::DIGESTSIZE];
+        CryptoPP::byte hash[CryptoPP::SHA256::DIGESTSIZE];
         sha256.Update(publicKeyBytes, publicKeySize);
         sha256.Final(hash);
 
@@ -410,9 +410,9 @@ std::string MainFrame::CalculateMD160(const std::string& SHA256String)
 
 {
     CryptoPP::RIPEMD160 hash;
-    byte digest[CryptoPP::RIPEMD160::DIGESTSIZE];
+    CryptoPP::byte digest[CryptoPP::RIPEMD160::DIGESTSIZE];
 
-    hash.CalculateDigest(digest, reinterpret_cast<const byte*>(SHA256String.c_str()), SHA256String.length());
+    hash.CalculateDigest(digest, reinterpret_cast<const CryptoPP::byte*>(SHA256String.c_str()), SHA256String.length());
 
     CryptoPP::HexEncoder encoder;
     std::string hashHex;
