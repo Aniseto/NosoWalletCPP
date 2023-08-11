@@ -26,6 +26,7 @@ private:
 	std::string CalculateMD160(const std::string& SHA256String);
 	std::string EncodeBase58(const std::string& MD160String);
 	int CalculateCheckSum(const std::string& StringChecksum);
+	std::string BmDecto58(const std::string& number);
 
 	
 	

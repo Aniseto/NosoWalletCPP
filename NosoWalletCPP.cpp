@@ -1,4 +1,4 @@
-// Start of wxWidgets "Hello World" Program  https://docs.wxwidgets.org/3.2.2.1/plat_msw_install.html#msw_build_apps
+﻿// Start of wxWidgets "Hello World" Program  https://docs.wxwidgets.org/3.2.2.1/plat_msw_install.html#msw_build_apps
 // Includes: 
 #include <wx/wx.h>
 #include <wx/zipstrm.h>
@@ -20,6 +20,14 @@
 #include <cryptopp/integer.h>
 #include <cryptopp/algebra.h>
 #include <botan/base58.h>
+#include <botan/botan.h>
+#include <botan/ecdsa.h>
+#include <botan/pubkey.h>
+#include <botan/bigint.h>
+#include <botan/base64.h>
+#include <botan/sha2_32.h>
+#include <botan/hex.h>
+#include <cctype>
 
 
 
@@ -210,16 +218,13 @@ void MainFrame::GetMasterNodeList(wxCommandEvent& evt)
 void MainFrame::GenerateKeys(wxCommandEvent& evt)
 {
     
-    std::string PubSHAHashed = "Empty";
-    std::string Hash1 = "Empty";
-    std::string Hash2 = "Empty";
-    std::string Key = "Empty";
-    std::string Result = "Empty";
+    std::string Sha256 = "Empty";
     std::string MD160 = "Empty";
     std::string Base58 = "Empty";
     int Checksum = 0;
     std::string CheckSumBase58 = "Empty";
     std::string NosoAddress = "Empty";
+    std::string NosoAddressTest = "Empty";
 
     
     
@@ -233,85 +238,50 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey publicKey;
     privateKey.MakePublicKey(publicKey);
 
-    TextBox->AppendText("\nPUBLIC KEY: ");
-    CryptoPP::HexEncoder publicHex;
-    publicKey.Save(publicHex);
-    publicHex.MessageEnd();
-    CryptoPP::word64 size = publicHex.MaxRetrievable();
-    if (size)
-    {
-        std::string encodedPublic(size, 0);
-        publicHex.Get(reinterpret_cast<CryptoPP::byte*>(&encodedPublic[0]), encodedPublic.size());
-        //TextBox->Appen
-        TextBox->AppendText(encodedPublic);
-        //std::cout << encoded << std::endl;
-        std::string Sha256 = PublicKeyToSHA256(encodedPublic);
-        TextBox->AppendText("\n\nSHA256 Public Key encoded\n");
-        TextBox->AppendText(Sha256);
-        MD160 = CalculateMD160(Sha256);
-        TextBox->AppendText("\n\nMD160:\n");
-        TextBox->AppendText(MD160);
-        Base58 = EncodeBase58(MD160);
-        TextBox->AppendText("\n\nBase58:\n");
-        TextBox->AppendText(Base58);
-        Checksum = CalculateCheckSum(Base58);
-        //Checksum = CalculateCheckSum("3qo1fDmZPEK2q1zv4PHF5b2uXb8x");
-        TextBox->AppendText("\n\nCheckSum:\n");
-        TextBox->AppendText(std::to_string(Checksum));
-        CheckSumBase58 = EncodeBase58(std::to_string(Checksum));
-        TextBox->AppendText("\n\nCheckSumBase58:\n");
-        TextBox->AppendText(CheckSumBase58);
+    // Save private Key to a String
+    std::string privateKeyStr;
+    CryptoPP::ByteQueue privateKeyQueue;
+    privateKey.Save(privateKeyQueue);
+    CryptoPP::HexEncoder privateKeyEncoder(new CryptoPP::StringSink(privateKeyStr));
+    privateKeyQueue.CopyTo(privateKeyEncoder);
+    privateKeyEncoder.MessageEnd();
 
-        //Final Noso Address: N + Base58 + Base58(CheckSum)
-        NosoAddress = "N" + Base58 + CheckSumBase58;
-        TextBox->AppendText("\n\nNOSO Address:\n");
-        TextBox->AppendText(NosoAddress);
-    }
+    // Save public key to a String
+    std::string publicKeyStr;
+    CryptoPP::ByteQueue publicKeyQueue;
+    publicKey.Save(publicKeyQueue);
+    CryptoPP::HexEncoder publicKeyEncoder(new CryptoPP::StringSink(publicKeyStr));
+    publicKeyQueue.CopyTo(publicKeyEncoder);
+    publicKeyEncoder.MessageEnd();
 
-    
-    TextBox->AppendText("\n\nPRIVATE KEY : ");
-    CryptoPP::HexEncoder privateHex;
-    privateKey.Save(privateHex);
-    privateHex.MessageEnd();
-    size = privateHex.MaxRetrievable();
-    if (size)
-    {
-        std::string encodedPrivate(size, 0);
-        privateHex.Get(reinterpret_cast<CryptoPP::byte*>(&encodedPrivate[0]), encodedPrivate.size());
-        TextBox->AppendText(encodedPrivate);
-        //std::cout << encoded << std::endl;
-    }
-    
+    ///Show Results
 
-  
+    TextBox->AppendText("\n\nPUBLIC KEY: \n");
+    TextBox->AppendText(publicKeyStr);
+    TextBox->AppendText("\n\nPRIVATE KEY: \n");
+    TextBox->AppendText(privateKeyStr);
+    Sha256 = PublicKeyToSHA256(publicKeyStr);
+    TextBox->AppendText("\n\nSHA256 Public Key encoded\n");
+    TextBox->AppendText(Sha256);
+    MD160 = CalculateMD160(Sha256);
+    TextBox->AppendText("\n\nMD160\n");
+    TextBox->AppendText(MD160);
+    Base58= EncodeBase58(MD160);
+    TextBox->AppendText("\n\nBase58\n");
+    TextBox->AppendText(Base58);
+    Checksum = CalculateCheckSum(Base58);
+    TextBox->AppendText("\n\nCheckSum:\n");
+    TextBox->AppendText(std::to_string(Checksum));
+    CheckSumBase58 = BmDecto58(std::to_string(Checksum));
+    TextBox->AppendText("\nCheckSumBase58:\n");
+    TextBox->AppendText(CheckSumBase58);
 
-    
-    ///Generating NOSO ADDRESS: 
-    /*Algorithm
-    // Generates the public hash from the public key
-function GetAddressFromPublicKey(PubKey:String):String;
-var
-  PubSHAHashed,Hash1,Hash2,clave:String;
-  sumatoria : string;
-Begin
-PubSHAHashed := HashSha256String(PubKey);
-Hash1 := HashMD160String(PubSHAHashed);
-hash1 := BMHexTo58(Hash1,58);
-sumatoria := BMB58resumen(Hash1);
-clave := BMDecTo58(sumatoria);
-hash2 := hash1+clave;
-Result := 'N'+hash2;
-End;   
-    
-    
-    */
-
-
-
-    
-    
-    //TextBox->SetLabel("PrivateKey: %c",to_string(privatekey))
-
+    //Final Noso Address: N + Base58 + Base58(CheckSum)
+    NosoAddressTest = "N" + Base58 + CheckSumBase58;
+    TextBox->AppendText("\nNOSO Address:\n");
+    TextBox->AppendText(NosoAddressTest);
+    TextBox->AppendText("\n\nEND NOSO ADDRESS GENERATION\n");
+      
 }
 
 void MainFrame::GetMasterNodeConfig(wxCommandEvent& evt)
@@ -384,7 +354,7 @@ bool MainFrame::UnzipFile(const wxString& zipFileName, const wxString& outputDir
 
 std::string MainFrame::PublicKeyToSHA256(const std::string& publicKey)
 {
- 
+        /*
         // Convert the public key to a byte array
         const byte* publicKeyBytes = reinterpret_cast<const byte*>(publicKey.data());
         size_t publicKeySize = publicKey.size();
@@ -403,7 +373,36 @@ std::string MainFrame::PublicKeyToSHA256(const std::string& publicKey)
         encoder.MessageEnd();
 
         return hashString;
-   
+ */
+  
+    //TEST BOTAN
+    // 
+        // Initialize the Botan library
+        //Botan::LibraryInitializer init;
+
+        // Create a SHA-256 hash object
+        Botan::SHA_256 sha256;
+
+        // Update the hash object with the input data
+        sha256.update(reinterpret_cast<const Botan::byte*>(publicKey.data()), publicKey.size());
+
+        // Finalize the hash and get the resulting digest
+        Botan::secure_vector<Botan::byte> digest = sha256.final();
+
+        // Convert the digest to a hexadecimal string
+        std::string hashString;
+        for (Botan::byte b : digest)
+        {
+            hashString += Botan::hex_encode(&b, 1);
+        }
+
+        std::transform(hashString.begin(), hashString.end(), hashString.begin(), [](unsigned char c) 
+            
+            {
+            return std::tolower(c);
+            });
+        return hashString;
+    
 }
 
 std::string MainFrame::CalculateMD160(const std::string& SHA256String)
@@ -420,18 +419,31 @@ std::string MainFrame::CalculateMD160(const std::string& SHA256String)
     encoder.Put(digest, sizeof(digest));
     encoder.MessageEnd();
 
+    /*
+    for (char& c : hashHex) {
+        c = std::toupper(c);
+    }
+    */
     return hashHex;
+
+
 
 }
 
 std::string MainFrame::EncodeBase58(const std::string& MD160String)
 {
 
-    std::string encoded = Botan::base58_encode(reinterpret_cast<const uint8_t*>(MD160String.data()), MD160String.size());
+    //std::string encoded = Botan::base58_encode(reinterpret_cast<const uint8_t*>(MD160String.data()), MD160String.size());
 
     //std::cout << "Encoded: " << encoded << std::endl;
-    return encoded;
+    //return encoded;
       //https://learnmeabitcoin.com/technical/base58 Test Conversion.
+    std::vector<uint8_t> inputData = Botan::hex_decode(MD160String);
+   // Botan::hex_decode(inputData, MD160String,true);
+
+    std::string base58Result = Botan::base58_encode(inputData.data(), inputData.size());
+
+    return base58Result;
     
 }
 
@@ -439,15 +451,53 @@ int MainFrame::CalculateCheckSum(const std::string& StringChecksum)
 
 {
         const std::string B58Alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-       size_t total = 0;
+       int total = 0;
 
-        for (size_t counter = 0; counter < StringChecksum.length(); ++counter) {
+        for (int counter = 0; counter < StringChecksum.length(); ++counter) {
             total += B58Alphabet.find(StringChecksum[counter]);
         }
 
         return total;
    
 }
+
+std::string MainFrame::BmDecto58(const std::string& number)
+{
+    const std::string B58Alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
+    std::string decimalValue = number;
+    std::string resultado = "";
+
+    while (decimalValue.length() >= 2) {
+        int restante;
+        int divisionResult = std::stoi(decimalValue) / 58;
+        restante = std::stoi(decimalValue) - divisionResult * 58;
+        decimalValue = std::to_string(divisionResult);
+        resultado = B58Alphabet[restante] + resultado;
+    }
+
+    if (std::stoi(decimalValue) >= 58) {
+        int restante;
+        int divisionResult = std::stoi(decimalValue) / 58;
+        restante = std::stoi(decimalValue) - divisionResult * 58;
+        decimalValue = std::to_string(divisionResult);
+        resultado = B58Alphabet[restante] + resultado;
+    }
+
+    if (std::stoi(decimalValue) > 0) {
+        resultado = B58Alphabet[std::stoi(decimalValue)] + resultado;
+    }
+
+    return resultado;
+
+
+    
+    
+    
+    //return std::string();
+}
+
+
 
 
 /*
