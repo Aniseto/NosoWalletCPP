@@ -20,7 +20,7 @@ jobs:
     - name: Install dependency libs
       run: |
         sudo apt update && \
-        sudo apt install -y libboost-all-dev libcrypto++-dev libwxgtk3.2-dev libbotan-2-dev
+        sudo apt install -y libboost-all-dev libcrypto++-dev libwxgtk3.0-gtk3-dev libbotan-2-dev
     - name: Build Linux x86_64
       shell: bash
       run: |
