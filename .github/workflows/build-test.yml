@@ -24,7 +24,7 @@ jobs:
     - name: Build Linux x86_64
       shell: bash
       run: |
-        mkdir ./build && \
-        cmake -B "." -S "./build" && \
+        mkdir build && \
+        cmake -B "." -S "build" && \
         cmake --build --clean-first "./build" && \
         file NosoWalletCPP
