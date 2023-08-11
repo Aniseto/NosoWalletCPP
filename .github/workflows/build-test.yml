@@ -26,5 +26,5 @@ jobs:
       run: |
         mkdir build && \
         cmake -B "build" -S "." && \
-        cmake --build --clean-first "./build" && \
+        cmake --build "build" --clean-first && \
         file NosoWalletCPP
