@@ -28,9 +28,10 @@
 #include <botan/sha2_32.h>
 #include <botan/hex.h>
 #include <cctype>
+#include <filesystem>
 
 
-
+namespace fs = std::filesystem;
 
 
 
@@ -101,15 +102,15 @@ void MainFrame::OnDownloadSummaryButtonClicked(wxCommandEvent& evt)
     GetSumaryText->SetLabel(wxString(GetZipSumaryResponse));              // Modify Static text to show Current Block
     
     wxString zipFileName = "summary.zip";
-    wxString outputDir = ".\\";
+    std::string outputDir = fs::current_path() / "";
     UnzipFile(zipFileName, outputDir);
 
     
 
 
 
- 
-    std::ifstream inputFile(".\\data\\sumary.psk", std::ios::binary);
+    std::string filename = fs::current_path() / "data" / "sumary.psk";
+    std::ifstream inputFile(filename, std::ios::binary);
     if (!inputFile) {
         std::cout << "Cannot open the file." << std::endl;
         //return void; 
