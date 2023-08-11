@@ -106,9 +106,6 @@ void MainFrame::OnDownloadSummaryButtonClicked(wxCommandEvent& evt)
 
     
 
-    //Unzip File
-    //system(".\\utils\\minizip\\minizip.exe -x -o .\\summary.zip");
-
 
 
  
@@ -207,7 +204,7 @@ void MainFrame::OnClose(wxCloseEvent& evt) {
 void MainFrame::GetMasterNodeList(wxCommandEvent& evt)
 {
     std::string NODESTATUS_COMMAND = "NSLMNS\n";
-    std::string DefaultNodeIp = "20.199.50.27";						//PENDDING: Send commmand to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
+    std::string DefaultNodeIp = "20.199.50.27";						//PENDING: Send commmand to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
     int DefaultNodePort = 8080;										//PENDING: Set PORT from List of Nodes.
     std::string MasterNodeListString = SendStringToNode(DefaultNodeIp, DefaultNodePort, NODESTATUS_COMMAND);
     TextBox->SetLabel(MasterNodeListString);
@@ -343,42 +340,17 @@ bool MainFrame::UnzipFile(const wxString& zipFileName, const wxString& outputDir
         }
 
         zis.Read(fos);
-        //fos.Close();
-        //zis.CloseEntry();
+
     }
 
-    //wxMessageBox(wxS("Extraction completed successfully."), wxS("Information"));
+
 
     return true;
 }
 
 std::string MainFrame::PublicKeyToSHA256(const std::string& publicKey)
 {
-        /*
-        // Convert the public key to a byte array
-        const byte* publicKeyBytes = reinterpret_cast<const byte*>(publicKey.data());
-        size_t publicKeySize = publicKey.size();
 
-        // Compute the SHA256 hash
-        CryptoPP::SHA256 sha256;
-        byte hash[CryptoPP::SHA256::DIGESTSIZE];
-        sha256.Update(publicKeyBytes, publicKeySize);
-        sha256.Final(hash);
-
-        // Convert the hash to a string
-        std::string hashString;
-        CryptoPP::HexEncoder encoder;
-        encoder.Attach(new CryptoPP::StringSink(hashString));
-        encoder.Put(hash, sizeof(hash));
-        encoder.MessageEnd();
-
-        return hashString;
- */
-  
-    //TEST BOTAN
-    // 
-        // Initialize the Botan library
-        //Botan::LibraryInitializer init;
 
         // Create a SHA-256 hash object
         Botan::SHA_256 sha256;
@@ -409,9 +381,9 @@ std::string MainFrame::CalculateMD160(const std::string& SHA256String)
 
 {
     CryptoPP::RIPEMD160 hash;
-    byte digest[CryptoPP::RIPEMD160::DIGESTSIZE];
+    CryptoPP::byte digest[CryptoPP::RIPEMD160::DIGESTSIZE];
 
-    hash.CalculateDigest(digest, reinterpret_cast<const byte*>(SHA256String.c_str()), SHA256String.length());
+    hash.CalculateDigest(digest, reinterpret_cast<const CryptoPP::byte*>(SHA256String.c_str()), SHA256String.length());
 
     CryptoPP::HexEncoder encoder;
     std::string hashHex;
@@ -419,11 +391,7 @@ std::string MainFrame::CalculateMD160(const std::string& SHA256String)
     encoder.Put(digest, sizeof(digest));
     encoder.MessageEnd();
 
-    /*
-    for (char& c : hashHex) {
-        c = std::toupper(c);
-    }
-    */
+  
     return hashHex;
 
 
@@ -433,14 +401,10 @@ std::string MainFrame::CalculateMD160(const std::string& SHA256String)
 std::string MainFrame::EncodeBase58(const std::string& MD160String)
 {
 
-    //std::string encoded = Botan::base58_encode(reinterpret_cast<const uint8_t*>(MD160String.data()), MD160String.size());
-
-    //std::cout << "Encoded: " << encoded << std::endl;
-    //return encoded;
+  
       //https://learnmeabitcoin.com/technical/base58 Test Conversion.
     std::vector<uint8_t> inputData = Botan::hex_decode(MD160String);
-   // Botan::hex_decode(inputData, MD160String,true);
-
+   
     std::string base58Result = Botan::base58_encode(inputData.data(), inputData.size());
 
     return base58Result;
@@ -489,12 +453,6 @@ std::string MainFrame::BmDecto58(const std::string& number)
     }
 
     return resultado;
-
-
-    
-    
-    
-    //return std::string();
 }
 
 
