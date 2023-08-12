@@ -12,13 +12,14 @@
 #include <cryptopp/oids.h>
 #include <cryptopp/hex.h>
 #include <cryptopp/cryptlib.h>
-#include <wx/hash.h>
-#include <iostream>
-#include <string>
 #include <cryptopp/ripemd.h>
 #include <cryptopp/cryptlib.h>
 #include <cryptopp/integer.h>
 #include <cryptopp/algebra.h>
+#include <wx/hash.h>
+#include <iostream>
+#include <string>
+
 #include <botan/base58.h>
 #include <botan/botan.h>
 #include <botan/ecdsa.h>
@@ -28,10 +29,6 @@
 #include <botan/sha2_32.h>
 #include <botan/hex.h>
 #include <cctype>
-
-
-
-
 
 
 MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {   //Constructor Base class
@@ -453,6 +450,43 @@ std::string MainFrame::BmDecto58(const std::string& number)
     }
 
     return resultado;
+}
+
+std::string MainFrame::SignMessage(const std::string& message, const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey& privateKey)
+{
+    CryptoPP::AutoSeededRandomPool rng;
+
+    // ECDSA schema
+    CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::Signer signer(privateKey);
+
+    // Sign the message
+    std::string signature;
+    CryptoPP::StringSource(message, true,
+        new CryptoPP::SignerFilter(rng, signer,
+            new CryptoPP::StringSink(signature)
+        )
+    );
+
+    return signature;
+    
+}
+
+bool MainFrame::VerifyMessage(const std::string& message, const std::string& signature, const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey& publicKey)
+{
+    //ECDSA Verification
+    CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::Verifier verifier(publicKey);
+
+    // Verify message firm
+    bool result = false;
+    CryptoPP::StringSource(signature + message, true,
+        new CryptoPP::SignatureVerificationFilter(
+            verifier,
+            new CryptoPP::ArraySink(reinterpret_cast<CryptoPP::byte*>(&result), sizeof(result))
+        )
+    );
+
+    return result;
+    
 }
 
 
