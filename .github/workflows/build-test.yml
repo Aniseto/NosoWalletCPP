@@ -1,0 +1,30 @@
+name: build-test
+
+on:
+  push:
+    branches: [ master, add-ci-cd ]
+    tags: [ "*" ]
+    paths-ignore: [ "README.md", "history.md", "release-notes.md" ]
+
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  build-linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v2
+    - name: Install dependency libs
+      run: |
+        sudo apt update && \
+        sudo apt install -y libboost-all-dev libcrypto++-dev libwxgtk3.0-gtk3-dev libbotan-2-dev
+    - name: Build Linux x86_64
+      shell: bash
+      run: |
+        mkdir build && \
+        cmake -B "build" -S "." && \
+        cmake --build "build" --clean-first && \
+        file NosoWalletCPP
