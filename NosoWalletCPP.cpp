@@ -108,7 +108,7 @@ void MainFrame::OnDownloadSummaryButtonClicked(wxCommandEvent& evt)
 
 
 
-    fs::path filename = fs::current_path() / "data" / "sumary.psk";
+    wxString filename = (fs::current_path() / "data" / "sumary.psk").string();
     std::ifstream inputFile(filename, std::ios::binary);
     if (!inputFile) {
         std::cout << "Cannot open the file." << std::endl;
