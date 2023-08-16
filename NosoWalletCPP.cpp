@@ -101,7 +101,7 @@ void MainFrame::OnDownloadSummaryButtonClicked(wxCommandEvent& evt)
     GetSumaryText->SetLabel(wxString(GetZipSumaryResponse));              // Modify Static text to show Current Block
 
     wxString zipFileName = "summary.zip";
-    fs::path outputDir = fs::current_path() / "";
+    wxString outputDir = (fs::current_path() / "").string();
     UnzipFile(zipFileName, outputDir);
 
 

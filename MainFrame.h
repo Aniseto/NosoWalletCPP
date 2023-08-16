@@ -12,14 +12,13 @@
 #include <cryptopp/integer.h>
 #include <cryptopp/algebra.h>
 
-
 class MainFrame : public wxFrame
 {
-public: 
+public:
 	MainFrame(const wxString& title);
 	std::string MasterNodeListString="Empty";
 	std::string GeneratedNosoAddress = "Empty";
-	
+
 
 private:
 
@@ -39,8 +38,8 @@ private:
 	std::string SignMessage(const std::string& message, const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey& privateKey);
 	bool VerifyMessage(const std::string& message, const std::string& signature, const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey& publicKey);
 
-	
-	
+
+
 	//Time Sync NTP
 	wxStaticText* CurrentBlock;
 	wxStaticText* GetSumaryText;
@@ -48,11 +47,11 @@ private:
 	//Noso Addresses Control
 	wxStaticText* TotalNosoAddressesLoadedText;
 	wxStaticText* TotalNosoAddressesLoadedValue;
-	
+
 	//Time Controls
 
 	wxStaticText* MainNetTimeText;
-    wxTimer* Timer;
+        wxTimer* Timer;
 	void OnTimer(wxTimerEvent& event);
 
 	//MasterNode List
@@ -69,7 +68,7 @@ private:
 	wxStaticText* GenerateNOSOAddressText;
 
 
- 
+
 
 
 };
