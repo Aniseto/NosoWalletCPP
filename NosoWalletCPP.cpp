@@ -12,13 +12,14 @@
 #include <cryptopp/oids.h>
 #include <cryptopp/hex.h>
 #include <cryptopp/cryptlib.h>
-#include <wx/hash.h>
-#include <iostream>
-#include <string>
 #include <cryptopp/ripemd.h>
 #include <cryptopp/cryptlib.h>
 #include <cryptopp/integer.h>
 #include <cryptopp/algebra.h>
+#include <wx/hash.h>
+#include <iostream>
+#include <string>
+
 #include <botan/base58.h>
 #include <botan/botan.h>
 #include <botan/ecdsa.h>
@@ -30,9 +31,7 @@
 #include <cctype>
 #include <filesystem>
 
-
 namespace fs = std::filesystem;
-
 
 
 MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {   //Constructor Base class
@@ -40,7 +39,7 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
 
     //Button Definitions
 
-	wxButton* Connect_Button = new wxButton(panel, wxID_ANY, "Connect", wxPoint(1, 1), wxSize(150, 25));
+    wxButton* Connect_Button = new wxButton(panel, wxID_ANY, "Connect", wxPoint(1, 1), wxSize(150, 25));
     wxButton* Download_Summary = new wxButton(panel, wxID_ANY, "Download Summary", wxPoint(1,26), wxSize(150, 25));
     wxButton* SyncMainNetTime = new wxButton(panel, wxID_ANY, "Sync MainNet Time", wxPoint(1, 51), wxSize(150, 25));
     wxButton* GetMasterNodeList = new wxButton(panel, wxID_ANY, "Get Master Node List", wxPoint(1, 76), wxSize(150, 25));
@@ -48,7 +47,7 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
     wxButton* GetMasterNodeConfigButton = new wxButton(panel, wxID_ANY, "Get Master Node config", wxPoint(1, 124), wxSize(150, 25));
 
     //Static Text Definitions
-    
+
     wxStaticText* CurrentBlockText = new wxStaticText(panel, wxID_ANY, "-Current Block: ", wxPoint(165, 6.25));
     CurrentBlockText->SetFont(wxFontInfo(8).Bold());
     wxStaticText* SummaryText = new wxStaticText(panel, wxID_ANY, "-Summary Processed: ", wxPoint(165, 32.25));
@@ -73,7 +72,7 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
     MasterNodeListText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 81.53));
     TextBox = new wxTextCtrl(panel, wxID_ANY, "Text Box", wxPoint(1, 200), wxSize(680, 250), wxTE_MULTILINE);
     GenerateKeysText= new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 104.81));
- 
+
 
     //Bind Operations to Button event
 
@@ -90,8 +89,8 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
 	wxStatusBar* statusBar =CreateStatusBar(); // Create Status Bar Bottom Window.
     statusBar->SetDoubleBuffered(true);
 
-    
-} 
+
+}
 
 void MainFrame::OnDownloadSummaryButtonClicked(wxCommandEvent& evt)
 {
@@ -100,20 +99,20 @@ void MainFrame::OnDownloadSummaryButtonClicked(wxCommandEvent& evt)
     std::string GETZIPSUMARY_COMMAND = "GETZIPSUMARY\n";
     std::string GetZipSumaryResponse = SendStringToNode(DefaultNodeIp, DefaultNodePort, GETZIPSUMARY_COMMAND);
     GetSumaryText->SetLabel(wxString(GetZipSumaryResponse));              // Modify Static text to show Current Block
-    
+
     wxString zipFileName = "summary.zip";
-    std::string outputDir = fs::current_path() / "";
+    fs::path outputDir = fs::current_path() / "";
     UnzipFile(zipFileName, outputDir);
 
-    
 
 
 
-    std::string filename = fs::current_path() / "data" / "sumary.psk";
+
+    fs::path filename = fs::current_path() / "data" / "sumary.psk";
     std::ifstream inputFile(filename, std::ios::binary);
     if (!inputFile) {
         std::cout << "Cannot open the file." << std::endl;
-        //return void; 
+        //return void;
     }
     else {
         std::cout << "File Opened!";
@@ -121,7 +120,7 @@ void MainFrame::OnDownloadSummaryButtonClicked(wxCommandEvent& evt)
 
     inputFile.seekg(0, std::ios::end); // Move pointer to end file
     std::streampos fileSize = inputFile.tellg(); // Getting file Size
-    inputFile.seekg(0, std::ios::beg); // Moving pointer to the beginning 
+    inputFile.seekg(0, std::ios::beg); // Moving pointer to the beginning
     size_t numRecords = fileSize / sizeof(TSummaryData); // Calculate number of registers
 
     TotalNosoAddressesLoadedValue->SetLabel(wxString(std::to_string(numRecords)));
@@ -134,8 +133,8 @@ void MainFrame::OnDownloadSummaryButtonClicked(wxCommandEvent& evt)
 
     inputFile.close();
 
-  
-         
+
+
 }
 
 void MainFrame::OnConnectButtonClicked(wxCommandEvent& evt)
@@ -190,9 +189,9 @@ void MainFrame::OnSyncMainNetTimeButtonClicked(wxCommandEvent& evt) {
 
 void MainFrame::OnTimer(wxTimerEvent& event) {
 
-   
 
- 
+
+
    // Pending automatic Time showing Date and Time updated every second and synced to Main Net or NTP Servers.
 }
 
@@ -215,7 +214,7 @@ void MainFrame::GetMasterNodeList(wxCommandEvent& evt)
 
 void MainFrame::GenerateKeys(wxCommandEvent& evt)
 {
-    
+
     std::string Sha256 = "Empty";
     std::string MD160 = "Empty";
     std::string Base58 = "Empty";
@@ -224,8 +223,8 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     std::string NosoAddress = "Empty";
     std::string NosoAddressTest = "Empty";
 
-    
-    
+
+
 
     CryptoPP::AutoSeededRandomPool rng;
 
@@ -279,7 +278,7 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     TextBox->AppendText("\nNOSO Address:\n");
     TextBox->AppendText(NosoAddressTest);
     TextBox->AppendText("\n\nEND NOSO ADDRESS GENERATION\n");
-      
+
 }
 
 void MainFrame::GetMasterNodeConfig(wxCommandEvent& evt)
@@ -370,12 +369,12 @@ std::string MainFrame::PublicKeyToSHA256(const std::string& publicKey)
         }
 
         std::transform(hashString.begin(), hashString.end(), hashString.begin(), [](unsigned char c) 
-            
+
             {
             return std::tolower(c);
             });
         return hashString;
-    
+
 }
 
 std::string MainFrame::CalculateMD160(const std::string& SHA256String)
@@ -392,7 +391,7 @@ std::string MainFrame::CalculateMD160(const std::string& SHA256String)
     encoder.Put(digest, sizeof(digest));
     encoder.MessageEnd();
 
-  
+
     return hashHex;
 
 
@@ -402,14 +401,14 @@ std::string MainFrame::CalculateMD160(const std::string& SHA256String)
 std::string MainFrame::EncodeBase58(const std::string& MD160String)
 {
 
-  
+
       //https://learnmeabitcoin.com/technical/base58 Test Conversion.
     std::vector<uint8_t> inputData = Botan::hex_decode(MD160String);
-   
+
     std::string base58Result = Botan::base58_encode(inputData.data(), inputData.size());
 
     return base58Result;
-    
+
 }
 
 int MainFrame::CalculateCheckSum(const std::string& StringChecksum)
@@ -423,7 +422,7 @@ int MainFrame::CalculateCheckSum(const std::string& StringChecksum)
         }
 
         return total;
-   
+
 }
 
 std::string MainFrame::BmDecto58(const std::string& number)
@@ -454,6 +453,43 @@ std::string MainFrame::BmDecto58(const std::string& number)
     }
 
     return resultado;
+}
+
+std::string MainFrame::SignMessage(const std::string& message, const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey& privateKey)
+{
+    CryptoPP::AutoSeededRandomPool rng;
+
+    // ECDSA schema
+    CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::Signer signer(privateKey);
+
+    // Sign the message
+    std::string signature;
+    CryptoPP::StringSource(message, true,
+        new CryptoPP::SignerFilter(rng, signer,
+            new CryptoPP::StringSink(signature)
+        )
+    );
+
+    return signature;
+
+}
+
+bool MainFrame::VerifyMessage(const std::string& message, const std::string& signature, const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey& publicKey)
+{
+    //ECDSA Verification
+    CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::Verifier verifier(publicKey);
+
+    // Verify message firm
+    bool result = false;
+    CryptoPP::StringSource(signature + message, true,
+        new CryptoPP::SignatureVerificationFilter(
+            verifier,
+            new CryptoPP::ArraySink(reinterpret_cast<CryptoPP::byte*>(&result), sizeof(result))
+        )
+    );
+
+    return result;
+
 }
 
 

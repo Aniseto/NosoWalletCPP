@@ -2,6 +2,15 @@
 #include <wx/wx.h>
 #include <wx/textctrl.h>
 #include <string>
+#include <cryptopp/eccrypto.h>
+#include <cryptopp/osrng.h>
+#include <cryptopp/oids.h>
+#include <cryptopp/hex.h>
+#include <cryptopp/cryptlib.h>
+#include <cryptopp/ripemd.h>
+#include <cryptopp/cryptlib.h>
+#include <cryptopp/integer.h>
+#include <cryptopp/algebra.h>
 
 
 class MainFrame : public wxFrame
@@ -27,6 +36,8 @@ private:
 	std::string EncodeBase58(const std::string& MD160String);
 	int CalculateCheckSum(const std::string& StringChecksum);
 	std::string BmDecto58(const std::string& number);
+	std::string SignMessage(const std::string& message, const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey& privateKey);
+	bool VerifyMessage(const std::string& message, const std::string& signature, const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey& publicKey);
 
 	
 	
