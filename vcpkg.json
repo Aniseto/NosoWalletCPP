@@ -1,0 +1,10 @@
+{
+  "name": "nosowalletcpp",
+  "version-string": "latest",
+  "dependencies": [
+    "boost",
+    "botan",
+    "cryptopp",
+    "wxwidgets"
+  ]
+}
