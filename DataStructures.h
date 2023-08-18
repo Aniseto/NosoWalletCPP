@@ -69,10 +69,10 @@
             return PrivateKey;
         }
 
-        void SetPrivateKey(const char* newPrivateKey) {
+        /*void SetPrivateKey(const char* newPrivateKey) {
             strncpy_s(PrivateKey, newPrivateKey, sizeof(PrivateKey));
             PrivateKey[sizeof(PrivateKey) - 1] = '\0'; // 
-        }
+        }*/
     };
 #pragma pack(pop)
 
