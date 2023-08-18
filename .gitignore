@@ -363,7 +363,7 @@ MigrationBackup/
 FodyWeavers.xsd
 
 # CMake build folder
-/build/
+/builds/
 
 #summary.zip and sumary.psk
 
