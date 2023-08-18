@@ -11,6 +11,7 @@
 #include <cryptopp/cryptlib.h>
 #include <cryptopp/integer.h>
 #include <cryptopp/algebra.h>
+#include "DataStructures.h"
 
 
 class MainFrame : public wxFrame
@@ -19,9 +20,15 @@ public:
 	MainFrame(const wxString& title);
 	std::string MasterNodeListString="Empty";
 	std::string GeneratedNosoAddress = "Empty";
+	//WalletData TestWallet;
+	
+
+
+	
 	
 
 private:
+
 
 	void OnConnectButtonClicked(wxCommandEvent& evt); //Call Connect to Main net and Get NODESATUS
 	void OnDownloadSummaryButtonClicked(wxCommandEvent& evt);
@@ -38,6 +45,7 @@ private:
 	std::string BmDecto58(const std::string& number);
 	std::string SignMessage(const std::string& message, const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey& privateKey);
 	bool VerifyMessage(const std::string& message, const std::string& signature, const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey& publicKey);
+	void SignAndVerify(wxCommandEvent& evt);
 
 	
 	

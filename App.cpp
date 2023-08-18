@@ -10,5 +10,9 @@ bool App::OnInit() {
 	mainFrame->SetClientSize(800, 400);
 	mainFrame->Center();
 	mainFrame->Show();
+	WalletData MyWallet; // Create Empty Wallet Object
+	MyWallet.SetPrivateKey("Hola");
+	//std:string privateKeytoset = "Hola";
+	//TestWallet.SetPrivateKey = "hole";
 	return true;
 }

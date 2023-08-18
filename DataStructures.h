@@ -48,8 +48,9 @@
     // Wallet Struct Data
 
 #pragma pack(push, 1)
-    struct WalletData {
+    class WalletData {
 
+    private:
         char Empty[1]; //Due pascal original file
         char Hash[40]; // Public address HashEl hash publico o direccion
         char Empty2[1]; //Due Pascal original file
@@ -62,7 +63,16 @@
         int64_t Pending; // Last pending payment
         int64_t Score; // Address status.
         int64_t LastOP;// Time from the last operation in UnixTime Format
+    public:
+        // Getter para obtener el valor de privateKey
+        std::string GetPrivateKey() {
+            return PrivateKey;
+        }
 
+        void SetPrivateKey(const char* newPrivateKey) {
+            strncpy_s(PrivateKey, newPrivateKey, sizeof(PrivateKey));
+            PrivateKey[sizeof(PrivateKey) - 1] = '\0'; // 
+        }
     };
 #pragma pack(pop)
 

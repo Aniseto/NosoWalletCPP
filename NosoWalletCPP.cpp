@@ -19,7 +19,6 @@
 #include <wx/hash.h>
 #include <iostream>
 #include <string>
-
 #include <botan/base58.h>
 #include <botan/botan.h>
 #include <botan/ecdsa.h>
@@ -29,7 +28,10 @@
 #include <botan/sha2_32.h>
 #include <botan/hex.h>
 #include <cctype>
-
+/// Added for Unix Like system compatibilty
+#include <filesystem>
+namespace fs = std::filesystem;
+/// Added for Unix Like system compatibilty: END.
 
 MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {   //Constructor Base class
 	wxPanel* panel = new wxPanel(this);
@@ -42,6 +44,8 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
     wxButton* GetMasterNodeList = new wxButton(panel, wxID_ANY, "Get Master Node List", wxPoint(1, 76), wxSize(150, 25));
     wxButton* GenerateKeysButton = new wxButton(panel, wxID_ANY, "Generate NOSO Address", wxPoint(1, 100), wxSize(150, 25));
     wxButton* GetMasterNodeConfigButton = new wxButton(panel, wxID_ANY, "Get Master Node config", wxPoint(1, 124), wxSize(150, 25));
+    wxButton* SignAndVerifyButton = new wxButton(panel, wxID_ANY, "Sign and Verify", wxPoint(1, 149), wxSize(150, 25));
+    
 
     //Static Text Definitions
     
@@ -79,14 +83,18 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
     GetMasterNodeList->Bind(wxEVT_BUTTON, &MainFrame::GetMasterNodeList, this);
     GenerateKeysButton->Bind(wxEVT_BUTTON, &MainFrame::GenerateKeys, this);
     GetMasterNodeConfigButton->Bind(wxEVT_BUTTON, &MainFrame::GetMasterNodeConfig, this);
+    SignAndVerifyButton->Bind(wxEVT_BUTTON, &MainFrame::SignAndVerify, this);
+    
     this->Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
 
     //Status Bar creation
 
 	wxStatusBar* statusBar =CreateStatusBar(); // Create Status Bar Bottom Window.
     statusBar->SetDoubleBuffered(true);
-
     
+    //TestWallet.
+
+        
 } 
 
 void MainFrame::OnDownloadSummaryButtonClicked(wxCommandEvent& evt)
@@ -98,7 +106,10 @@ void MainFrame::OnDownloadSummaryButtonClicked(wxCommandEvent& evt)
     GetSumaryText->SetLabel(wxString(GetZipSumaryResponse));              // Modify Static text to show Current Block
     
     wxString zipFileName = "summary.zip";
-    wxString outputDir = ".\\";
+    //wxString outputDir = ".\\";
+    wxString outputDir = (fs::current_path() / "").string();
+    //std::string outputDir = std::current_path() / "";
+    //fs::path outputDir = fs::current_path() / "";
     UnzipFile(zipFileName, outputDir);
 
     
@@ -106,7 +117,9 @@ void MainFrame::OnDownloadSummaryButtonClicked(wxCommandEvent& evt)
 
 
  
-    std::ifstream inputFile(".\\data\\sumary.psk", std::ios::binary);
+    //std::ifstream inputFile(".\\data\\sumary.psk", std::ios::binary);
+    std::string filename = (fs::current_path() / "data" / "sumary.psk").string();
+    std::ifstream inputFile(filename, std::ios::binary);
     if (!inputFile) {
         std::cout << "Cannot open the file." << std::endl;
         //return void; 
@@ -239,6 +252,7 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     CryptoPP::HexEncoder privateKeyEncoder(new CryptoPP::StringSink(privateKeyStr));
     privateKeyQueue.CopyTo(privateKeyEncoder);
     privateKeyEncoder.MessageEnd();
+    //TestWallet.PrivateKey = privateKeyStr;
 
     // Save public key to a String
     std::string publicKeyStr;
@@ -277,16 +291,6 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     TextBox->AppendText("\n\nEND NOSO ADDRESS GENERATION\n");
       
 }
-
-void MainFrame::GetMasterNodeConfig(wxCommandEvent& evt)
-{
-    std::string MasterNodeConfig = GetMasterNodeConf();
-    TextBox->Clear();
-    TextBox->AppendText(MasterNodeConfig);
-
-
-}
-
 
 
 bool MainFrame::UnzipFile(const wxString& zipFileName, const wxString& outputDir)   //https://docs.wxwidgets.org/3.1/overview_archive.html
@@ -487,6 +491,27 @@ bool MainFrame::VerifyMessage(const std::string& message, const std::string& sig
 
     return result;
     
+}
+
+void MainFrame::SignAndVerify(wxCommandEvent& evt)
+{
+    
+    /*
+    std::string messageoriginal = "This is the message to firm";
+
+    // Firmar el mensaje
+    std::string signature = SignMessage(messageoriginal, TestWallet.GetPrivateKey);
+    std::cout << "FIRM: " << signature << std::endl;
+
+    // Verificar la firma del mensaje
+    bool verified = VerifyMessage(messageoriginal, signature, publicKey);
+    if (verified) {
+        std::cout << "FIRM VALID." << std::endl;
+    }
+    else {
+        std::cout << "INVALID FIRM." << std::endl;
+    }
+*/
 }
 
 

@@ -116,3 +116,11 @@ std::string GetMasterNodeConf()
 
 }
 
+void MainFrame::GetMasterNodeConfig(wxCommandEvent& evt)
+{
+    std::string MasterNodeConfig = GetMasterNodeConf();
+    TextBox->Clear();
+    TextBox->AppendText(MasterNodeConfig);
+
+
+}
