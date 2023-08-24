@@ -1,6 +1,7 @@
 #pragma once
 #include <wx/wx.h>
 #include <wx/textctrl.h>
+#include <wx/grid.h>
 #include <string>
 #include <cryptopp/eccrypto.h>
 #include <cryptopp/osrng.h>
@@ -21,7 +22,9 @@ public:
 	std::string MasterNodeListString="Empty";
 	std::string GeneratedNosoAddress = "Empty";
 	//WalletData TestWallet;
-	
+	void InitializeWallet();
+	bool DoesFileExist(const std::string& filePath);
+	std::vector<WalletData> ReadWalletData(const std::string& filePath);
 
 
 	
@@ -46,6 +49,10 @@ private:
 	std::string SignMessage(const std::string& message, const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey& privateKey);
 	bool VerifyMessage(const std::string& message, const std::string& signature, const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey& publicKey);
 	void SignAndVerify(wxCommandEvent& evt);
+	std::string HexToBase64(const std::string& hexString);
+	
+	
+	
 
 	
 	
@@ -75,6 +82,8 @@ private:
 	//Noso AddressText
 
 	wxStaticText* GenerateNOSOAddressText;
+
+	wxGrid* NosoAddressGrid;
 
 
  

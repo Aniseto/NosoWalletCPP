@@ -68,7 +68,18 @@
         std::string GetPrivateKey() {
             return PrivateKey;
         }
-
+        std::string GetHash() {
+            return Hash;
+        }
+        std::string GetLabel() {
+            return Custom;
+        }
+        std::int64_t GetPending() {
+            return Pending;
+        }
+        std::int64_t GetBalance() {
+            return Balance;
+        }
         /*void SetPrivateKey(const char* newPrivateKey) {
             strncpy_s(PrivateKey, newPrivateKey, sizeof(PrivateKey));
             PrivateKey[sizeof(PrivateKey) - 1] = '\0'; // 

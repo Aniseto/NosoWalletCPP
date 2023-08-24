@@ -28,6 +28,7 @@
 #include <botan/sha2_32.h>
 #include <botan/hex.h>
 #include <cctype>
+//#include <vector>
 /// Added for Unix Like system compatibilty
 #include <filesystem>
 namespace fs = std::filesystem;
@@ -63,6 +64,8 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
     GenerateKeysText->SetFont(wxFontInfo(8).Bold());
     wxStaticText* GetMasterNodeconfigText = new wxStaticText(panel, wxID_ANY, "-Get Master Node Config:  ", wxPoint(165, 128.09));
     GetMasterNodeconfigText->SetFont(wxFontInfo(8).Bold());
+    wxStaticText* LogTextBoxLabel = new wxStaticText(panel, wxID_ANY, "Log: ", wxPoint(1, 475));
+    LogTextBoxLabel->SetFont(wxFontInfo(8).Bold());
 
 
     //Dynamic object creation
@@ -71,7 +74,16 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
     TotalNosoAddressesLoadedValue = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(575, 35));
     MainNetTimeText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 58.25));
     MasterNodeListText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 81.53));
-    TextBox = new wxTextCtrl(panel, wxID_ANY, "Text Box", wxPoint(1, 200), wxSize(680, 250), wxTE_MULTILINE);
+    TextBox = new wxTextCtrl(panel, wxID_ANY, "Text Box", wxPoint(1, 500), wxSize(680, 250), wxTE_MULTILINE);
+    NosoAddressGrid = new wxGrid(panel, wxID_ANY, wxPoint(1, 200), wxSize(680, 250));
+    NosoAddressGrid->HideRowLabels();
+    NosoAddressGrid->AutoSizeColumns();
+    NosoAddressGrid->CreateGrid(4, 4);
+    NosoAddressGrid->SetColLabelValue(0,"Address");
+    NosoAddressGrid->SetColLabelValue(1,"Label");
+    NosoAddressGrid->SetColLabelValue(2,"Pending");
+    NosoAddressGrid->SetColLabelValue(3,"Balance");
+
     GenerateKeysText= new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 104.81));
  
 
@@ -95,10 +107,13 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
     //TestWallet.
 
         
-} 
+}
+
+
 
 void MainFrame::OnDownloadSummaryButtonClicked(wxCommandEvent& evt)
 {
+    TextBox->AppendText("Downloading Sumary....\n");
     std::string DefaultNodeIp = "20.199.50.27";						//PENDING: Send commmand to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
     int DefaultNodePort = 8080;
     std::string GETZIPSUMARY_COMMAND = "GETZIPSUMARY\n";
@@ -113,19 +128,17 @@ void MainFrame::OnDownloadSummaryButtonClicked(wxCommandEvent& evt)
     UnzipFile(zipFileName, outputDir);
 
     
-
-
-
- 
     //std::ifstream inputFile(".\\data\\sumary.psk", std::ios::binary);
     std::string filename = (fs::current_path() / "data" / "sumary.psk").string();
     std::ifstream inputFile(filename, std::ios::binary);
     if (!inputFile) {
-        std::cout << "Cannot open the file." << std::endl;
+        TextBox->AppendText("Cannot open the file.\n");
+        //std::cout << "Cannot open the file." << std::endl;
         //return void; 
     }
     else {
-        std::cout << "File Opened!";
+        TextBox->AppendText("File Opened.\n");
+       // std::cout << "File Opened!";
     }
 
     inputFile.seekg(0, std::ios::end); // Move pointer to end file
@@ -133,8 +146,11 @@ void MainFrame::OnDownloadSummaryButtonClicked(wxCommandEvent& evt)
     inputFile.seekg(0, std::ios::beg); // Moving pointer to the beginning 
     size_t numRecords = fileSize / sizeof(TSummaryData); // Calculate number of registers
 
+    TextBox->AppendText("Loading total Noso Addresses: \n");
+    
+    
     TotalNosoAddressesLoadedValue->SetLabel(wxString(std::to_string(numRecords)));
-
+    TextBox->AppendText(std::to_string(numRecords));
     //std::cout << endl << "NOSO Addressess loaded : " << numRecords << std::endl;
 
     std::vector<TSummaryData> dataVector(numRecords);
@@ -150,7 +166,8 @@ void MainFrame::OnDownloadSummaryButtonClicked(wxCommandEvent& evt)
 void MainFrame::OnConnectButtonClicked(wxCommandEvent& evt)
 
 {
-	wxLogStatus("Connecting to Noso Mainet...");
+    TextBox->Clear();
+    TextBox->AppendText("Connecting to Mainet....\n");
 	std::string NODESTATUS_COMMAND= "NODESTATUS\n";
 	std::string DefaultNodeIp = "20.199.50.27";						//PENDDING: Send commmand to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
 	int DefaultNodePort = 8080;										//PENDING: Set PORT from List of Nodes.
@@ -184,8 +201,9 @@ void MainFrame::OnConnectButtonClicked(wxCommandEvent& evt)
     std::string CurrentBlockString = std::to_string(data.BlockNumber); //Transform from Integer to String
     CurrentBlock->SetLabel(wxString(CurrentBlockString));              // Modify Static text to show Current Block
 
-
-	wxLogStatus("Connected, NODESTATUS SAVED.");
+    //TextBox->Clear();
+    TextBox->AppendText("Connection Sucessful\n");
+	//wxLogStatus("Connected, NODESTATUS SAVED.");
 
 }
 
@@ -234,55 +252,72 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     std::string NosoAddressTest = "Empty";
 
     
-    
-
-    CryptoPP::AutoSeededRandomPool rng;
+       // Initialize the random number generator
+    Botan::AutoSeeded_RNG rng;
 
     // Generate ECDSA secp256k1 keys
-    CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey privateKey;
-    privateKey.Initialize(rng, CryptoPP::ASN1::secp256k1());
+    Botan::ECDSA_PrivateKey private_key(rng, Botan::EC_Group("secp256k1"));
 
-    CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey publicKey;
-    privateKey.MakePublicKey(publicKey);
+    // Extract the public key
+   // Botan::ECDSA_PublicKey public_key = private_key;
 
-    // Save private Key to a String
-    std::string privateKeyStr;
-    CryptoPP::ByteQueue privateKeyQueue;
-    privateKey.Save(privateKeyQueue);
-    CryptoPP::HexEncoder privateKeyEncoder(new CryptoPP::StringSink(privateKeyStr));
-    privateKeyQueue.CopyTo(privateKeyEncoder);
-    privateKeyEncoder.MessageEnd();
-    //TestWallet.PrivateKey = privateKeyStr;
+    // Save private key to a string
+    //std::string private_key_str = Botan::hex_encode(private_key.private_key_bits());
+    
+    //std::string private_key_str_Base64 = Botan::base64_encode(private_key.private_key_bits());
 
-    // Save public key to a String
-    std::string publicKeyStr;
-    CryptoPP::ByteQueue publicKeyQueue;
-    publicKey.Save(publicKeyQueue);
-    CryptoPP::HexEncoder publicKeyEncoder(new CryptoPP::StringSink(publicKeyStr));
-    publicKeyQueue.CopyTo(publicKeyEncoder);
-    publicKeyEncoder.MessageEnd();
+    //std::vector<uint8_t> binary_data(private_key_str.begin(), private_key_str.end());
 
+    // Encode binary data as Base64
+    //std::string base64_string = Botan::base64_encode(binary_data.data(), binary_data.size());
+    //std::string base64_string2 = HexToBase64(private_key_str);
+
+    // Save public key to a string
+   // std::string public_key_str = Botan::hex_encode(public_key.public_key_bits());
+
+    /////TEST NEW Base64
+
+    std::vector<uint8_t> publicKeyPointBytes = private_key.public_point().encode(Botan::PointGFp::UNCOMPRESSED);
+    std::vector<uint8_t> privateKeyBytes = Botan::BigInt::encode(private_key.private_value());
+    std::string privateKeyBase64 = Botan::base64_encode(privateKeyBytes.data(), privateKeyBytes.size());
+    std::string publicKeyPointBase64 = Botan::base64_encode(publicKeyPointBytes.data(), publicKeyPointBytes.size());
+
+
+
+  
+
+
+
+
+    //std::vector<uint8_t> privateKeyBytes = Botan::hex_decode(private_key.private_key_bits());
+
+    
     ///Show Results
 
     TextBox->AppendText("\n\nPUBLIC KEY: \n");
-    TextBox->AppendText(publicKeyStr);
+    //TextBox->AppendText(publicKeyStr);
+    TextBox->AppendText(publicKeyPointBase64);
     TextBox->AppendText("\n\nPRIVATE KEY: \n");
-    TextBox->AppendText(privateKeyStr);
-    Sha256 = PublicKeyToSHA256(publicKeyStr);
-    TextBox->AppendText("\n\nSHA256 Public Key encoded\n");
-    TextBox->AppendText(Sha256);
+    //TextBox->AppendText(privateKeyStr);
+    TextBox->AppendText(privateKeyBase64);
+
+
+    //Generate NOSO ADDRESS
+    Sha256 = PublicKeyToSHA256(publicKeyPointBase64);
+    //TextBox->AppendText("\n\nSHA256 Public Key encoded\n");
+    //TextBox->AppendText(Sha256);
     MD160 = CalculateMD160(Sha256);
-    TextBox->AppendText("\n\nMD160\n");
-    TextBox->AppendText(MD160);
+    //TextBox->AppendText("\n\nMD160\n");
+    //TextBox->AppendText(MD160);
     Base58= EncodeBase58(MD160);
-    TextBox->AppendText("\n\nBase58\n");
-    TextBox->AppendText(Base58);
+    //TextBox->AppendText("\n\nBase58\n");
+    //TextBox->AppendText(Base58);
     Checksum = CalculateCheckSum(Base58);
-    TextBox->AppendText("\n\nCheckSum:\n");
-    TextBox->AppendText(std::to_string(Checksum));
+   // TextBox->AppendText("\n\nCheckSum:\n");
+    //TextBox->AppendText(std::to_string(Checksum));
     CheckSumBase58 = BmDecto58(std::to_string(Checksum));
-    TextBox->AppendText("\nCheckSumBase58:\n");
-    TextBox->AppendText(CheckSumBase58);
+    //TextBox->AppendText("\nCheckSumBase58:\n");
+    //TextBox->AppendText(CheckSumBase58);
 
     //Final Noso Address: N + Base58 + Base58(CheckSum)
     NosoAddressTest = "N" + Base58 + CheckSumBase58;
@@ -299,7 +334,10 @@ bool MainFrame::UnzipFile(const wxString& zipFileName, const wxString& outputDir
 
     if (!fis.IsOk())
     {
-        wxLogError(wxS("Couldn't open the file '%s'."), zipFileName);
+        //wxLogError(wxS("Couldn't open the file '%s'."), zipFileName);
+        wxString ErrorOpening;
+        ErrorOpening.Printf("Couldn't open the file '%s'.", zipFileName);
+        TextBox->AppendText(ErrorOpening + "\n");
         return false;
     }
 
@@ -329,6 +367,9 @@ bool MainFrame::UnzipFile(const wxString& zipFileName, const wxString& outputDir
         if (!zis.CanRead())
         {
             wxLogError(wxS("Couldn't read the zip entry '%s'."), upZe->GetName());
+            wxString ErrorReading;
+            ErrorReading.Printf("Couldn't read the zip entry '%s'.", upZe->GetName());
+            TextBox->AppendText(ErrorReading + "\n");
             return false;
         }
 
@@ -337,6 +378,9 @@ bool MainFrame::UnzipFile(const wxString& zipFileName, const wxString& outputDir
         if (!fos.IsOk())
         {
             wxLogError(wxS("Couldn't create the file '%s'."), strFileName);
+            wxString ErrorCreating;
+            ErrorCreating.Printf("Couldn't create the file '%s'.", strFileName);
+            TextBox->AppendText(ErrorCreating + "\n");
             return false;
         }
 
@@ -381,6 +425,7 @@ std::string MainFrame::PublicKeyToSHA256(const std::string& publicKey)
 std::string MainFrame::CalculateMD160(const std::string& SHA256String)
 
 {
+ 
     CryptoPP::RIPEMD160 hash;
     CryptoPP::byte digest[CryptoPP::RIPEMD160::DIGESTSIZE];
 
@@ -394,16 +439,13 @@ std::string MainFrame::CalculateMD160(const std::string& SHA256String)
 
   
     return hashHex;
-
-
+    
 
 }
 
 std::string MainFrame::EncodeBase58(const std::string& MD160String)
 {
 
-  
-      //https://learnmeabitcoin.com/technical/base58 Test Conversion.
     std::vector<uint8_t> inputData = Botan::hex_decode(MD160String);
    
     std::string base58Result = Botan::base58_encode(inputData.data(), inputData.size());
@@ -493,6 +535,7 @@ bool MainFrame::VerifyMessage(const std::string& message, const std::string& sig
     
 }
 
+
 void MainFrame::SignAndVerify(wxCommandEvent& evt)
 {
     
@@ -514,34 +557,107 @@ void MainFrame::SignAndVerify(wxCommandEvent& evt)
 */
 }
 
+std::string MainFrame::HexToBase64(const std::string& hexString)
+{
+    std::vector<uint8_t> binaryData;
+
+    for (size_t i = 0; i < hexString.length(); i += 2) {
+        std::string byteStr = hexString.substr(i, 2);
+        uint8_t byte = static_cast<uint8_t>(std::stoi(byteStr, 0, 16));
+        binaryData.push_back(byte);
+    }
+
+    // Encode binary data as Base64
+    std::string base64String = Botan::base64_encode(binaryData.data(), binaryData.size());
+
+    return base64String;
+}
+void MainFrame::InitializeWallet()
+{
+   // std::string dataDirectory = ".//data//";
+    //std::string walletFileName = "wallet.pkw";
+   // std::string WalletfullPath = dataDirectory + walletFileName;
+    
+    std::string WalletFullPath = (fs::current_path() / "data" / "wallet.pkw").string();
+
+    //Call Connect ButtonFuction
+    wxCommandEvent fakeEvent(wxEVT_BUTTON, wxID_ANY); // Create a fake button click event
+    OnConnectButtonClicked(fakeEvent); // Call the function
+    //Download Summary
+    OnDownloadSummaryButtonClicked(fakeEvent);
+
+    if (DoesFileExist(WalletFullPath)) {
+        TextBox->AppendText("\nWallet.pkw File exists! Loading Addresses.\n");
+        std::vector<WalletData> walletDataLoaded = ReadWalletData(WalletFullPath);
+        TextBox->AppendText("\nNOSO address Loaded : ");
+        TextBox->AppendText(std::to_string(walletDataLoaded.size()));
+        std::string PrivateKeyLoaded = walletDataLoaded[0].GetHash();
+        std::string Label = walletDataLoaded[0].GetLabel();
+        std::int64_t Pending = walletDataLoaded[0].GetPending();
+        std::int64_t Balance = walletDataLoaded[0].GetBalance();
+
+        if (!PrivateKeyLoaded.empty()) {
+            PrivateKeyLoaded.erase(PrivateKeyLoaded.size() - 1); // Clear last value, as it's a \0 from Char[40].
+        }
+        TextBox->AppendText("\nNOSO Address: ");
+        TextBox->AppendText(PrivateKeyLoaded);//Pending Shows a Noso Adress with a end char or string symbol that needs to be removed.
+        NosoAddressGrid->SetCellValue(0, 0, PrivateKeyLoaded);
+        NosoAddressGrid->SetCellValue(0, 1 ,Label);
+        NosoAddressGrid->SetCellValue(0, 2, std::to_string(Pending));
+        NosoAddressGrid->SetCellValue(0, 3, std::to_string(Balance));
+
+    }
+    else {
+        TextBox->AppendText("\nWallet.pkw File does not exist, creating a new NOSO address and Wallet.pkw file.\n ");
+
+    }
+
+    
+
+    
+}
+
+bool MainFrame::DoesFileExist(const std::string& filePath)
+{
+        std::ifstream file(filePath);
+        return file.good();
+    
+}
+
+std::vector<WalletData> MainFrame::ReadWalletData(const std::string& filePath)
+{
+    std::vector<WalletData> dataVectorWallet;
+    std::ifstream inputFileWallet(filePath, std::ios::binary);
+    if (!inputFileWallet) {
+        //std::cerr << "Cannot open the file." << std::endl;
+        wxString ErrorOpeningWalletFile;
+        ErrorOpeningWalletFile.Printf("Cannot open /data/wallet.pkw file");
+        TextBox->AppendText(ErrorOpeningWalletFile + "\n");
+        return dataVectorWallet; // Return an empty vector in case of an error
+    }
+
+    inputFileWallet.seekg(0, std::ios::end);
+    std::streampos fileSizeWallet = inputFileWallet.tellg();
+    inputFileWallet.seekg(0, std::ios::beg);
+    size_t numRecordsWallet = fileSizeWallet / sizeof(WalletData);
+
+    dataVectorWallet.resize(numRecordsWallet);
+
+    inputFileWallet.read(reinterpret_cast<char*>(dataVectorWallet.data()), fileSizeWallet);
+
+    inputFileWallet.close();
+
+    //std::string test= dataVectorWallet[0].GetHash;
 
 
 
-/*
-wxButton* button = new wxButton(panel, wxID_ANY, "New NOSO Address", wxPoint(150, 50), wxSize(100, 35));
+    return dataVectorWallet;
+    //return std::vector<WalletData>();
+}
 
-wxCheckBox* checkBox = new wxCheckBox(panel, wxID_ANY, "CheckBox", wxPoint(200, 100));
 
-wxStaticText* staticText = new wxStaticText(panel, wxID_ANY, "Static Text", wxPoint(120, 150));
 
-wxTextCtrl* textCtrl = new wxTextCtrl(panel, wxID_ANY, "TextCTRL", wxPoint(500, 145), wxSize(200, -1));
-/*
 
-wxSlider* slider = new wxSlider(panel, wxID_ANY, 25, 0, 100, wxPoint(300,145),wxSize(200,-1));
 
-wxGauge* gauge = new wxGauge(panel, wxID_ANY, 100, wxPoint(500, 255), wxSize(200, -1));
-gauge->SetValue(50);
 
-wxArrayString choices;
-choices.Add("Item A");
-choices.Add("Item B");
 
-wxChoice* choice = new wxChoice(panel, wxID_ANY, wxPoint(150, 375), wxSize(100, -1),choices);
-choice->Select(0);
-
-wxSpinCtrl* spinCtrl = new wxSpinCtrl(panel, wxID_ANY, "", wxPoint(550, 375), wxSize(100, -1));
-
-wxListBox* listBox = new wxListBox(panel, wxID_ANY, wxPoint(150, 475), wxSize(100, -1),choices);
-
-wxRadioBox* radioBox = new wxRadioBox(panel, wxID_ANY, "radioBox", wxPoint(485, 475), wxDefaultSize, choices);
-*/
