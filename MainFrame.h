@@ -50,43 +50,53 @@ private:
 	bool VerifyMessage(const std::string& message, const std::string& signature, const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey& publicKey);
 	void SignAndVerify(wxCommandEvent& evt);
 	std::string HexToBase64(const std::string& hexString);
-	
+	void OnOpen(wxCommandEvent& event);
+
+	void OnSave(wxCommandEvent& event);
+
+	void OnExit(wxCommandEvent& event);
 	
 	
 
 	
 	
 	//Time Sync NTP
-	wxStaticText* CurrentBlock;
-	wxStaticText* GetSumaryText;
-
-	//Noso Addresses Control
-	wxStaticText* TotalNosoAddressesLoadedText;
-	wxStaticText* TotalNosoAddressesLoadedValue;
+	//wxStaticText* CurrentBlock;
+	///wxStaticText* TotalNosoAddressesLoadedText;
+	//wxStaticText* TotalNosoAddressesLoadedValue;
 	
+	//Menu definition
+	wxMenu* MainMenu;
+	wxMenuBar* menuBar;
+	wxMenuItem* openItem;
+	wxMenuItem* saveItem;
+	wxMenuItem* exitItem;
+
 	//Time Controls
 
-	wxStaticText* MainNetTimeText;
+	//wxStaticText* MainNetTimeText;
     wxTimer* Timer;
 	void OnTimer(wxTimerEvent& event);
 
 	//MasterNode List
-	wxStaticText* MasterNodeListText;
+	//wxStaticText* MasterNodeListText;
 
 
 	//Text VBox to show data
 	wxTextCtrl* TextBox;
 
-	wxStaticText* GenerateKeysText;
+	//wxStaticText* GenerateKeysText;
 
 	//Noso AddressText
 
-	wxStaticText* GenerateNOSOAddressText;
+	//wxStaticText* GenerateNOSOAddressText;
 
 	wxGrid* NosoAddressGrid;
 
-
+	wxStatusBar* statusBar;
  
 
 
 };
+
+ 

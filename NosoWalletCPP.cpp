@@ -31,49 +31,77 @@
 //#include <vector>
 /// Added for Unix Like system compatibilty
 #include <filesystem>
+#include <wx/statusbr.h>
+#include <wx/statusbr.h>
 namespace fs = std::filesystem;
 /// Added for Unix Like system compatibilty: END.
+
+
+//(wxID_OPEN, MyFrame::OnOpen)
+//EVT_MENU(wxID_SAVE, MyFrame::OnSave)
+//EVT_MENU(wxID_EXIT, MyFrame::OnExit)
+//END_EVENT_TABLE()
 
 MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {   //Constructor Base class
 	wxPanel* panel = new wxPanel(this);
 
+    //Menu Definition
+
+    MainMenu = new wxMenu;
+    openItem = new wxMenuItem(MainMenu, wxID_OPEN, "Open\tCtrl+O");
+    saveItem = new wxMenuItem(MainMenu, wxID_SAVE, "Save\tCtrl+S");
+    exitItem = new wxMenuItem(MainMenu, wxID_EXIT, "Exit\tAlt+F4");
+    // Add menu items to the File menu
+    MainMenu->Append(openItem);
+    MainMenu->Append(saveItem);
+    MainMenu->AppendSeparator();
+    MainMenu->Append(exitItem);
+
+    // Create the menu bar
+    menuBar = new wxMenuBar;
+    menuBar->Append(MainMenu, "&File");
+
+    // Set the menu bar for the frame
+    SetMenuBar(menuBar);
+    
+    
     //Button Definitions
 
 	wxButton* Connect_Button = new wxButton(panel, wxID_ANY, "Connect", wxPoint(1, 1), wxSize(150, 25));
-    wxButton* Download_Summary = new wxButton(panel, wxID_ANY, "Download Summary", wxPoint(1,26), wxSize(150, 25));
-    wxButton* SyncMainNetTime = new wxButton(panel, wxID_ANY, "Sync MainNet Time", wxPoint(1, 51), wxSize(150, 25));
-    wxButton* GetMasterNodeList = new wxButton(panel, wxID_ANY, "Get Master Node List", wxPoint(1, 76), wxSize(150, 25));
+    //wxButton* Download_Summary = new wxButton(panel, wxID_ANY, "Download Summary", wxPoint(1,26), wxSize(150, 25));
+    //wxButton* SyncMainNetTime = new wxButton(panel, wxID_ANY, "Sync MainNet Time", wxPoint(1, 51), wxSize(150, 25));
+    //wxButton* GetMasterNodeList = new wxButton(panel, wxID_ANY, "Get Master Node List", wxPoint(1, 76), wxSize(150, 25));
     wxButton* GenerateKeysButton = new wxButton(panel, wxID_ANY, "Generate NOSO Address", wxPoint(1, 100), wxSize(150, 25));
-    wxButton* GetMasterNodeConfigButton = new wxButton(panel, wxID_ANY, "Get Master Node config", wxPoint(1, 124), wxSize(150, 25));
-    wxButton* SignAndVerifyButton = new wxButton(panel, wxID_ANY, "Sign and Verify", wxPoint(1, 149), wxSize(150, 25));
+    //wxButton* GetMasterNodeConfigButton = new wxButton(panel, wxID_ANY, "Get Master Node config", wxPoint(1, 124), wxSize(150, 25));
+    //wxButton* SignAndVerifyButton = new wxButton(panel, wxID_ANY, "Sign and Verify", wxPoint(1, 149), wxSize(150, 25));
     
 
     //Static Text Definitions
     
-    wxStaticText* CurrentBlockText = new wxStaticText(panel, wxID_ANY, "-Current Block: ", wxPoint(165, 6.25));
-    CurrentBlockText->SetFont(wxFontInfo(8).Bold());
-    wxStaticText* SummaryText = new wxStaticText(panel, wxID_ANY, "-Summary Processed: ", wxPoint(165, 32.25));
-    SummaryText->SetFont(wxFontInfo(8).Bold());
-    wxStaticText* TotalNosoAddressesLoadedText = new wxStaticText(panel, wxID_ANY, "-Total Noso Addesses Loaded : ", wxPoint(400, 35));
-    TotalNosoAddressesLoadedText->SetFont(wxFontInfo(8).Bold());
-    wxStaticText* MainNetTime = new wxStaticText(panel, wxID_ANY, "-MainNetTime:  ", wxPoint(165, 58.25));
-    MainNetTime->SetFont(wxFontInfo(8).Bold());
-    wxStaticText* MasterNodeList = new wxStaticText(panel, wxID_ANY, "-MasterNodeList:  ", wxPoint(165, 81.53));
-    MasterNodeList->SetFont(wxFontInfo(8).Bold());
-    wxStaticText* GenerateKeysText= new wxStaticText(panel, wxID_ANY, "-Generate Keys:  ", wxPoint(165, 104.81));
-    GenerateKeysText->SetFont(wxFontInfo(8).Bold());
-    wxStaticText* GetMasterNodeconfigText = new wxStaticText(panel, wxID_ANY, "-Get Master Node Config:  ", wxPoint(165, 128.09));
-    GetMasterNodeconfigText->SetFont(wxFontInfo(8).Bold());
+    //wxStaticText* CurrentBlockText = new wxStaticText(panel, wxID_ANY, "-Current Block: ", wxPoint(165, 6.25));
+    //CurrentBlockText->SetFont(wxFontInfo(8).Bold());
+    //wxStaticText* SummaryText = new wxStaticText(panel, wxID_ANY, "-Summary Processed: ", wxPoint(165, 32.25));
+    //SummaryText->SetFont(wxFontInfo(8).Bold());
+    //wxStaticText* TotalNosoAddressesLoadedText = new wxStaticText(panel, wxID_ANY, "-Total Noso Addesses Loaded : ", wxPoint(400, 35));
+    //TotalNosoAddressesLoadedText->SetFont(wxFontInfo(8).Bold());
+    //wxStaticText* MainNetTime = new wxStaticText(panel, wxID_ANY, "-MainNetTime:  ", wxPoint(165, 58.25));
+    //MainNetTime->SetFont(wxFontInfo(8).Bold());
+    //wxStaticText* MasterNodeList = new wxStaticText(panel, wxID_ANY, "-MasterNodeList:  ", wxPoint(165, 81.53));
+    //MasterNodeList->SetFont(wxFontInfo(8).Bold());
+    //wxStaticText* GenerateKeysText= new wxStaticText(panel, wxID_ANY, "-Generate Keys:  ", wxPoint(165, 104.81));
+    //GenerateKeysText->SetFont(wxFontInfo(8).Bold());
+    //wxStaticText* GetMasterNodeconfigText = new wxStaticText(panel, wxID_ANY, "-Get Master Node Config:  ", wxPoint(165, 128.09));
+    //GetMasterNodeconfigText->SetFont(wxFontInfo(8).Bold());
     wxStaticText* LogTextBoxLabel = new wxStaticText(panel, wxID_ANY, "Log: ", wxPoint(1, 475));
     LogTextBoxLabel->SetFont(wxFontInfo(8).Bold());
 
 
     //Dynamic object creation
-    CurrentBlock = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 6.25));
-    GetSumaryText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 32.25));
-    TotalNosoAddressesLoadedValue = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(575, 35));
-    MainNetTimeText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 58.25));
-    MasterNodeListText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 81.53));
+ 
+    //GetSumaryText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 32.25));
+    //TotalNosoAddressesLoadedValue = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(575, 35));
+    //MainNetTimeText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 58.25));
+    //MasterNodeListText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 81.53));
     TextBox = new wxTextCtrl(panel, wxID_ANY, "Text Box", wxPoint(1, 500), wxSize(680, 250), wxTE_MULTILINE);
     NosoAddressGrid = new wxGrid(panel, wxID_ANY, wxPoint(1, 200), wxSize(680, 250));
     NosoAddressGrid->HideRowLabels();
@@ -84,27 +112,39 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
     NosoAddressGrid->SetColLabelValue(2,"Pending");
     NosoAddressGrid->SetColLabelValue(3,"Balance");
 
-    GenerateKeysText= new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 104.81));
+    //GenerateKeysText= new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 104.81));
  
 
     //Bind Operations to Button event
 
-    SyncMainNetTime->Bind(wxEVT_BUTTON, &MainFrame::OnSyncMainNetTimeButtonClicked, this);
+    //SyncMainNetTime->Bind(wxEVT_BUTTON, &MainFrame::OnSyncMainNetTimeButtonClicked, this);
     Connect_Button->Bind(wxEVT_BUTTON, &MainFrame::OnConnectButtonClicked, this);
-    Download_Summary->Bind(wxEVT_BUTTON, &MainFrame::OnDownloadSummaryButtonClicked, this);
-    GetMasterNodeList->Bind(wxEVT_BUTTON, &MainFrame::GetMasterNodeList, this);
+    //Download_Summary->Bind(wxEVT_BUTTON, &MainFrame::OnDownloadSummaryButtonClicked, this);
+    //GetMasterNodeList->Bind(wxEVT_BUTTON, &MainFrame::GetMasterNodeList, this);
     GenerateKeysButton->Bind(wxEVT_BUTTON, &MainFrame::GenerateKeys, this);
-    GetMasterNodeConfigButton->Bind(wxEVT_BUTTON, &MainFrame::GetMasterNodeConfig, this);
-    SignAndVerifyButton->Bind(wxEVT_BUTTON, &MainFrame::SignAndVerify, this);
+    //->Bind(wxEVT_BUTTON, &MainFrame::GetMasterNodeConfig, this);
+    //SignAndVerifyButton->Bind(wxEVT_BUTTON, &MainFrame::SignAndVerify, this);
     
     this->Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
 
     //Status Bar creation
 
-	wxStatusBar* statusBar =CreateStatusBar(); // Create Status Bar Bottom Window.
+
+
+    statusBar = new wxStatusBar(this, wxID_ANY);
     statusBar->SetDoubleBuffered(true);
-    
-    //TestWallet.
+    statusBar->SetFieldsCount(3);
+    SetStatusBar(statusBar);
+     
+   /*      // Set text and background color for each field
+        SetStatusText("Field 1 Text", 0);
+        SetBackgroundColor(0, wxColor(255, 0, 0)); // Red background for field 1
+
+        //SetStatusText("Field 2 Text", 1);
+        SetBackgroundColor(1, wxColor(0, 255, 0)); // Green background for field 2
+
+        SetStatusText("Field 3 Text", 2);
+        SetBackgroundColor(2, wxColor(0, 0, 255));*/
 
         
 }
@@ -118,7 +158,7 @@ void MainFrame::OnDownloadSummaryButtonClicked(wxCommandEvent& evt)
     int DefaultNodePort = 8080;
     std::string GETZIPSUMARY_COMMAND = "GETZIPSUMARY\n";
     std::string GetZipSumaryResponse = SendStringToNode(DefaultNodeIp, DefaultNodePort, GETZIPSUMARY_COMMAND);
-    GetSumaryText->SetLabel(wxString(GetZipSumaryResponse));              // Modify Static text to show Current Block
+    //GetSumaryText->SetLabel(wxString(GetZipSumaryResponse));              // Modify Static text to show Current Block
     
     wxString zipFileName = "summary.zip";
     //wxString outputDir = ".\\";
@@ -149,9 +189,10 @@ void MainFrame::OnDownloadSummaryButtonClicked(wxCommandEvent& evt)
     TextBox->AppendText("Loading total Noso Addresses: \n");
     
     
-    TotalNosoAddressesLoadedValue->SetLabel(wxString(std::to_string(numRecords)));
-    TextBox->AppendText(std::to_string(numRecords));
-    //std::cout << endl << "NOSO Addressess loaded : " << numRecords << std::endl;
+    //TotalNosoAddressesLoadedValue->SetLabel(wxString(std::to_string(numRecords)));
+    //TextBox->AppendText(std::to_string(numRecords));
+    statusBar->SetStatusText("NOSO Addresses Loaded : " + std::to_string(numRecords), 1);
+
 
     std::vector<TSummaryData> dataVector(numRecords);
 
@@ -199,8 +240,12 @@ void MainFrame::OnConnectButtonClicked(wxCommandEvent& evt)
     NodeStatusIss >> data.PSOHash;
 
     std::string CurrentBlockString = std::to_string(data.BlockNumber); //Transform from Integer to String
-    CurrentBlock->SetLabel(wxString(CurrentBlockString));              // Modify Static text to show Current Block
-
+    //CurrentBlock->SetLabel(wxString(CurrentBlockString));
+    statusBar->SetStatusText("Current Block: " + CurrentBlockString, 0);
+    //StatusBar->SetStatusText("Field 2 Text", 1);
+    //SetBackgroundColor(1, wxColor(0, 255, 0));
+    // Modify Static text to show Current Block
+    //statusBar->SetBackgroundColour(0,wxColor(0, 255, 0));
     //TextBox->Clear();
     TextBox->AppendText("Connection Sucessful\n");
 	//wxLogStatus("Connected, NODESTATUS SAVED.");
@@ -211,7 +256,7 @@ void MainFrame::OnConnectButtonClicked(wxCommandEvent& evt)
 void MainFrame::OnSyncMainNetTimeButtonClicked(wxCommandEvent& evt) {
 
 
-    MainNetTimeText->SetLabel(std::to_string(GetMainetTimeStamp()));
+    //MainNetTimeText->SetLabel(std::to_string(GetMainetTimeStamp()));
 
 }
 
@@ -236,7 +281,7 @@ void MainFrame::GetMasterNodeList(wxCommandEvent& evt)
     int DefaultNodePort = 8080;										//PENDING: Set PORT from List of Nodes.
     std::string MasterNodeListString = SendStringToNode(DefaultNodeIp, DefaultNodePort, NODESTATUS_COMMAND);
     TextBox->SetLabel(MasterNodeListString);
-    MasterNodeListText->SetLabel("Master Node List OK");
+    //MasterNodeListText->SetLabel("Master Node List OK");
 
 }
 
@@ -572,6 +617,16 @@ std::string MainFrame::HexToBase64(const std::string& hexString)
 
     return base64String;
 }
+void MainFrame::OnOpen(wxCommandEvent& event)
+{
+}
+void MainFrame::OnSave(wxCommandEvent& event)
+{
+}
+void MainFrame::OnExit(wxCommandEvent& event)
+{
+
+}
 void MainFrame::InitializeWallet()
 {
    // std::string dataDirectory = ".//data//";
@@ -654,8 +709,6 @@ std::vector<WalletData> MainFrame::ReadWalletData(const std::string& filePath)
     return dataVectorWallet;
     //return std::vector<WalletData>();
 }
-
-
 
 
 
