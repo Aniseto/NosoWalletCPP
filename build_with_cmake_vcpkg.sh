@@ -4,7 +4,7 @@ GENERATE_PRESET=ninja-multi-vcpkg
 BUILD_PRESET=ninja-vcpkg-release
 BUILDS=builds/ninja-multi-vcpkg
 
-if [ $1 == '--clean' ]
+if [ "$1" == "--clean" ]
 then
   echo "#####"
   echo "# Cleaning builds folder"
