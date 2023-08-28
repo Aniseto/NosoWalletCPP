@@ -21,14 +21,11 @@ public:
 	MainFrame(const wxString& title);
 	std::string MasterNodeListString="Empty";
 	std::string GeneratedNosoAddress = "Empty";
-	//WalletData TestWallet;
+	WalletData MyWallet;
 	void InitializeWallet();
 	bool DoesFileExist(const std::string& filePath);
 	std::vector<WalletData> ReadWalletData(const std::string& filePath);
 
-
-	
-	
 
 private:
 
@@ -50,22 +47,18 @@ private:
 	bool VerifyMessage(const std::string& message, const std::string& signature, const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey& publicKey);
 	void SignAndVerify(wxCommandEvent& evt);
 	std::string HexToBase64(const std::string& hexString);
+	bool SaveWalletDataToFile(const WalletData& walletData);
+
+
+
 	void OnOpen(wxCommandEvent& event);
 
 	void OnSave(wxCommandEvent& event);
 
 	void OnExit(wxCommandEvent& event);
 	
-	
+	//Main Menu definition
 
-	
-	
-	//Time Sync NTP
-	//wxStaticText* CurrentBlock;
-	///wxStaticText* TotalNosoAddressesLoadedText;
-	//wxStaticText* TotalNosoAddressesLoadedValue;
-	
-	//Menu definition
 	wxMenu* MainMenu;
 	wxMenuBar* menuBar;
 	wxMenuItem* openItem;
@@ -78,25 +71,18 @@ private:
     wxTimer* Timer;
 	void OnTimer(wxTimerEvent& event);
 
-	//MasterNode List
-	//wxStaticText* MasterNodeListText;
+	//Log Box
 
-
-	//Text VBox to show data
 	wxTextCtrl* TextBox;
 
-	//wxStaticText* GenerateKeysText;
-
-	//Noso AddressText
-
-	//wxStaticText* GenerateNOSOAddressText;
+	//Noso Address Central Grid
 
 	wxGrid* NosoAddressGrid;
 
+	//Status Bar
+
 	wxStatusBar* statusBar;
  
-
-
 };
 
  

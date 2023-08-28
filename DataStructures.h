@@ -45,6 +45,58 @@
     };
 #pragma pack(pop)
 
+ //OrderData Struct
+
+#pragma pack(push, 1)
+    struct OrderData {
+
+        int Block;
+        std::string OrderID;
+        int OrderLines;
+        char OrderType[6];
+        int64_t TimeStamp;
+        char Reference[64];
+        int TrxLine;
+        char Sender[120];
+        char Address[40];
+        char Receiver[40];
+        int64_t AmmountFee;
+        int64_t AmmountTrf;
+        char Signature[120];
+        char TrfrID[64];
+    };
+#pragma pack(pop)
+  /*OrderData = Packed Record
+   Block : integer;
+   OrderID : String[64];
+   OrderLines : Integer;
+   OrderType : String[6];
+   TimeStamp : Int64;
+   Reference : String[64];
+     TrxLine : integer;
+     Sender : String[120];    // La clave publica de quien envia
+     Address : String[40];
+     Receiver : String[40];
+     AmmountFee : Int64;
+     AmmountTrf : Int64;
+     Signature : String[120];
+     TrfrID : String[64];
+   end;
+    
+
+        
+        char empty[1];     // Added because sumary.psk fine is created by a Pascal app that adds an initial Char specifying Numer of Chars
+        char Hash[40];     // Public hash (including null terminator)
+        char empty2[1];    // Added because sumary.psk fine is created by a Pascal app that adds an initial Char specifying Numer of Chars
+        char Custom[40];   // Custom alias (including null terminator)
+        int64_t Balance;   // Noso balance
+        int64_t Score;     // Token balance
+        int64_t LastOP;    // Last operation block
+    };
+#pragma pack(pop)
+ 
+  */  
+    
     // Wallet Struct Data
 
 #pragma pack(push, 1)
@@ -66,7 +118,11 @@
     public:
         // Getter para obtener el valor de privateKey
         std::string GetPrivateKey() {
+
             return PrivateKey;
+        }
+        std::string GetPublicKey() {
+            return PublicKey;
         }
         std::string GetHash() {
             return Hash;
@@ -80,10 +136,61 @@
         std::int64_t GetBalance() {
             return Balance;
         }
-        /*void SetPrivateKey(const char* newPrivateKey) {
-            strncpy_s(PrivateKey, newPrivateKey, sizeof(PrivateKey));
-            PrivateKey[sizeof(PrivateKey) - 1] = '\0'; // 
-        }*/
+        //Setters
+        void SetPrivateKey(const std::string& privateKey) {
+
+            size_t copySize = std::min(privateKey.size(), sizeof(PrivateKey) - 1);
+
+            // Copiar los datos manualmente
+            for (size_t i = 0; i < copySize; ++i) {
+                PrivateKey[i] = privateKey[i];
+            }
+        }
+        void SetPublicKey(const std::string& publicKey) {
+
+            size_t copySize = std::min(publicKey.size(), sizeof(PublicKey) - 1);
+
+            // Copiar los datos manualmente
+            for (size_t i = 0; i < copySize; ++i) {
+                PublicKey[i] = publicKey[i];
+            }
+        }
+        void SetHash(const std::string& hash) {
+
+            size_t copySize = std::min(hash.size(), sizeof(PublicKey) - 1);
+
+            // Copiar los datos manualmente
+            for (size_t i = 0; i < copySize; ++i) {
+                Hash[i] = hash[i];
+            }
+        }
+        void SetCustom(const std::string& custom) {
+
+            size_t copySize = std::min(custom.size(), sizeof(custom) - 1);
+
+            // Copiar los datos manualmente
+            for (size_t i = 0; i < copySize; ++i) {
+                Custom[i] = custom[i];
+            }
+        }
+        void SetBalance(int64_t balance) {
+
+            Balance = balance;
+        }
+        void SetPendig(int64_t pending) {
+
+            Pending = pending;
+        }
+        void SetScore(int64_t score) {
+
+            Score = score;
+        }
+        void SetLastOp(int64_t lastop) {
+
+            LastOP = lastop;
+        }
+
+
     };
 #pragma pack(pop)
 

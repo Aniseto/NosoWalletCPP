@@ -68,40 +68,13 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
     //Button Definitions
 
 	wxButton* Connect_Button = new wxButton(panel, wxID_ANY, "Connect", wxPoint(1, 1), wxSize(150, 25));
-    //wxButton* Download_Summary = new wxButton(panel, wxID_ANY, "Download Summary", wxPoint(1,26), wxSize(150, 25));
-    //wxButton* SyncMainNetTime = new wxButton(panel, wxID_ANY, "Sync MainNet Time", wxPoint(1, 51), wxSize(150, 25));
-    //wxButton* GetMasterNodeList = new wxButton(panel, wxID_ANY, "Get Master Node List", wxPoint(1, 76), wxSize(150, 25));
     wxButton* GenerateKeysButton = new wxButton(panel, wxID_ANY, "Generate NOSO Address", wxPoint(1, 100), wxSize(150, 25));
-    //wxButton* GetMasterNodeConfigButton = new wxButton(panel, wxID_ANY, "Get Master Node config", wxPoint(1, 124), wxSize(150, 25));
-    //wxButton* SignAndVerifyButton = new wxButton(panel, wxID_ANY, "Sign and Verify", wxPoint(1, 149), wxSize(150, 25));
-    
-
-    //Static Text Definitions
-    
-    //wxStaticText* CurrentBlockText = new wxStaticText(panel, wxID_ANY, "-Current Block: ", wxPoint(165, 6.25));
-    //CurrentBlockText->SetFont(wxFontInfo(8).Bold());
-    //wxStaticText* SummaryText = new wxStaticText(panel, wxID_ANY, "-Summary Processed: ", wxPoint(165, 32.25));
-    //SummaryText->SetFont(wxFontInfo(8).Bold());
-    //wxStaticText* TotalNosoAddressesLoadedText = new wxStaticText(panel, wxID_ANY, "-Total Noso Addesses Loaded : ", wxPoint(400, 35));
-    //TotalNosoAddressesLoadedText->SetFont(wxFontInfo(8).Bold());
-    //wxStaticText* MainNetTime = new wxStaticText(panel, wxID_ANY, "-MainNetTime:  ", wxPoint(165, 58.25));
-    //MainNetTime->SetFont(wxFontInfo(8).Bold());
-    //wxStaticText* MasterNodeList = new wxStaticText(panel, wxID_ANY, "-MasterNodeList:  ", wxPoint(165, 81.53));
-    //MasterNodeList->SetFont(wxFontInfo(8).Bold());
-    //wxStaticText* GenerateKeysText= new wxStaticText(panel, wxID_ANY, "-Generate Keys:  ", wxPoint(165, 104.81));
-    //GenerateKeysText->SetFont(wxFontInfo(8).Bold());
-    //wxStaticText* GetMasterNodeconfigText = new wxStaticText(panel, wxID_ANY, "-Get Master Node Config:  ", wxPoint(165, 128.09));
-    //GetMasterNodeconfigText->SetFont(wxFontInfo(8).Bold());
     wxStaticText* LogTextBoxLabel = new wxStaticText(panel, wxID_ANY, "Log: ", wxPoint(1, 475));
     LogTextBoxLabel->SetFont(wxFontInfo(8).Bold());
 
 
     //Dynamic object creation
  
-    //GetSumaryText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 32.25));
-    //TotalNosoAddressesLoadedValue = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(575, 35));
-    //MainNetTimeText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 58.25));
-    //MasterNodeListText = new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 81.53));
     TextBox = new wxTextCtrl(panel, wxID_ANY, "Text Box", wxPoint(1, 500), wxSize(680, 250), wxTE_MULTILINE);
     NosoAddressGrid = new wxGrid(panel, wxID_ANY, wxPoint(1, 200), wxSize(680, 250));
     NosoAddressGrid->HideRowLabels();
@@ -112,23 +85,14 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
     NosoAddressGrid->SetColLabelValue(2,"Pending");
     NosoAddressGrid->SetColLabelValue(3,"Balance");
 
-    //GenerateKeysText= new wxStaticText(panel, wxID_ANY, "No Data", wxPoint(325, 104.81));
- 
-
-    //Bind Operations to Button event
-
-    //SyncMainNetTime->Bind(wxEVT_BUTTON, &MainFrame::OnSyncMainNetTimeButtonClicked, this);
+    //Bind Functions
+    
     Connect_Button->Bind(wxEVT_BUTTON, &MainFrame::OnConnectButtonClicked, this);
-    //Download_Summary->Bind(wxEVT_BUTTON, &MainFrame::OnDownloadSummaryButtonClicked, this);
-    //GetMasterNodeList->Bind(wxEVT_BUTTON, &MainFrame::GetMasterNodeList, this);
     GenerateKeysButton->Bind(wxEVT_BUTTON, &MainFrame::GenerateKeys, this);
-    //->Bind(wxEVT_BUTTON, &MainFrame::GetMasterNodeConfig, this);
-    //SignAndVerifyButton->Bind(wxEVT_BUTTON, &MainFrame::SignAndVerify, this);
     
     this->Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
 
     //Status Bar creation
-
 
 
     statusBar = new wxStatusBar(this, wxID_ANY);
@@ -136,17 +100,8 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
     statusBar->SetFieldsCount(3);
     SetStatusBar(statusBar);
      
-   /*      // Set text and background color for each field
-        SetStatusText("Field 1 Text", 0);
-        SetBackgroundColor(0, wxColor(255, 0, 0)); // Red background for field 1
-
-        //SetStatusText("Field 2 Text", 1);
-        SetBackgroundColor(1, wxColor(0, 255, 0)); // Green background for field 2
-
-        SetStatusText("Field 3 Text", 2);
-        SetBackgroundColor(2, wxColor(0, 0, 255));*/
-
-        
+ 
+      //  SetBackgroundColor(1, wxColor(0, 255, 0)); // Green background for field 2
 }
 
 
@@ -161,24 +116,18 @@ void MainFrame::OnDownloadSummaryButtonClicked(wxCommandEvent& evt)
     //GetSumaryText->SetLabel(wxString(GetZipSumaryResponse));              // Modify Static text to show Current Block
     
     wxString zipFileName = "summary.zip";
-    //wxString outputDir = ".\\";
     wxString outputDir = (fs::current_path() / "").string();
-    //std::string outputDir = std::current_path() / "";
-    //fs::path outputDir = fs::current_path() / "";
+
     UnzipFile(zipFileName, outputDir);
 
-    
-    //std::ifstream inputFile(".\\data\\sumary.psk", std::ios::binary);
+  
     std::string filename = (fs::current_path() / "data" / "sumary.psk").string();
     std::ifstream inputFile(filename, std::ios::binary);
     if (!inputFile) {
-        TextBox->AppendText("Cannot open the file.\n");
-        //std::cout << "Cannot open the file." << std::endl;
-        //return void; 
+        TextBox->AppendText("Cannot open the file.\n"); 
     }
     else {
         TextBox->AppendText("File Opened.\n");
-       // std::cout << "File Opened!";
     }
 
     inputFile.seekg(0, std::ios::end); // Move pointer to end file
@@ -187,10 +136,6 @@ void MainFrame::OnDownloadSummaryButtonClicked(wxCommandEvent& evt)
     size_t numRecords = fileSize / sizeof(TSummaryData); // Calculate number of registers
 
     TextBox->AppendText("Loading total Noso Addresses: \n");
-    
-    
-    //TotalNosoAddressesLoadedValue->SetLabel(wxString(std::to_string(numRecords)));
-    //TextBox->AppendText(std::to_string(numRecords));
     statusBar->SetStatusText("NOSO Addresses Loaded : " + std::to_string(numRecords), 1);
 
 
@@ -327,24 +272,32 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     std::string privateKeyBase64 = Botan::base64_encode(privateKeyBytes.data(), privateKeyBytes.size());
     std::string publicKeyPointBase64 = Botan::base64_encode(publicKeyPointBytes.data(), publicKeyPointBytes.size());
 
-
+    MyWallet.SetPrivateKey(privateKeyBase64);
+    MyWallet.SetPublicKey(publicKeyPointBase64);
+    //MyWallet.
 
   
 
-
-
-
-    //std::vector<uint8_t> privateKeyBytes = Botan::hex_decode(private_key.private_key_bits());
-
+    TextBox->AppendText("\nCurrent Wallet PrivateKey: ");
+    TextBox->AppendText(MyWallet.GetPrivateKey());
+    TextBox->AppendText("\nCurrent Wallet PublicKey: ");
+    TextBox->AppendText(MyWallet.GetPublicKey());
     
     ///Show Results
 
     TextBox->AppendText("\n\nPUBLIC KEY: \n");
     //TextBox->AppendText(publicKeyStr);
+    //TextBoz->AppendTest("\n PUBLIC KEY SIZE: \n")
     TextBox->AppendText(publicKeyPointBase64);
     TextBox->AppendText("\n\nPRIVATE KEY: \n");
     //TextBox->AppendText(privateKeyStr);
     TextBox->AppendText(privateKeyBase64);
+
+
+
+    //TextBox->AppendText("\nPrivate Key RAW: ");
+    //std::string private_key_str = Botan::hex_encode(private_key.private_key_bits());
+    //TextBox->AppendText(private_key_str);
 
 
     //Generate NOSO ADDRESS
@@ -365,11 +318,16 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     //TextBox->AppendText(CheckSumBase58);
 
     //Final Noso Address: N + Base58 + Base58(CheckSum)
-    NosoAddressTest = "N" + Base58 + CheckSumBase58;
+    NosoAddress = "N" + Base58 + CheckSumBase58;
+    MyWallet.SetHash(NosoAddress);
     TextBox->AppendText("\nNOSO Address:\n");
-    TextBox->AppendText(NosoAddressTest);
+    TextBox->AppendText(NosoAddress);
     TextBox->AppendText("\n\nEND NOSO ADDRESS GENERATION\n");
-      
+
+    //Set Initial Values, thos values will be updated with values from Sumary later.
+    MyWallet.SetBalance(0);
+
+    SaveWalletDataToFile(MyWallet);
 }
 
 
@@ -617,6 +575,34 @@ std::string MainFrame::HexToBase64(const std::string& hexString)
 
     return base64String;
 }
+bool MainFrame::SaveWalletDataToFile(const WalletData& walletData)
+{
+    // Open the file for writing in binary append mode
+    std::ofstream outputFile("walletcpp.pkw", std::ios::binary | std::ios::app);
+
+    // Check if the file was opened successfully
+    if (!outputFile) {
+        std::cerr << "Error: Could not open the file for writing." << std::endl;
+        return false;
+    }
+
+    // Write the WalletData structure to the file
+    outputFile.write(reinterpret_cast<const char*>(&walletData), sizeof(WalletData));
+
+    // Check for write errors
+    if (outputFile.fail()) {
+        std::cerr << "Error: Failed to write data to the file." << std::endl;
+        outputFile.close(); // Close the file
+        return false;
+    }
+
+    // Close the file
+    outputFile.close();
+
+    std::cout << "WalletData appended to walletcpp.pkw" << std::endl;
+    return true;
+}
+
 void MainFrame::OnOpen(wxCommandEvent& event)
 {
 }
@@ -642,27 +628,49 @@ void MainFrame::InitializeWallet()
     OnDownloadSummaryButtonClicked(fakeEvent);
 
     if (DoesFileExist(WalletFullPath)) {
-        TextBox->AppendText("\nWallet.pkw File exists! Loading Addresses.\n");
+        TextBox->AppendText("\nLoading Wallet.pkw\n");
         std::vector<WalletData> walletDataLoaded = ReadWalletData(WalletFullPath);
-        TextBox->AppendText("\nNOSO address Loaded : ");
+        TextBox->AppendText("\nTotal NOSO address loaded : ");
         TextBox->AppendText(std::to_string(walletDataLoaded.size()));
-        std::string PrivateKeyLoaded = walletDataLoaded[0].GetHash();
-        std::string Label = walletDataLoaded[0].GetLabel();
-        std::int64_t Pending = walletDataLoaded[0].GetPending();
-        std::int64_t Balance = walletDataLoaded[0].GetBalance();
 
-        if (!PrivateKeyLoaded.empty()) {
-            PrivateKeyLoaded.erase(PrivateKeyLoaded.size() - 1); // Clear last value, as it's a \0 from Char[40].
-        }
-        TextBox->AppendText("\nNOSO Address: ");
-        TextBox->AppendText(PrivateKeyLoaded);//Pending Shows a Noso Adress with a end char or string symbol that needs to be removed.
-        NosoAddressGrid->SetCellValue(0, 0, PrivateKeyLoaded);
-        NosoAddressGrid->SetCellValue(0, 1 ,Label);
-        NosoAddressGrid->SetCellValue(0, 2, std::to_string(Pending));
-        NosoAddressGrid->SetCellValue(0, 3, std::to_string(Balance));
+
+        NosoAddressGrid->DeleteRows();
+
+        for (size_t i = 0; i < walletDataLoaded.size(); ++i) {
+            std::string HashKeyLoaded = walletDataLoaded[i].GetHash();
+            std::string Label = walletDataLoaded[i].GetLabel();
+            std::int64_t Pending = walletDataLoaded[i].GetPending();
+            std::int64_t Balance = walletDataLoaded[i].GetBalance();
+
+            //DELETE STC and SOH creted by default by Pascal on Strings loaded from wallet.pkw created bu nosolite.
+
+            size_t stxPos = HashKeyLoaded.rfind('\x02'); // STX
+            size_t sohPos = HashKeyLoaded.rfind('\x01'); // SOH
+
+            if (stxPos != std::string::npos && stxPos == HashKeyLoaded.length() - 1) {
+                HashKeyLoaded.erase(stxPos);
+            }
+
+            if (sohPos != std::string::npos && sohPos == HashKeyLoaded.length() - 1) {
+                HashKeyLoaded.erase(sohPos);
+            }
+
+                // Add the data to the grid
+                NosoAddressGrid->AppendRows(1); // Add a new row
+                NosoAddressGrid->SetCellValue(i, 0, HashKeyLoaded);
+                NosoAddressGrid->SetCellValue(i, 1, Label);
+                NosoAddressGrid->SetCellValue(i, 2, std::to_string(Pending));
+                NosoAddressGrid->SetCellValue(i, 3, std::to_string(Balance));
+            }
+
+        //NosoAddressGrid->SetCellValue(0, 0, HashKeyLoaded);
+        //NosoAddressGrid->SetCellValue(0, 1 ,Label);
+        //NosoAddressGrid->SetCellValue(0, 2, std::to_string(Pending));
+        //NosoAddressGrid->SetCellValue(0, 3, std::to_string(Balance));
 
     }
     else {
+        
         TextBox->AppendText("\nWallet.pkw File does not exist, creating a new NOSO address and Wallet.pkw file.\n ");
 
     }
