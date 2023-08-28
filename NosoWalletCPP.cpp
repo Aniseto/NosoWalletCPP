@@ -242,39 +242,19 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     std::string NosoAddressTest = "Empty";
 
     
-       // Initialize the random number generator
+    // Generate Keys
     Botan::AutoSeeded_RNG rng;
-
-    // Generate ECDSA secp256k1 keys
     Botan::ECDSA_PrivateKey private_key(rng, Botan::EC_Group("secp256k1"));
-
-    // Extract the public key
-   // Botan::ECDSA_PublicKey public_key = private_key;
-
-    // Save private key to a string
-    //std::string private_key_str = Botan::hex_encode(private_key.private_key_bits());
-    
-    //std::string private_key_str_Base64 = Botan::base64_encode(private_key.private_key_bits());
-
-    //std::vector<uint8_t> binary_data(private_key_str.begin(), private_key_str.end());
-
-    // Encode binary data as Base64
-    //std::string base64_string = Botan::base64_encode(binary_data.data(), binary_data.size());
-    //std::string base64_string2 = HexToBase64(private_key_str);
-
-    // Save public key to a string
-   // std::string public_key_str = Botan::hex_encode(public_key.public_key_bits());
-
-    /////TEST NEW Base64
-
     std::vector<uint8_t> publicKeyPointBytes = private_key.public_point().encode(Botan::PointGFp::UNCOMPRESSED);
     std::vector<uint8_t> privateKeyBytes = Botan::BigInt::encode(private_key.private_value());
     std::string privateKeyBase64 = Botan::base64_encode(privateKeyBytes.data(), privateKeyBytes.size());
     std::string publicKeyPointBase64 = Botan::base64_encode(publicKeyPointBytes.data(), publicKeyPointBytes.size());
 
+    //Save Generated Keys to Wallet.
+
     MyWallet.SetPrivateKey(privateKeyBase64);
     MyWallet.SetPublicKey(publicKeyPointBase64);
-    //MyWallet.
+   
 
   
 
@@ -294,28 +274,12 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     TextBox->AppendText(privateKeyBase64);
 
 
-
-    //TextBox->AppendText("\nPrivate Key RAW: ");
-    //std::string private_key_str = Botan::hex_encode(private_key.private_key_bits());
-    //TextBox->AppendText(private_key_str);
-
-
     //Generate NOSO ADDRESS
     Sha256 = PublicKeyToSHA256(publicKeyPointBase64);
-    //TextBox->AppendText("\n\nSHA256 Public Key encoded\n");
-    //TextBox->AppendText(Sha256);
     MD160 = CalculateMD160(Sha256);
-    //TextBox->AppendText("\n\nMD160\n");
-    //TextBox->AppendText(MD160);
-    Base58= EncodeBase58(MD160);
-    //TextBox->AppendText("\n\nBase58\n");
-    //TextBox->AppendText(Base58);
+    Base58= EncodeBase58(MD160);  
     Checksum = CalculateCheckSum(Base58);
-   // TextBox->AppendText("\n\nCheckSum:\n");
-    //TextBox->AppendText(std::to_string(Checksum));
     CheckSumBase58 = BmDecto58(std::to_string(Checksum));
-    //TextBox->AppendText("\nCheckSumBase58:\n");
-    //TextBox->AppendText(CheckSumBase58);
 
     //Final Noso Address: N + Base58 + Base58(CheckSum)
     NosoAddress = "N" + Base58 + CheckSumBase58;
@@ -324,8 +288,7 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     TextBox->AppendText(NosoAddress);
     TextBox->AppendText("\n\nEND NOSO ADDRESS GENERATION\n");
 
-    //Set Initial Values, thos values will be updated with values from Sumary later.
-    MyWallet.SetBalance(0);
+    //Save New NOSO Address to file.
 
     SaveWalletDataToFile(MyWallet);
 }
