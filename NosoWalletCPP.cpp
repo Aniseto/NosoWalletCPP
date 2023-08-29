@@ -292,6 +292,21 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
 
     std::string NosoWalletCPPPath = (fs::current_path() / "data" / "walletcpp.pkw").string();
     SaveWalletDataToFile(MyWallet, NosoWalletCPPPath);
+    std::vector<WalletData> walletCPPDataLoaded = ReadWalletDataFromNosoCPP(NosoWalletCPPPath);
+    TextBox->AppendText("\nTotal NOSOCPP address loaded : ");
+    TextBox->AppendText(std::to_string(walletCPPDataLoaded.size()));
+    NosoAddressGrid->DeleteRows();
+    for (size_t i = 0; i < walletCPPDataLoaded.size(); ++i) {
+        std::string HashKeyLoaded = walletCPPDataLoaded[i].GetHash();
+        std::string Label = walletCPPDataLoaded[i].GetLabel();
+        std::int64_t Pending = walletCPPDataLoaded[i].GetPending();
+        std::int64_t Balance = walletCPPDataLoaded[i].GetBalance();
+        NosoAddressGrid->AppendRows(1); // Add a new row
+        NosoAddressGrid->SetCellValue(i, 0, HashKeyLoaded);
+        NosoAddressGrid->SetCellValue(i, 1, Label);
+        NosoAddressGrid->SetCellValue(i, 2, std::to_string(Pending));
+        NosoAddressGrid->SetCellValue(i, 3, std::to_string(Balance));
+    }
 }
 
 
@@ -582,7 +597,7 @@ void MainFrame::InitializeWallet()
 {
  
     
-    std::string WalletFullPath = (fs::current_path() / "data" / "wallet.pkw").string();
+    //std::string WalletFullPath = (fs::current_path() / "data" / "wallet.pkw").string();
     std::string WalletCPPFullPath= (fs::current_path() / "data" / "walletcpp.pkw").string();
     //Call Connect ButtonFuction
     wxCommandEvent fakeEvent(wxEVT_BUTTON, wxID_ANY); // Create a fake button click event
