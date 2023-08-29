@@ -290,7 +290,8 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
 
     //Save New NOSO Address to file.
 
-    SaveWalletDataToFile(MyWallet);
+    std::string NosoWalletCPPPath = (fs::current_path() / "data" / "walletcpp.pkw").string();
+    SaveWalletDataToFile(MyWallet, NosoWalletCPPPath);
 }
 
 
@@ -538,10 +539,11 @@ std::string MainFrame::HexToBase64(const std::string& hexString)
 
     return base64String;
 }
-bool MainFrame::SaveWalletDataToFile(const WalletData& walletData)
+bool MainFrame::SaveWalletDataToFile(const WalletData& walletData, const std::string& filePath)
 {
     // Open the file for writing in binary append mode
-    std::ofstream outputFile("walletcpp.pkw", std::ios::binary | std::ios::app);
+    //std::ofstream outputFile("walletcpp.pkw", std::ios::binary | std::ios::app);
+    std::ofstream outputFile(filePath, std::ios::binary | std::ios::app);
 
     // Check if the file was opened successfully
     if (!outputFile) {
@@ -578,21 +580,44 @@ void MainFrame::OnExit(wxCommandEvent& event)
 }
 void MainFrame::InitializeWallet()
 {
-   // std::string dataDirectory = ".//data//";
-    //std::string walletFileName = "wallet.pkw";
-   // std::string WalletfullPath = dataDirectory + walletFileName;
+ 
     
     std::string WalletFullPath = (fs::current_path() / "data" / "wallet.pkw").string();
-
+    std::string WalletCPPFullPath= (fs::current_path() / "data" / "walletcpp.pkw").string();
     //Call Connect ButtonFuction
     wxCommandEvent fakeEvent(wxEVT_BUTTON, wxID_ANY); // Create a fake button click event
     OnConnectButtonClicked(fakeEvent); // Call the function
     //Download Summary
     OnDownloadSummaryButtonClicked(fakeEvent);
 
+    //Check if walletcpp.pkw exists on /data directory, if exists load all addresses, if no create a new NOSO address, save to file and load Address
+
+
+    if (DoesFileExist(WalletCPPFullPath))
+    {
+        TextBox->AppendText("\nNOSOCPP Wallet File Detected. Loading addresses\n");
+        std::vector<WalletData> walletCPPDataLoaded = ReadWalletDataFromNosoCPP(WalletCPPFullPath);
+        TextBox->AppendText("\nTotal NOSOCPP address loaded : ");
+        TextBox->AppendText(std::to_string(walletCPPDataLoaded.size()));
+        NosoAddressGrid->DeleteRows();
+        for (size_t i = 0; i < walletCPPDataLoaded.size(); ++i) {
+            std::string HashKeyLoaded = walletCPPDataLoaded[i].GetHash();
+            std::string Label = walletCPPDataLoaded[i].GetLabel();
+            std::int64_t Pending = walletCPPDataLoaded[i].GetPending();
+            std::int64_t Balance = walletCPPDataLoaded[i].GetBalance();
+            NosoAddressGrid->AppendRows(1); // Add a new row
+            NosoAddressGrid->SetCellValue(i, 0, HashKeyLoaded);
+            NosoAddressGrid->SetCellValue(i, 1, Label);
+            NosoAddressGrid->SetCellValue(i, 2, std::to_string(Pending));
+            NosoAddressGrid->SetCellValue(i, 3, std::to_string(Balance));
+    }
+
+
+    /*
+    /// Check if wallet.okw NOSOLITE file compatibility exists and loads address.
     if (DoesFileExist(WalletFullPath)) {
         TextBox->AppendText("\nLoading Wallet.pkw\n");
-        std::vector<WalletData> walletDataLoaded = ReadWalletData(WalletFullPath);
+        std::vector<WalletData> walletDataLoaded = ReadWalletDataFromNosolite(WalletFullPath);
         TextBox->AppendText("\nTotal NOSO address loaded : ");
         TextBox->AppendText(std::to_string(walletDataLoaded.size()));
 
@@ -626,15 +651,12 @@ void MainFrame::InitializeWallet()
                 NosoAddressGrid->SetCellValue(i, 3, std::to_string(Balance));
             }
 
-        //NosoAddressGrid->SetCellValue(0, 0, HashKeyLoaded);
-        //NosoAddressGrid->SetCellValue(0, 1 ,Label);
-        //NosoAddressGrid->SetCellValue(0, 2, std::to_string(Pending));
-        //NosoAddressGrid->SetCellValue(0, 3, std::to_string(Balance));
-
+    
+    */
     }
     else {
         
-        TextBox->AppendText("\nWallet.pkw File does not exist, creating a new NOSO address and Wallet.pkw file.\n ");
+        TextBox->AppendText("\nWalletcpp.pkw File does not exist, some probems happened as walletcpp.pkw cannot be created in Data directory.\n ");
 
     }
 
@@ -650,7 +672,7 @@ bool MainFrame::DoesFileExist(const std::string& filePath)
     
 }
 
-std::vector<WalletData> MainFrame::ReadWalletData(const std::string& filePath)
+std::vector<WalletData> MainFrame::ReadWalletDataFromNosolite(const std::string& filePath)
 {
     std::vector<WalletData> dataVectorWallet;
     std::ifstream inputFileWallet(filePath, std::ios::binary);
@@ -679,6 +701,30 @@ std::vector<WalletData> MainFrame::ReadWalletData(const std::string& filePath)
 
     return dataVectorWallet;
     //return std::vector<WalletData>();
+}
+
+std::vector<WalletData> MainFrame::ReadWalletDataFromNosoCPP(const std::string& filePath)
+{
+    std::vector<WalletData> dataVectorWalletCPP;
+    std::ifstream inputFile(filePath, std::ios::binary);
+    if (!inputFile) {
+        TextBox->AppendText("Error: Could not open NosowalletCPP.PKW the file for reading.");
+        return dataVectorWalletCPP; // Return an empty vector on error
+    }
+    WalletData walletData;
+    while (inputFile.read(reinterpret_cast<char*>(&walletData), sizeof(WalletData))) {
+        dataVectorWalletCPP.push_back(walletData);
+    }
+    if (inputFile.fail() && !inputFile.eof()) {
+        TextBox->AppendText("Error: Failed to read data from the file.");
+        inputFile.close(); // Close the file
+        return dataVectorWalletCPP; // Return what was read so far on error
+    }
+    inputFile.close();
+
+    TextBox->AppendText("Data read from "+ filePath +" and appended to the vector.");
+    
+    return dataVectorWalletCPP;
 }
 
 

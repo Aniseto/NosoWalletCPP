@@ -24,7 +24,9 @@ public:
 	WalletData MyWallet;
 	void InitializeWallet();
 	bool DoesFileExist(const std::string& filePath);
-	std::vector<WalletData> ReadWalletData(const std::string& filePath);
+	std::vector<WalletData> ReadWalletDataFromNosolite(const std::string& filePath);
+	std::vector<WalletData> ReadWalletDataFromNosoCPP(const std::string& filePath);
+
 
 
 private:
@@ -47,7 +49,8 @@ private:
 	bool VerifyMessage(const std::string& message, const std::string& signature, const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey& publicKey);
 	void SignAndVerify(wxCommandEvent& evt);
 	std::string HexToBase64(const std::string& hexString);
-	bool SaveWalletDataToFile(const WalletData& walletData);
+	bool SaveWalletDataToFile(const WalletData& walletData, const std::string& filePath);
+	
 
 
 
