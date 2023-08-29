@@ -292,9 +292,12 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
 
     std::string NosoWalletCPPPath = (fs::current_path() / "data" / "walletcpp.pkw").string();
     SaveWalletDataToFile(MyWallet, NosoWalletCPPPath);
-    std::vector<WalletData> walletCPPDataLoaded = ReadWalletDataFromNosoCPP(NosoWalletCPPPath);
+    std::vector<WalletData> walletCPPDataLoaded = ReadWalletDataFromNosoCPP(NosoWalletCPPPath); 
     TextBox->AppendText("\nTotal NOSOCPP address loaded : ");
     TextBox->AppendText(std::to_string(walletCPPDataLoaded.size()));
+
+    // Create a function to update GRID.
+
     NosoAddressGrid->DeleteRows();
     for (size_t i = 0; i < walletCPPDataLoaded.size(); ++i) {
         std::string HashKeyLoaded = walletCPPDataLoaded[i].GetHash();
