@@ -33,6 +33,9 @@
 #include <filesystem>
 #include <wx/statusbr.h>
 #include <wx/statusbr.h>
+//#include <curl/curl.h>
+#include <ctime>
+#include <wx/timer.h>
 namespace fs = std::filesystem;
 /// Added for Unix Like system compatibilty: END.
 
@@ -64,14 +67,18 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
     // Set the menu bar for the frame
     SetMenuBar(menuBar);
     
-    
+    //Timer
+
+    timer = new wxTimer;
+
+
     //Button Definitions
 
 	wxButton* Connect_Button = new wxButton(panel, wxID_ANY, "Connect", wxPoint(1, 1), wxSize(150, 25));
     wxButton* GenerateKeysButton = new wxButton(panel, wxID_ANY, "Generate NOSO Address", wxPoint(1, 100), wxSize(150, 25));
     wxStaticText* LogTextBoxLabel = new wxStaticText(panel, wxID_ANY, "Log: ", wxPoint(1, 475));
     LogTextBoxLabel->SetFont(wxFontInfo(8).Bold());
-
+    wxStaticText* dateTimeText = new wxStaticText(panel, wxID_ANY, "Time", wxPoint(1, 250));
 
     //Dynamic object creation
  
@@ -100,54 +107,11 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
     statusBar->SetFieldsCount(3);
     SetStatusBar(statusBar);
      
+    //Connect(wxID_ANY, wxEVT_TIMER, wxTimerEventHandler(MainFrame::OnTimer));
  
       //  SetBackgroundColor(1, wxColor(0, 255, 0)); // Green background for field 2
 }
 
-
-
-void MainFrame::OnDownloadSummaryButtonClicked(wxCommandEvent& evt)
-{
-    TextBox->AppendText("Downloading Sumary....\n");
-    std::string DefaultNodeIp = "20.199.50.27";						//PENDING: Send commmand to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
-    int DefaultNodePort = 8080;
-    std::string GETZIPSUMARY_COMMAND = "GETZIPSUMARY\n";
-    std::string GetZipSumaryResponse = SendStringToNode(DefaultNodeIp, DefaultNodePort, GETZIPSUMARY_COMMAND);
-    //GetSumaryText->SetLabel(wxString(GetZipSumaryResponse));              // Modify Static text to show Current Block
-    
-    wxString zipFileName = "summary.zip";
-    wxString outputDir = (fs::current_path() / "").string();
-
-    UnzipFile(zipFileName, outputDir);
-
-  
-    std::string filename = (fs::current_path() / "data" / "sumary.psk").string();
-    std::ifstream inputFile(filename, std::ios::binary);
-    if (!inputFile) {
-        TextBox->AppendText("Cannot open the file.\n"); 
-    }
-    else {
-        TextBox->AppendText("File Opened.\n");
-    }
-
-    inputFile.seekg(0, std::ios::end); // Move pointer to end file
-    std::streampos fileSize = inputFile.tellg(); // Getting file Size
-    inputFile.seekg(0, std::ios::beg); // Moving pointer to the beginning 
-    size_t numRecords = fileSize / sizeof(TSummaryData); // Calculate number of registers
-
-    TextBox->AppendText("Loading total Noso Addresses: \n");
-    statusBar->SetStatusText("NOSO Addresses Loaded : " + std::to_string(numRecords), 1);
-
-
-    std::vector<TSummaryData> dataVector(numRecords);
-
-    inputFile.read(reinterpret_cast<char*>(dataVector.data()), fileSize);
-
-    inputFile.close();
-
-  
-         
-}
 
 void MainFrame::OnConnectButtonClicked(wxCommandEvent& evt)
 
@@ -155,7 +119,7 @@ void MainFrame::OnConnectButtonClicked(wxCommandEvent& evt)
     TextBox->Clear();
     TextBox->AppendText("Connecting to Mainet....\n");
 	std::string NODESTATUS_COMMAND= "NODESTATUS\n";
-	std::string DefaultNodeIp = "20.199.50.27";						//PENDDING: Send commmand to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
+	std::string DefaultNodeIp = "4.233.61.8";						//PENDDING: Send commmand to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
 	int DefaultNodePort = 8080;										//PENDING: Set PORT from List of Nodes.
 	std::string NodeStatus = SendStringToNode(DefaultNodeIp, DefaultNodePort, NODESTATUS_COMMAND);
     std::istringstream NodeStatusIss(NodeStatus);
@@ -197,6 +161,49 @@ void MainFrame::OnConnectButtonClicked(wxCommandEvent& evt)
 
 }
 
+void MainFrame::DownloadSumary()
+{
+    TextBox->AppendText("Downloading Sumary....\n");
+    std::string DefaultNodeIp = "4.233.61.8";						//PENDING: Send commmand to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
+    int DefaultNodePort = 8080;
+    std::string GETZIPSUMARY_COMMAND = "GETZIPSUMARY\n";
+    std::string GetZipSumaryResponse = SendStringToNode(DefaultNodeIp, DefaultNodePort, GETZIPSUMARY_COMMAND);
+    //GetSumaryText->SetLabel(wxString(GetZipSumaryResponse));              // Modify Static text to show Current Block
+
+    wxString zipFileName = "summary.zip";
+    wxString outputDir = (fs::current_path() / "").string();
+
+    UnzipFile(zipFileName, outputDir);
+
+
+    std::string filename = (fs::current_path() / "data" / "sumary.psk").string();
+    std::ifstream inputFile(filename, std::ios::binary);
+    if (!inputFile) {
+        TextBox->AppendText("Cannot open the file.\n");
+    }
+    else {
+        TextBox->AppendText("File Opened.\n");
+    }
+
+    inputFile.seekg(0, std::ios::end); // Move pointer to end file
+    std::streampos fileSize = inputFile.tellg(); // Getting file Size
+    inputFile.seekg(0, std::ios::beg); // Moving pointer to the beginning 
+    size_t numRecords = fileSize / sizeof(TSummaryData); // Calculate number of registers
+
+    TextBox->AppendText("Loading total Noso Addresses: \n");
+    statusBar->SetStatusText("NOSO Addresses Loaded : " + std::to_string(numRecords), 1);
+
+
+    std::vector<TSummaryData> dataVector(numRecords);
+
+    inputFile.read(reinterpret_cast<char*>(dataVector.data()), fileSize);
+
+    inputFile.close();
+
+
+}
+
+/*
 
 void MainFrame::OnSyncMainNetTimeButtonClicked(wxCommandEvent& evt) {
 
@@ -204,13 +211,66 @@ void MainFrame::OnSyncMainNetTimeButtonClicked(wxCommandEvent& evt) {
     //MainNetTimeText->SetLabel(std::to_string(GetMainetTimeStamp()));
 
 }
-
+*/
+/*
 void MainFrame::OnTimer(wxTimerEvent& event) {
 
-   
+        time_t ntpTime = GetNTPTime();
+        if (ntpTime != 0) {
+            // Convert ntpTime to a struct tm
+            struct tm* timeInfo = localtime(&ntpTime);
 
+            // Format the date and time string
+            wxString dateTimeString = wxString::Format(wxT("%02d/%02d/%02d %02d:%02d:%02d"),
+                timeInfo->tm_mday, timeInfo->tm_mon + 1, timeInfo->tm_year % 100,
+                timeInfo->tm_hour, timeInfo->tm_min, timeInfo->tm_sec);
+
+            //TextBox->AppendText(dateTimeString);
+            dateTimeText->SetLabel(dateTimeString);
+           // Connect(wxID_ANY, wxEVT_TIMER, wxTimerEventHandler(MyFrame::OnTimer));
+        }
  
    // Pending automatic Time showing Date and Time updated every second and synced to Main Net or NTP Servers.
+}
+*/
+/*
+time_t MainFrame::GetNTPTime()
+{
+    
+        CURL* curl = curl_easy_init();
+        if (curl) {
+            // Set the NTP server URL (e.g., pool.ntp.org)
+            curl_easy_setopt(curl, CURLOPT_URL, "http://pool.ntp.org/");
+
+            // Perform the HTTP request
+            CURLcode res = curl_easy_perform(curl);
+            if (res == CURLE_OK) {
+                // Get the response data and extract the timestamp
+                double timestamp;
+                curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &timestamp);
+
+                // Adjust the timestamp to Unix time (seconds since epoch)
+                time_t ntpTime = static_cast<time_t>(timestamp) + 2208988800;
+
+                // Clean up libcurl
+                curl_easy_cleanup(curl);
+
+                return ntpTime;
+            }
+
+            // Clean up libcurl in case of an error
+            curl_easy_cleanup(curl);
+        }
+
+        // Return 0 to indicate an error
+        return 0;
+    
+}
+*/
+void MainFrame::SyncMainNetTime()
+{
+    int timer = GetMainetTimeStamp();
+    //MainNetTimeText->SetLabel(std::to_string(GetMainetTimeStamp()));
 }
 
 void MainFrame::OnClose(wxCloseEvent& evt) {
@@ -222,7 +282,7 @@ void MainFrame::OnClose(wxCloseEvent& evt) {
 void MainFrame::GetMasterNodeList(wxCommandEvent& evt)
 {
     std::string NODESTATUS_COMMAND = "NSLMNS\n";
-    std::string DefaultNodeIp = "20.199.50.27";						//PENDING: Send commmand to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
+    std::string DefaultNodeIp = "4.233.61.8";						//PENDING: Send commmand to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
     int DefaultNodePort = 8080;										//PENDING: Set PORT from List of Nodes.
     std::string MasterNodeListString = SendStringToNode(DefaultNodeIp, DefaultNodePort, NODESTATUS_COMMAND);
     TextBox->SetLabel(MasterNodeListString);
@@ -586,6 +646,15 @@ bool MainFrame::SaveWalletDataToFile(const WalletData& walletData, const std::st
     return true;
 }
 
+void MainFrame::UpdateDateAndTime()
+{
+    wxDateTime currentDateTime = wxDateTime::Now();
+    wxString dateTimeStr = currentDateTime.Format("%Y-%m-%d %H:%M:%S");
+    statusBar->SetStatusText(dateTimeStr, 2);
+    //dateAndTimeText->SetLabel(dateTimeStr);
+
+}
+
 void MainFrame::OnOpen(wxCommandEvent& event)
 {
 }
@@ -599,14 +668,24 @@ void MainFrame::OnExit(wxCommandEvent& event)
 void MainFrame::InitializeWallet()
 {
  
-    
+    //SetTimer
+    timer->SetOwner(this);
+    //timerSetOwner(this);
+    timer->Start(1000);  // 1000 ms = 1 second
+    Connect(timer->GetId(), wxEVT_TIMER, wxTimerEventHandler(MainFrame::OnTimer), NULL, this);
+
+
+
     //std::string WalletFullPath = (fs::current_path() / "data" / "wallet.pkw").string();
     std::string WalletCPPFullPath= (fs::current_path() / "data" / "walletcpp.pkw").string();
     //Call Connect ButtonFuction
     wxCommandEvent fakeEvent(wxEVT_BUTTON, wxID_ANY); // Create a fake button click event
     OnConnectButtonClicked(fakeEvent); // Call the function
+    
     //Download Summary
-    OnDownloadSummaryButtonClicked(fakeEvent);
+    MainFrame::DownloadSumary();
+    
+    //OnDownloadSummaryButtonClicked(fakeEvent);
 
     //Check if walletcpp.pkw exists on /data directory, if exists load all addresses, if no create a new NOSO address, save to file and load Address
 
@@ -630,57 +709,14 @@ void MainFrame::InitializeWallet()
             NosoAddressGrid->SetCellValue(i, 3, std::to_string(Balance));
     }
 
-
-    /*
-    /// Check if wallet.okw NOSOLITE file compatibility exists and loads address.
-    if (DoesFileExist(WalletFullPath)) {
-        TextBox->AppendText("\nLoading Wallet.pkw\n");
-        std::vector<WalletData> walletDataLoaded = ReadWalletDataFromNosolite(WalletFullPath);
-        TextBox->AppendText("\nTotal NOSO address loaded : ");
-        TextBox->AppendText(std::to_string(walletDataLoaded.size()));
-
-
-        NosoAddressGrid->DeleteRows();
-
-        for (size_t i = 0; i < walletDataLoaded.size(); ++i) {
-            std::string HashKeyLoaded = walletDataLoaded[i].GetHash();
-            std::string Label = walletDataLoaded[i].GetLabel();
-            std::int64_t Pending = walletDataLoaded[i].GetPending();
-            std::int64_t Balance = walletDataLoaded[i].GetBalance();
-
-            //DELETE STC and SOH creted by default by Pascal on Strings loaded from wallet.pkw created bu nosolite.
-
-            size_t stxPos = HashKeyLoaded.rfind('\x02'); // STX
-            size_t sohPos = HashKeyLoaded.rfind('\x01'); // SOH
-
-            if (stxPos != std::string::npos && stxPos == HashKeyLoaded.length() - 1) {
-                HashKeyLoaded.erase(stxPos);
-            }
-
-            if (sohPos != std::string::npos && sohPos == HashKeyLoaded.length() - 1) {
-                HashKeyLoaded.erase(sohPos);
-            }
-
-                // Add the data to the grid
-                NosoAddressGrid->AppendRows(1); // Add a new row
-                NosoAddressGrid->SetCellValue(i, 0, HashKeyLoaded);
-                NosoAddressGrid->SetCellValue(i, 1, Label);
-                NosoAddressGrid->SetCellValue(i, 2, std::to_string(Pending));
-                NosoAddressGrid->SetCellValue(i, 3, std::to_string(Balance));
-            }
-
-    
-    */
     }
     else {
         
         TextBox->AppendText("\nWalletcpp.pkw File does not exist, some probems happened as walletcpp.pkw cannot be created in Data directory.\n ");
 
     }
-
-    
-
-    
+    //Update TIme
+    //MainFrame::UpdateDateAndTime();
 }
 
 bool MainFrame::DoesFileExist(const std::string& filePath)
@@ -744,6 +780,15 @@ std::vector<WalletData> MainFrame::ReadWalletDataFromNosoCPP(const std::string& 
     
     return dataVectorWalletCPP;
 }
+
+void MainFrame::OnTimer(wxTimerEvent& event) {
+    UpdateDateAndTime();
+}
+
+
+
+
+
 
 
 

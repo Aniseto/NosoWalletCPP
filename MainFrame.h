@@ -33,8 +33,10 @@ private:
 
 
 	void OnConnectButtonClicked(wxCommandEvent& evt); //Call Connect to Main net and Get NODESATUS
-	void OnDownloadSummaryButtonClicked(wxCommandEvent& evt);
-	void OnSyncMainNetTimeButtonClicked(wxCommandEvent& evt);
+	void DownloadSumary();
+	//void OnDownloadSummaryButtonClicked(wxCommandEvent& evt);
+	//time_t GetNTPTime();
+	void SyncMainNetTime();
 	void OnClose(wxCloseEvent& evt);
 	void GetMasterNodeList(wxCommandEvent& evt);
 	void GenerateKeys(wxCommandEvent& evt);
@@ -50,7 +52,10 @@ private:
 	void SignAndVerify(wxCommandEvent& evt);
 	std::string HexToBase64(const std::string& hexString);
 	bool SaveWalletDataToFile(const WalletData& walletData, const std::string& filePath);
+	void UpdateDateAndTime();
+	void OnTimer(wxTimerEvent& event);
 	
+
 
 
 
@@ -70,10 +75,13 @@ private:
 
 	//Time Controls
 
-	//wxStaticText* MainNetTimeText;
-    wxTimer* Timer;
-	void OnTimer(wxTimerEvent& event);
+	wxTimer* timer;
 
+	//wxStaticText* MainNetTimeText;
+    //wxTimer* Timer;
+	//void OnTimer(wxTimerEvent& event);
+	wxStaticText* dateTimeText;
+	//wxStaticText* dateAndTimeText;
 	//Log Box
 
 	wxTextCtrl* TextBox;
@@ -85,6 +93,7 @@ private:
 	//Status Bar
 
 	wxStatusBar* statusBar;
+
  
 };
 
