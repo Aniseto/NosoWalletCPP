@@ -7,15 +7,15 @@
 #include "DataStructures.h"
 #include "Communication.h"
 #include <fstream>
-#include <cryptopp/eccrypto.h>
-#include <cryptopp/osrng.h>
-#include <cryptopp/oids.h>
-#include <cryptopp/hex.h>
-#include <cryptopp/cryptlib.h>
-#include <cryptopp/ripemd.h>
-#include <cryptopp/cryptlib.h>
-#include <cryptopp/integer.h>
-#include <cryptopp/algebra.h>
+//#include <cryptopp/eccrypto.h>
+//#include <cryptopp/osrng.h>
+// <cryptopp/oids.h>
+//#include <cryptopp/hex.h>
+//#include <cryptopp/cryptlib.h>
+//#include <cryptopp/ripemd.h>
+//#include <cryptopp/cryptlib.h>
+//#include <cryptopp/integer.h>
+//#include <cryptopp/algebra.h>
 #include <wx/hash.h>
 #include <iostream>
 #include <string>
@@ -28,6 +28,7 @@
 #include <botan/sha2_32.h>
 #include <botan/hex.h>
 #include <cctype>
+#include <botan/hash.h>
 //#include <vector>
 /// Added for Unix Like system compatibilty
 #include <filesystem>
@@ -38,7 +39,23 @@
 #include <wx/timer.h>
 namespace fs = std::filesystem;
 /// Added for Unix Like system compatibilty: END.
+#include <botan/auto_rng.h>
+#include <botan/ecdsa.h>
+#include <botan/hex.h>
+#include <boost/system/detail/error_category.hpp>
+#include <botan/bigint.h>
+#include <botan/base58.h>
+#include <botan/base64.h>
+#include <botan/sha2_32.h>
+#include <botan/hex.h>
+#include <botan/rmd160.h>
 
+#include <botan/botan.h>
+#include <botan/pubkey.h>
+#include <botan/ec_group.h>
+#include <botan/ecdsa.h>
+#include <botan/auto_rng.h>
+#include <botan/base64.h>
 
 //(wxID_OPEN, MyFrame::OnOpen)
 //EVT_MENU(wxID_SAVE, MyFrame::OnSave)
@@ -204,75 +221,12 @@ void MainFrame::DownloadSumary()
 }
 
 /*
-
-void MainFrame::OnSyncMainNetTimeButtonClicked(wxCommandEvent& evt) {
-
-
-    //MainNetTimeText->SetLabel(std::to_string(GetMainetTimeStamp()));
-
-}
-*/
-/*
-void MainFrame::OnTimer(wxTimerEvent& event) {
-
-        time_t ntpTime = GetNTPTime();
-        if (ntpTime != 0) {
-            // Convert ntpTime to a struct tm
-            struct tm* timeInfo = localtime(&ntpTime);
-
-            // Format the date and time string
-            wxString dateTimeString = wxString::Format(wxT("%02d/%02d/%02d %02d:%02d:%02d"),
-                timeInfo->tm_mday, timeInfo->tm_mon + 1, timeInfo->tm_year % 100,
-                timeInfo->tm_hour, timeInfo->tm_min, timeInfo->tm_sec);
-
-            //TextBox->AppendText(dateTimeString);
-            dateTimeText->SetLabel(dateTimeString);
-           // Connect(wxID_ANY, wxEVT_TIMER, wxTimerEventHandler(MyFrame::OnTimer));
-        }
- 
-   // Pending automatic Time showing Date and Time updated every second and synced to Main Net or NTP Servers.
-}
-*/
-/*
-time_t MainFrame::GetNTPTime()
-{
-    
-        CURL* curl = curl_easy_init();
-        if (curl) {
-            // Set the NTP server URL (e.g., pool.ntp.org)
-            curl_easy_setopt(curl, CURLOPT_URL, "http://pool.ntp.org/");
-
-            // Perform the HTTP request
-            CURLcode res = curl_easy_perform(curl);
-            if (res == CURLE_OK) {
-                // Get the response data and extract the timestamp
-                double timestamp;
-                curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &timestamp);
-
-                // Adjust the timestamp to Unix time (seconds since epoch)
-                time_t ntpTime = static_cast<time_t>(timestamp) + 2208988800;
-
-                // Clean up libcurl
-                curl_easy_cleanup(curl);
-
-                return ntpTime;
-            }
-
-            // Clean up libcurl in case of an error
-            curl_easy_cleanup(curl);
-        }
-
-        // Return 0 to indicate an error
-        return 0;
-    
-}
-*/
 void MainFrame::SyncMainNetTime()
 {
     int timer = GetMainetTimeStamp();
     //MainNetTimeText->SetLabel(std::to_string(GetMainetTimeStamp()));
 }
-
+*/
 void MainFrame::OnClose(wxCloseEvent& evt) {
     wxLogMessage("Wallet Closed");
     evt.Skip();
@@ -441,7 +395,6 @@ bool MainFrame::UnzipFile(const wxString& zipFileName, const wxString& outputDir
 std::string MainFrame::PublicKeyToSHA256(const std::string& publicKey)
 {
 
-
         // Create a SHA-256 hash object
         Botan::SHA_256 sha256;
 
@@ -467,6 +420,22 @@ std::string MainFrame::PublicKeyToSHA256(const std::string& publicKey)
     
 }
 
+
+std::string MainFrame::CalculateMD160(const std::string& SHA256String)
+{
+    Botan::RIPEMD_160 hash;
+    Botan::secure_vector<uint8_t> hashResult = hash.process(reinterpret_cast<const uint8_t*>(SHA256String.data()), SHA256String.size());
+    std::string hashHex = Botan::hex_encode(hashResult);
+
+    for (char& c : hashHex) {
+        c = std::toupper(c);
+    }
+
+    return hashHex;
+
+}
+
+/*
 std::string MainFrame::CalculateMD160(const std::string& SHA256String)
 
 {
@@ -486,7 +455,7 @@ std::string MainFrame::CalculateMD160(const std::string& SHA256String)
     return hashHex;
     
 
-}
+}*/
 
 std::string MainFrame::EncodeBase58(const std::string& MD160String)
 {
@@ -542,7 +511,59 @@ std::string MainFrame::BmDecto58(const std::string& number)
 
     return resultado;
 }
+/*
+std::string MainFrame::SignMessage(const std::string& message, const std::string& privateKeyBase64)
+{
+    try {
+        // Decode the private key from base64
+        std::vector<uint8_t> privateKeyBytesdecode = Botan::base64_decode(privateKeyBase64);
+    
+        // Load the private key
+        Botan::AutoSeeded_RNG rng;
+        Botan::ECDSA_PrivateKey private_key(rng, privateKeyBytes);
 
+        // Sign the message
+        Botan::PK_Signer signer(private_key, rng, "EMSA1(SHA-256)");
+        signer.update(reinterpret_cast<const uint8_t*>(message.data()), message.length());
+
+        // Get the signature in hexadecimal format
+        Botan::secure_vector<uint8_t> signature = signer.signature(rng);
+        return Botan::hex_encode(signature);
+    }
+    catch (const std::exception& e) {
+        // Handle any exceptions here
+        return "Error: " + std::string(e.what());
+    }
+}*/
+
+/*
+std::string MainFrame::SignMessage(std::string SignMessage(const std::string& message, const std::string& privateKeyBase64ToUse))
+{
+    try {
+        // Decode the private key from base64
+        std::vector<uint8_t> privateKeyBytesToUse = Botan::base64_decode(privateKeyBase64ToUse);
+
+        // Load the private key
+        Botan::AutoSeeded_RNG rng;
+        Botan::ECDSA_PrivateKey private_key(rng, privateKeyBytesToUse);
+
+        // Sign the message
+        Botan::PK_Signer signer(private_key, rng, "EMSA1(SHA-256)");
+        signer.update(reinterpret_cast<const uint8_t*>(message.data()), message.length());
+
+        // Get the signature in hexadecimal format
+        Botan::secure_vector<uint8_t> signature = signer.signature(rng);
+        return Botan::hex_encode(signature);
+    }
+    catch (const std::exception& e) {
+        // Handle any exceptions here
+        return "Error: " + std::string(e.what());
+    }
+
+    return std::string();
+}*/
+
+/*
 std::string MainFrame::SignMessage(const std::string& message, const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey& privateKey)
 {
     CryptoPP::AutoSeededRandomPool rng;
@@ -561,7 +582,8 @@ std::string MainFrame::SignMessage(const std::string& message, const CryptoPP::E
     return signature;
     
 }
-
+*/
+/*
 bool MainFrame::VerifyMessage(const std::string& message, const std::string& signature, const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey& publicKey)
 {
     //ECDSA Verification
@@ -580,11 +602,12 @@ bool MainFrame::VerifyMessage(const std::string& message, const std::string& sig
     
 }
 
-
+*/
+/*
 void MainFrame::SignAndVerify(wxCommandEvent& evt)
 {
     
-    /*
+    
     std::string messageoriginal = "This is the message to firm";
 
     // Firmar el mensaje
@@ -599,8 +622,8 @@ void MainFrame::SignAndVerify(wxCommandEvent& evt)
     else {
         std::cout << "INVALID FIRM." << std::endl;
     }
-*/
-}
+
+}*/
 
 std::string MainFrame::HexToBase64(const std::string& hexString)
 {

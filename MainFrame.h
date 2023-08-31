@@ -3,15 +3,15 @@
 #include <wx/textctrl.h>
 #include <wx/grid.h>
 #include <string>
-#include <cryptopp/eccrypto.h>
-#include <cryptopp/osrng.h>
-#include <cryptopp/oids.h>
-#include <cryptopp/hex.h>
-#include <cryptopp/cryptlib.h>
-#include <cryptopp/ripemd.h>
-#include <cryptopp/cryptlib.h>
-#include <cryptopp/integer.h>
-#include <cryptopp/algebra.h>
+//#include <cryptopp/eccrypto.h>
+//#include <cryptopp/osrng.h>
+//#include <cryptopp/oids.h>
+//#include <cryptopp/hex.h>
+//#include <cryptopp/cryptlib.h>
+//#include <cryptopp/ripemd.h>
+//#include <cryptopp/cryptlib.h>
+//#include <cryptopp/integer.h>
+//#include <cryptopp/algebra.h>
 #include "DataStructures.h"
 
 
@@ -36,7 +36,7 @@ private:
 	void DownloadSumary();
 	//void OnDownloadSummaryButtonClicked(wxCommandEvent& evt);
 	//time_t GetNTPTime();
-	void SyncMainNetTime();
+	//void SyncMainNetTime();
 	void OnClose(wxCloseEvent& evt);
 	void GetMasterNodeList(wxCommandEvent& evt);
 	void GenerateKeys(wxCommandEvent& evt);
@@ -47,9 +47,9 @@ private:
 	std::string EncodeBase58(const std::string& MD160String);
 	int CalculateCheckSum(const std::string& StringChecksum);
 	std::string BmDecto58(const std::string& number);
-	std::string SignMessage(const std::string& message, const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey& privateKey);
-	bool VerifyMessage(const std::string& message, const std::string& signature, const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey& publicKey);
-	void SignAndVerify(wxCommandEvent& evt);
+	//std::string SignMessage(const std::string& message, const std::string& privateKeyBase64);
+	//bool VerifyMessage(const std::string& message, const std::string& signature, const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey& publicKey);
+	//void SignAndVerify(wxCommandEvent& evt);
 	std::string HexToBase64(const std::string& hexString);
 	bool SaveWalletDataToFile(const WalletData& walletData, const std::string& filePath);
 	void UpdateDateAndTime();
