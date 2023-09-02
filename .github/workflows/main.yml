@@ -6,7 +6,7 @@ permissions:
 on:
 
   push:
-    branches: [ master, include-windows-in-ci-cd]
+    branches: [ master ]
     tags: [ "*" ]
     paths-ignore: [ "*.md" ]
 
