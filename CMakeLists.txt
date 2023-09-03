@@ -16,6 +16,11 @@ target_sources(NosoWalletCPP PRIVATE
   NosoWalletCPP.cpp
 )
 
+# Main function correction for MSVC or WIN32
+if (MSVC)
+  target_link_options (NosoWalletCPP PRIVATE "/ENTRY:WinMainCRTStartup")
+endif ()
+
 # Add the dependency packets
 ## Find required packages
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -27,10 +32,6 @@ target_link_libraries(NosoWalletCPP PRIVATE Boost::boost)
 ## Botan
 find_package(Botan REQUIRED)
 target_link_libraries(NosoWalletCPP PRIVATE Botan::Botan)
-
-## Crypto++
-find_package(cryptopp CONFIG REQUIRED)
-target_link_libraries(NosoWalletCPP PRIVATE cryptopp::cryptopp)
 
 ## WxWidgets
 find_package(wxWidgets CONFIG REQUIRED)
