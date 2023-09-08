@@ -47,7 +47,11 @@ private:
 	std::string EncodeBase58(const std::string& MD160String);
 	int CalculateCheckSum(const std::string& StringChecksum);
 	std::string BmDecto58(const std::string& number);
-	//std::string SignMessage(const std::string& message, const std::string& privateKeyBase64);
+	std::string SignMessage(const std::string& message, const std::string& privateKeyBase64);
+	bool VerifySignature(const std::string& message, const std::string& signatureBase64, const std::string& publicKeyBase64);
+	std::string base64ToPEMPrivateKey(const std::string& privateKeyBase64);
+	std::string addPEMHeaders(const std::string& privateKeyBase64, const std::string& header, const std::string& footer);
+
 	//bool VerifyMessage(const std::string& message, const std::string& signature, const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey& publicKey);
 	//void SignAndVerify(wxCommandEvent& evt);
 	std::string HexToBase64(const std::string& hexString);

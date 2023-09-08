@@ -1,15 +1,16 @@
 ﻿// Start of wxWidgets "Hello World" Program  https://docs.wxwidgets.org/3.2.2.1/plat_msw_install.html#msw_build_apps
 // Includes: 
+//#include <vector>
 #include <wx/wx.h>
 #include <wx/zipstrm.h>
 #include <wx/wfstream.h>
 #include "MainFrame.h"
 #include "DataStructures.h"
-#include "Communication.h"
+
 #include <fstream>
 //#include <cryptopp/eccrypto.h>
 //#include <cryptopp/osrng.h>
-// <cryptopp/oids.h>
+//#include <cryptopp/oids.h>
 //#include <cryptopp/hex.h>
 //#include <cryptopp/cryptlib.h>
 //#include <cryptopp/ripemd.h>
@@ -19,6 +20,9 @@
 #include <wx/hash.h>
 #include <iostream>
 #include <string>
+//#include <botan/botan.h>
+#include <botan/auto_rng.h>
+#include <botan/rsa.h>
 #include <botan/base58.h>
 #include <botan/botan.h>
 #include <botan/ecdsa.h>
@@ -42,11 +46,11 @@ namespace fs = std::filesystem;
 #include <botan/auto_rng.h>
 #include <botan/ecdsa.h>
 #include <botan/hex.h>
-#include <boost/system/detail/error_category.hpp>
+//#include <boost/system/detail/error_category.hpp>
 #include <botan/bigint.h>
 #include <botan/base58.h>
 #include <botan/base64.h>
-#include <botan/sha2_32.h>
+//#include <botan/sha2_56.h>
 #include <botan/hex.h>
 #include <botan/rmd160.h>
 
@@ -56,12 +60,21 @@ namespace fs = std::filesystem;
 #include <botan/ecdsa.h>
 #include <botan/auto_rng.h>
 #include <botan/base64.h>
+#include <botan/alg_id.h>
+#include <botan/p11_ecdsa.h>
 
+#include "Communication.h"
 //(wxID_OPEN, MyFrame::OnOpen)
 //EVT_MENU(wxID_SAVE, MyFrame::OnSave)
 //EVT_MENU(wxID_EXIT, MyFrame::OnExit)
 //END_EVENT_TABLE()
-
+//#include <botan/botan.h>
+#include <botan/pkcs8.h>
+#include <botan/pk_keys.h>
+#include <iostream>
+#include <vector>
+#include <cryptopp/eccrypto.h>
+//#include <cryptopp/eccrypto.h>
 MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {   //Constructor Base class
 	wxPanel* panel = new wxPanel(this);
 
@@ -324,6 +337,19 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
         NosoAddressGrid->SetCellValue(i, 2, std::to_string(Pending));
         NosoAddressGrid->SetCellValue(i, 3, std::to_string(Balance));
     }
+
+
+    //TEST SIGN and VERIFY
+    std::string TestMessage = "Hello World";
+    std::string SignedMessage;
+    
+
+    SignedMessage = SignMessage(TestMessage, privateKeyBase64);
+    TextBox->AppendText("\nSigned Message : Hello World Resut ->  ");
+    TextBox->AppendText(SignedMessage);
+    bool Verify = VerifySignature(TestMessage, SignedMessage, publicKeyPointBase64);
+    TextBox->AppendText("\nVerify Result : ");
+    TextBox->AppendText(std::to_string(Verify));
 }
 
 
@@ -511,30 +537,109 @@ std::string MainFrame::BmDecto58(const std::string& number)
 
     return resultado;
 }
-/*
+
+
 std::string MainFrame::SignMessage(const std::string& message, const std::string& privateKeyBase64)
+
 {
     try {
-        // Decode the private key from base64
-        std::vector<uint8_t> privateKeyBytesdecode = Botan::base64_decode(privateKeyBase64);
-    
-        // Load the private key
         Botan::AutoSeeded_RNG rng;
-        Botan::ECDSA_PrivateKey private_key(rng, privateKeyBytes);
+        Botan::AlgorithmIdentifier alg_id("ECDSA", Botan::AlgorithmIdentifier::USE_NULL_PARAM);
+   
 
-        // Sign the message
-        Botan::PK_Signer signer(private_key, rng, "EMSA1(SHA-256)");
-        signer.update(reinterpret_cast<const uint8_t*>(message.data()), message.length());
+        Botan::secure_vector<uint8_t> decodedData = Botan::base64_decode(privateKeyBase64);
+       
+        Botan::BigInt private_key_value = Botan::BigInt::decode(decodedData.data(), decodedData.size());
+        Botan::EC_Group secp256k1("secp256k1");
+        Botan::ECDSA_PrivateKey private_key(rng,secp256k1, private_key_value);
 
-        // Get the signature in hexadecimal format
-        Botan::secure_vector<uint8_t> signature = signer.signature(rng);
+       // const std::string hash_oid = "secp256k1";
+      
+        Botan::PK_Signer signer(private_key, rng, "EMSA1(SHA-256)", Botan::DER_SEQUENCE);
+        signer.update(message);
+        std::vector<uint8_t> signature = signer.signature(rng);
+        TextBox->AppendText("\nSignatude completed");
+        //TextBox->AppendText(std::to_string(signature));
         return Botan::hex_encode(signature);
+
     }
-    catch (const std::exception& e) {
-        // Handle any exceptions here
-        return "Error: " + std::string(e.what());
+
+
+    catch (const std::exception& ex)
+    {
+            std::cerr << "Error: " << ex.what() << std::endl;
+            return ex.what();
     }
-}*/
+}
+
+
+
+
+bool MainFrame::VerifySignature(const std::string& message, const std::string& signatureBase64, const std::string& publicKeyBase64)
+{
+    try {
+        
+        TextBox->AppendText("\nText Message to verify: ");
+        TextBox->AppendText(message);
+        TextBox->AppendText("\nSignature: ");
+        TextBox->AppendText(signatureBase64);
+        TextBox->AppendText("\nPublic Keuy : ");
+        TextBox->AppendText(publicKeyBase64);
+
+        Botan::AutoSeeded_RNG rng;
+        Botan::secure_vector<uint8_t> decodedData = Botan::base64_decode(publicKeyBase64);
+        Botan::DataSource_Memory publicKeySource(decodedData.data(), decodedData.size());
+        std::unique_ptr<Botan::Public_Key> publicKey(Botan::X509::load_key(publicKeySource));
+        Botan::PK_Verifier verifier(*publicKey, "EMSA1(SHA-256)", Botan::DER_SEQUENCE);
+        verifier.update(message);
+        return verifier.check_signature(Botan::hex_decode(signatureBase64));
+    }
+    catch (const std::exception& ex)
+    {
+        std::cerr << "Error verify: " << ex.what() << std::endl;
+        return false;
+    }
+}
+
+
+
+std::string MainFrame::base64ToPEMPrivateKey(const std::string& privateKeyBase64)
+{
+    try {
+        // Decodificar la clave privada desde Base64
+        std::string privateKeyPEM;
+        Botan::secure_vector<uint8_t> private_key_data = Botan::base64_decode(privateKeyBase64);
+
+        // Crear un objeto Private_Key usando la clave privada decodificada
+        Botan::DataSource_Memory private_key_source(private_key_data);
+        std::unique_ptr<Botan::Private_Key> private_key(Botan::PKCS8::load_key(private_key_source));
+
+        if (!private_key) {
+            std::cerr << "Error al cargar la clave privada" << std::endl;
+            return "Error";
+        }
+
+        // Exportar la clave privada en formato PEM
+        privateKeyPEM = Botan::PKCS8::PEM_encode(*private_key);
+
+        return privateKeyPEM;
+    }
+    catch (const std::exception& ex) {
+        std::cerr << "Error: " << ex.what() << std::endl;
+        return "Error";
+    }
+}
+
+std::string MainFrame::addPEMHeaders(const std::string& privateKeyBase64, const std::string& header, const std::string& footer)
+{
+    std::string pemPrivateKey = header + "\n";
+    pemPrivateKey += privateKeyBase64 + "\n";
+    pemPrivateKey += footer + "\n";
+
+    return pemPrivateKey;
+}
+    //return std::string();
+   
 
 /*
 std::string MainFrame::SignMessage(std::string SignMessage(const std::string& message, const std::string& privateKeyBase64ToUse))
