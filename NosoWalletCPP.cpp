@@ -8,15 +8,7 @@
 #include "DataStructures.h"
 
 #include <fstream>
-//#include <cryptopp/eccrypto.h>
-//#include <cryptopp/osrng.h>
-//#include <cryptopp/oids.h>
-//#include <cryptopp/hex.h>
-//#include <cryptopp/cryptlib.h>
-//#include <cryptopp/ripemd.h>
-//#include <cryptopp/cryptlib.h>
-//#include <cryptopp/integer.h>
-//#include <cryptopp/algebra.h>
+
 #include <wx/hash.h>
 #include <iostream>
 #include <string>
@@ -64,17 +56,15 @@ namespace fs = std::filesystem;
 #include <botan/p11_ecdsa.h>
 
 #include "Communication.h"
-//(wxID_OPEN, MyFrame::OnOpen)
-//EVT_MENU(wxID_SAVE, MyFrame::OnSave)
-//EVT_MENU(wxID_EXIT, MyFrame::OnExit)
-//END_EVENT_TABLE()
-//#include <botan/botan.h>
 #include <botan/pkcs8.h>
 #include <botan/pk_keys.h>
 #include <iostream>
 #include <vector>
 #include <cryptopp/eccrypto.h>
-//#include <cryptopp/eccrypto.h>
+
+
+
+
 MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {   //Constructor Base class
 	wxPanel* panel = new wxPanel(this);
 
@@ -461,27 +451,6 @@ std::string MainFrame::CalculateMD160(const std::string& SHA256String)
 
 }
 
-/*
-std::string MainFrame::CalculateMD160(const std::string& SHA256String)
-
-{
- 
-    CryptoPP::RIPEMD160 hash;
-    CryptoPP::byte digest[CryptoPP::RIPEMD160::DIGESTSIZE];
-
-    hash.CalculateDigest(digest, reinterpret_cast<const CryptoPP::byte*>(SHA256String.c_str()), SHA256String.length());
-
-    CryptoPP::HexEncoder encoder;
-    std::string hashHex;
-    encoder.Attach(new CryptoPP::StringSink(hashHex));
-    encoder.Put(digest, sizeof(digest));
-    encoder.MessageEnd();
-
-  
-    return hashHex;
-    
-
-}*/
 
 std::string MainFrame::EncodeBase58(const std::string& MD160String)
 {
@@ -552,14 +521,12 @@ std::string MainFrame::SignMessage(const std::string& message, const std::string
         Botan::BigInt private_key_value = Botan::BigInt::decode(decodedData.data(), decodedData.size());
         Botan::EC_Group secp256k1("secp256k1");
         Botan::ECDSA_PrivateKey private_key(rng,secp256k1, private_key_value);
-
-       // const std::string hash_oid = "secp256k1";
-      
+    
         Botan::PK_Signer signer(private_key, rng, "EMSA1(SHA-256)", Botan::DER_SEQUENCE);
         signer.update(message);
         std::vector<uint8_t> signature = signer.signature(rng);
         TextBox->AppendText("\nSignatude completed");
-        //TextBox->AppendText(std::to_string(signature));
+     
         return Botan::hex_encode(signature);
 
     }
@@ -640,95 +607,6 @@ std::string MainFrame::addPEMHeaders(const std::string& privateKeyBase64, const 
 }
     //return std::string();
    
-
-/*
-std::string MainFrame::SignMessage(std::string SignMessage(const std::string& message, const std::string& privateKeyBase64ToUse))
-{
-    try {
-        // Decode the private key from base64
-        std::vector<uint8_t> privateKeyBytesToUse = Botan::base64_decode(privateKeyBase64ToUse);
-
-        // Load the private key
-        Botan::AutoSeeded_RNG rng;
-        Botan::ECDSA_PrivateKey private_key(rng, privateKeyBytesToUse);
-
-        // Sign the message
-        Botan::PK_Signer signer(private_key, rng, "EMSA1(SHA-256)");
-        signer.update(reinterpret_cast<const uint8_t*>(message.data()), message.length());
-
-        // Get the signature in hexadecimal format
-        Botan::secure_vector<uint8_t> signature = signer.signature(rng);
-        return Botan::hex_encode(signature);
-    }
-    catch (const std::exception& e) {
-        // Handle any exceptions here
-        return "Error: " + std::string(e.what());
-    }
-
-    return std::string();
-}*/
-
-/*
-std::string MainFrame::SignMessage(const std::string& message, const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey& privateKey)
-{
-    CryptoPP::AutoSeededRandomPool rng;
-
-    // ECDSA schema
-    CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::Signer signer(privateKey);
-
-    // Sign the message
-    std::string signature;
-    CryptoPP::StringSource(message, true,
-        new CryptoPP::SignerFilter(rng, signer,
-            new CryptoPP::StringSink(signature)
-        )
-    );
-
-    return signature;
-    
-}
-*/
-/*
-bool MainFrame::VerifyMessage(const std::string& message, const std::string& signature, const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey& publicKey)
-{
-    //ECDSA Verification
-    CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::Verifier verifier(publicKey);
-
-    // Verify message firm
-    bool result = false;
-    CryptoPP::StringSource(signature + message, true,
-        new CryptoPP::SignatureVerificationFilter(
-            verifier,
-            new CryptoPP::ArraySink(reinterpret_cast<CryptoPP::byte*>(&result), sizeof(result))
-        )
-    );
-
-    return result;
-    
-}
-
-*/
-/*
-void MainFrame::SignAndVerify(wxCommandEvent& evt)
-{
-    
-    
-    std::string messageoriginal = "This is the message to firm";
-
-    // Firmar el mensaje
-    std::string signature = SignMessage(messageoriginal, TestWallet.GetPrivateKey);
-    std::cout << "FIRM: " << signature << std::endl;
-
-    // Verificar la firma del mensaje
-    bool verified = VerifyMessage(messageoriginal, signature, publicKey);
-    if (verified) {
-        std::cout << "FIRM VALID." << std::endl;
-    }
-    else {
-        std::cout << "INVALID FIRM." << std::endl;
-    }
-
-}*/
 
 std::string MainFrame::HexToBase64(const std::string& hexString)
 {
