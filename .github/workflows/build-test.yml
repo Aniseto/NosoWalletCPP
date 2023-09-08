@@ -1,63 +1,79 @@
 name: build-test
 
-permissions:
-  contents: write
+defaults:
+  run:
+    shell: bash
 
 on:
-  push:
-    branches: [ master]
-    tags: [ "*" ]
-    paths-ignore: [ "*.md" ]
 
-  pull_request:
-    branches: [ master ]
+  workflow_call:
+    inputs:
+      app_name:
+        description: 'Application Name'
+        default: 'NosoWalletCPP'
+        required: false
+        type: string
+      win:
+        description: 'Windows Tripplet'
+        default: 'x64-windows'
+        required: false
+        type: string
+      lin:
+        description: 'Linux Tripplet'
+        default: 'x64-linux'
+        required: false
+        type: string
+      mac:
+        description: 'macOS Tripplet'
+        default: 'x64-osx'
+        required: false
+        type: string
 
 jobs:
 
   build-matrix:
     name: ${{ github.workflow }}-${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-#        os: [ubuntu-latest, macos-latest, windows-latest, buildjet-2vcpu-ubuntu-2204-arm]
-        os: [ubuntu-latest, macos-latest]
-        include:
-##          - os: windows-latest
-##            triplet: x64-windows
-          - os: ubuntu-latest
-            triplet: x64-linux
-          - os: macos-latest
-            triplet: x64-osx
 
     env:
       _BUILDS_: ${{ github.workspace }}/builds
       _RELEASE_: ${{ github.workspace }}/builds/ninja-multi-vcpkg/Release
       _DEBUG_: ${{ github.workspace }}/builds/ninja-multi-vcpkg/Debug
-      _EXE_: ${{ matrix.os == 'windows-latest' && 'NosoWalletCPP.exe' || 'NosoWalletCPP' }}
-      _BINARY_: ${{ matrix.os == 'windows-latest' && format('NosoWalletCPP-{0}.exe', matrix.triplet) || format('NosoWalletCPP-{0}', matrix.triplet) }}
+      _EXE_: ${{ matrix.os == 'windows-latest' && format('{0}.exe', inputs.app_name) || inputs.app_name }}
+      _BINARY_: ${{ matrix.os == 'windows-latest' && format('{0}-{1}.exe', inputs.app_name, matrix.triplet) || format('{0}-{1}', inputs.app_name, matrix.triplet) }}
+
+    strategy:
+      fail-fast: true
+      matrix:
+#        os: [ubuntu-latest, macos-latest, windows-latest, buildjet-2vcpu-ubuntu-2204-arm]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: windows-latest
+            triplet: ${{ inputs.win }}
+          - os: ubuntu-latest
+            triplet: ${{ inputs.lin }}
+          - os: macos-latest
+            triplet: ${{ inputs.mac }}
 
     steps:
       - name: Install some needed packages on Linux
         if: ${{ matrix.os == 'ubuntu-latest' }}
-        shell: bash
         run: |
           sudo apt update && \
           sudo apt install -y \
-            autoconf-archive \
-            libdbus-1-dev \
-            libxtst-dev \
-            libxi-dev \
-            libxrandr-dev \
-            libbotan-2-dev
+          "autoconf-archive" \
+          "libdbus-1-dev" \
+          "libxtst-dev" \
+          "libxi-dev" \
+          "libxrandr-dev" \
+          "libbotan-2-dev"
 
       - name: Install some needed packages on macOS
         if: ${{ matrix.os == 'macos-latest' }}
-        shell: bash
         run: |
           brew install \
-            autoconf-archive \
-            automake
+          "autoconf-archive" \
+          "automake"
 
       - name: Checkout source
         uses: actions/checkout@v3
@@ -72,25 +88,23 @@ jobs:
         with:
           vcpkgJsonGlob: 'vcpkg.json'
 
-      - name: Run CMake+vcpkg+Ninja+CTest to build packages and generate/build/test the code.
+      - name: Run CMake+vcpkg+Ninja to build packages and generate/build the code.
         uses: lukka/run-cmake@v10
         with:
-          configurePreset: 'ninja-multi-vcpkg'
-          buildPreset: 'ninja-vcpkg-release'
-#          testPreset: 'test-release'
+          configurePreset: ninja-multi-vcpkg
+          buildPreset: ninja-vcpkg-release
 
-      - name: Moving and renaming executable
-        shell: bash
-        run: |
-          mv "${{ env._RELEASE_ }}/${{ env._EXE_ }}" \
-             "${{ env._BUILDS_ }}/${{ env._BINARY_ }}"
-          file "${{ env._BUILDS_ }}/${{ env._BINARY_ }}" 
+      - name: List the files
+        run: ls -alF "${{ env._RELEASE_ }}"
+
+      - name: Checking file type
+        run: file "${{ env._RELEASE_ }}/${{ env._EXE_ }}"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: NosoWalletCPP
-          path: ${{ env._BUILDS_ }}/${{ env._BINARY_ }}
+          name: ${{ inputs.app_name }}-${{ matrix.triplet }}
+          path: '${{ env._RELEASE_ }}/*'
 
   package-release:
     if: contains(github.ref, '/tags/')
@@ -111,16 +125,35 @@ jobs:
       uses: actions/download-artifact@v3
 
     - name: List files
-      run: ls -alF NosoWalletCPP
+      run: |
+        ls -alF "${{ inputs.app_name }}-${{ inputs.win }}"
+        ls -alF "${{ inputs.app_name }}-${{ inputs.lin }}"
+        ls -alF "${{ inputs.app_name }}-${{ inputs.mac }}"
 
-    - name: Modifying release files
-      run: chmod +x NosoWalletCPP/NosoWalletCPP-x64-linux NosoWalletCPP/NosoWalletCPP-x64-osx
+    - name: Modifying release files - Ubuntu/macOS
+      run: |
+        cd "${{ inputs.app_name }}-${{ inputs.lin }}"
+        chmod +x "${{ inputs.app_name }}"
+        tar -zcvf "../${{ inputs.app_name }}-${{ steps.vars.outputs.tag }}-${{ inputs.lin }}.tgz" *
+        cd ..
+        cd "${{ inputs.app_name }}-${{ inputs.mac }}"
+        chmod +x "${{ inputs.app_name }}"
+        tar -zcvf "../${{ inputs.app_name }}-${{ steps.vars.outputs.tag }}-${{ inputs.mac }}.tgz" *
+        cd ..
+
+    - name: Packaging files - Windows (includes DLLs)
+      run: |
+        cd "${{ inputs.app_name }}-${{ inputs.win }}"
+        zip "../${{ inputs.app_name }}-${{ steps.vars.outputs.tag }}-${{ inputs.win }}_with_dlls.zip" *
+        cd ..
 
     - name: Create GitHub release
       uses: softprops/action-gh-release@v1
       with:
-        name: NosoWalletCPP ${{ steps.vars.outputs.tag }}
-        body_path: release-notes.md
-        files: NosoWalletCPP/NosoWalletCPP*
+        name: ${{ inputs.app_name }} ${{ steps.vars.outputs.tag }}
+        body_path: 'release-notes.md'
+        files: |
+          *.zip
+          *.tgz
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

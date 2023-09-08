@@ -1,0 +1,20 @@
+name: main
+
+permissions:
+  contents: write
+
+on:
+
+  push:
+    branches: [ master ]
+    tags: [ "*" ]
+    paths-ignore: [ "*.md" ]
+
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  build-test-package:
+    name: Build/Test/Package
+    uses: ./.github/workflows/build-test.yml
