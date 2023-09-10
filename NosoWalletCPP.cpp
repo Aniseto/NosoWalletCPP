@@ -756,6 +756,8 @@ void MainFrame::InitializeWallet()
         TextBox->AppendText("\nWalletcpp.pkw File does not exist, some probems happened as walletcpp.pkw cannot be created in Data directory.\n ");
 
     }
+  
+    MainFrame::GetPendings();
     //Update TIme
     //MainFrame::UpdateDateAndTime();
 }
@@ -824,6 +826,33 @@ std::vector<WalletData> MainFrame::ReadWalletDataFromNosoCPP(const std::string& 
 
 void MainFrame::OnTimer(wxTimerEvent& event) {
     UpdateDateAndTime();
+}
+
+void MainFrame::GetPendings()
+{
+    TextBox->Clear();
+    TextBox->AppendText("Getting Pending orders from Node.\n");
+    std::string NODESTATUS_COMMAND = "NSLPEND\n";
+    std::string DefaultNodeIp = "20.199.50.27";						//PENDDING: Send commmand to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
+    int DefaultNodePort = 8080;										//PENDING: Set PORT from List of Nodes.
+    std::string PendingOrders = SendStringToNode(DefaultNodeIp, DefaultNodePort, NODESTATUS_COMMAND);
+    if (PendingOrders == "")
+    { 
+        TextBox->AppendText("No pending Orders");
+    }
+    else {
+        TextBox->AppendText(PendingOrders);
+    }
+    //Example Answer with pending Order: Getting Pending orders from Node.
+    //TRFR, NBFX6wuUKc1hwFWSA9kctv9XhohbEs, N3J2F4YDFFauC1aVBVuStFeFLwcwsDD, 2000000000, 1000000 //Example sending 20 NOSO fomr Addrress NBF* to N3J2*, wich 0.1 commission.
+
+}
+
+int64_t MainFrame::GetAddressPendingPays(std::string NosoAddress)
+{
+   // Get Pending Payments from NosoAddress Address
+    
+    return 0;
 }
 
 

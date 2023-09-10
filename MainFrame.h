@@ -60,7 +60,10 @@ private:
 	void OnTimer(wxTimerEvent& event);
 	//std::string ConvertToPEM(const Botan::secure_vector<uint8_t>& data);
 	//std::string ConvertToPEM(const Botan::secure_vector<uint8_t>& keyData);
-	
+	//Function SendFundsFromAddress(Origen, Destino:String; monto, comision:int64; reference,
+	//	ordertime:String; linea:integer) :OrderData;
+	void GetPendings();
+	int64_t GetAddressPendingPays(std::string NosoAddress);
 	
 
 
@@ -104,4 +107,38 @@ private:
  
 };
 
- 
+
+
+ /*
+ Function SendFundsFromAddress(Origen, Destino:String; monto, comision:int64; reference,
+  ordertime:String;linea:integer):OrderData;
+var
+  MontoDisponible, Montotrfr, comisionTrfr : int64;
+  OrderInfo : orderdata;
+Begin
+
+MontoDisponible := ARRAY_Addresses[WalletAddressIndex(origen)].Balance-GetAddressPendingPays(Origen);
+if MontoDisponible>comision then ComisionTrfr := Comision
+else comisiontrfr := montodisponible;
+if montodisponible>monto+comision then montotrfr := monto
+else montotrfr := montodisponible-comision;
+if montotrfr <0 then montotrfr := 0;
+OrderInfo := Default(OrderData);
+OrderInfo.OrderID    := '';
+OrderInfo.OrderLines := 1;
+OrderInfo.OrderType  := 'TRFR';
+OrderInfo.TimeStamp  := StrToInt64(OrderTime);
+OrderInfo.reference  := reference;
+OrderInfo.TrxLine    := linea;
+OrderInfo.Sender     := ARRAY_Addresses[WalletAddressIndex(origen)].PublicKey;
+OrderInfo.Address    := ARRAY_Addresses[WalletAddressIndex(origen)].Hash;
+OrderInfo.Receiver   := Destino;
+OrderInfo.AmmountFee := ComisionTrfr;
+OrderInfo.AmmountTrf := montotrfr;
+OrderInfo.Signature  := GetStringSigned(ordertime+origen+destino+IntToStr(montotrfr)+
+                     IntToStr(comisiontrfr)+IntToStr(linea),
+                     ARRAY_Addresses[WalletAddressIndex(origen)].PrivateKey);
+OrderInfo.TrfrID     := GetTransferHash(ordertime+origen+destino+IntToStr(monto)+IntToStr(WO_LastBlock));
+Result := OrderInfo;
+End;
+ */
