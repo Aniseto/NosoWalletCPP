@@ -58,6 +58,9 @@ private:
 	bool SaveWalletDataToFile(const WalletData& walletData, const std::string& filePath);
 	void UpdateDateAndTime();
 	void OnTimer(wxTimerEvent& event);
+	//std::string ConvertToPEM(const Botan::secure_vector<uint8_t>& data);
+	//std::string ConvertToPEM(const Botan::secure_vector<uint8_t>& keyData);
+	
 	
 
 

@@ -54,6 +54,7 @@ namespace fs = std::filesystem;
 #include <botan/base64.h>
 #include <botan/alg_id.h>
 #include <botan/p11_ecdsa.h>
+#include <botan/pem.h>
 
 #include "Communication.h"
 #include <botan/pkcs8.h>
@@ -332,6 +333,7 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     //TEST SIGN and VERIFY
     std::string TestMessage = "Hello World";
     std::string SignedMessage;
+    std::string TestErrorSign = "Pepe";
     
 
     SignedMessage = SignMessage(TestMessage, privateKeyBase64);
@@ -340,6 +342,9 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     bool Verify = VerifySignature(TestMessage, SignedMessage, publicKeyPointBase64);
     TextBox->AppendText("\nVerify Result : ");
     TextBox->AppendText(std::to_string(Verify));
+    bool Verify2 = VerifySignature(TestErrorSign, SignedMessage, publicKeyPointBase64);
+    TextBox->AppendText("\nVerify Result FALSE TEST : ");
+    TextBox->AppendText(std::to_string(Verify2));
 }
 
 
@@ -542,28 +547,58 @@ std::string MainFrame::SignMessage(const std::string& message, const std::string
 
 
 
-bool MainFrame::VerifySignature(const std::string& message, const std::string& signatureBase64, const std::string& publicKeyBase64)
+bool MainFrame::VerifySignature(const std::string& message, const std::string& signatureHex, const std::string& publicKeyBase64)
 {
     try {
+
+      
         
         TextBox->AppendText("\nText Message to verify: ");
         TextBox->AppendText(message);
         TextBox->AppendText("\nSignature: ");
-        TextBox->AppendText(signatureBase64);
-        TextBox->AppendText("\nPublic Keuy : ");
+        TextBox->AppendText(signatureHex);
+        TextBox->AppendText("\nPublic Key : ");
         TextBox->AppendText(publicKeyBase64);
 
         Botan::AutoSeeded_RNG rng;
+        
+
+
         Botan::secure_vector<uint8_t> decodedData = Botan::base64_decode(publicKeyBase64);
-        Botan::DataSource_Memory publicKeySource(decodedData.data(), decodedData.size());
+
+        
+         std::string pemPublicKey = Botan::PEM_Code::encode(decodedData.data(), decodedData.size(), "PUBLIC KEY");
+         pemPublicKey = "-----BEGIN PUBLIC KEY-----\n" + pemPublicKey + "\n-----END PUBLIC KEY-----\n";
+         Botan::secure_vector<uint8_t> PemString =Botan::secure_vector<uint8_t>(pemPublicKey.begin(), pemPublicKey.end());
+         
+        
+        //std::string pemKey = Botan::PEM_Code::encode(decodedData.data(), decodedData.size(), "PUBLIC KEY");
+        //std::string convertedData= ConvertToPEM(decodedData);
+  
+        //std::string pemPublicKey = ConvertToPEM(decodedData);
+        //TextBox->AppendText(pemPublicKey);Botan::
+        //TextBox->AppendText("\nPEM KEY");
+        //TextBox->AppendText(pemKey);
+
+        Botan::DataSource_Memory publicKeySource(PemString.data(), PemString.size());
         std::unique_ptr<Botan::Public_Key> publicKey(Botan::X509::load_key(publicKeySource));
+        
         Botan::PK_Verifier verifier(*publicKey, "EMSA1(SHA-256)", Botan::DER_SEQUENCE);
-        verifier.update(message);
-        return verifier.check_signature(Botan::hex_decode(signatureBase64));
+
+        verifier.update(reinterpret_cast<const uint8_t*>(message.data()), message.size());
+
+        //verifier.update(message);
+        //return verifier.check_signature(Botan::hex_decode(signatureHex));
+        if (verifier.check_signature(Botan::hex_decode(signatureHex)))
+        {
+            return true;
+        }
+        else return false;
     }
     catch (const std::exception& ex)
     {
         std::cerr << "Error verify: " << ex.what() << std::endl;
+        TextBox->AppendText(ex.what());
         return false;
     }
 }
@@ -790,6 +825,9 @@ std::vector<WalletData> MainFrame::ReadWalletDataFromNosoCPP(const std::string& 
 void MainFrame::OnTimer(wxTimerEvent& event) {
     UpdateDateAndTime();
 }
+
+
+
 
 
 
