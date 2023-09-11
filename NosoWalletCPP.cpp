@@ -62,8 +62,9 @@ namespace fs = std::filesystem;
 #include <iostream>
 #include <vector>
 #include <cryptopp/eccrypto.h>
+#include <bitset>
 
-
+const std::string B64Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 
 MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {   //Constructor Base class
@@ -520,6 +521,7 @@ std::string MainFrame::SignMessage(const std::string& message, const std::string
         Botan::AutoSeeded_RNG rng;
         Botan::AlgorithmIdentifier alg_id("ECDSA", Botan::AlgorithmIdentifier::USE_NULL_PARAM);
    
+        std::vector<unsigned char> messages = nosoBase64Decode(message);
 
         Botan::secure_vector<uint8_t> decodedData = Botan::base64_decode(privateKeyBase64);
        
@@ -528,11 +530,16 @@ std::string MainFrame::SignMessage(const std::string& message, const std::string
         Botan::ECDSA_PrivateKey private_key(rng,secp256k1, private_key_value);
     
         Botan::PK_Signer signer(private_key, rng, "EMSA1(SHA-256)", Botan::DER_SEQUENCE);
-        signer.update(message);
+        signer.update(messages);
         std::vector<uint8_t> signature = signer.signature(rng);
         TextBox->AppendText("\nSignatude completed");
      
-        return Botan::hex_encode(signature);
+       // std::vector<uint8_t> signature = signer.signature(rng);
+
+        std::string signature_base64 = Botan::base64_encode(signature.data(), signature.size());
+
+        return signature_base64;
+        //return Botan::hex_encode(signature);
 
     }
 
@@ -547,58 +554,39 @@ std::string MainFrame::SignMessage(const std::string& message, const std::string
 
 
 
-bool MainFrame::VerifySignature(const std::string& message, const std::string& signatureHex, const std::string& publicKeyBase64)
+bool MainFrame::VerifySignature(const std::string& message, const std::string& signatureBase64, const std::string& publicKeyBase64)
 {
+    Botan::AutoSeeded_RNG rng;
+    Botan::secure_vector<uint8_t> decodedPublicKey = Botan::base64_decode(publicKeyBase64);
+    Botan::secure_vector<uint8_t> signature = Botan::base64_decode(signatureBase64.data(), signatureBase64.size());
+    std::vector<unsigned char> messages = nosoBase64Decode(message);
+    //std::vector<unsigned char> messages = core.nosoBase64Decode("VERIFICATION");
+
+
+    if (decodedPublicKey.size() != 65) {
+        std::cerr << "Invalid UNCOMPRESSED public key format" << std::endl;
+        return false;
+    }
     try {
+        std::vector<uint8_t> xCoord(decodedPublicKey.begin() + 1, decodedPublicKey.begin() + 33);
+        std::vector<uint8_t> yCoord(decodedPublicKey.begin() + 33, decodedPublicKey.end());
 
-      
-        
-        TextBox->AppendText("\nText Message to verify: ");
-        TextBox->AppendText(message);
-        TextBox->AppendText("\nSignature: ");
-        TextBox->AppendText(signatureHex);
-        TextBox->AppendText("\nPublic Key : ");
-        TextBox->AppendText(publicKeyBase64);
+        Botan::BigInt x_bigint(xCoord.data(), xCoord.size());
+        Botan::BigInt y_bigint(yCoord.data(), yCoord.size());
 
-        Botan::AutoSeeded_RNG rng;
-        
+        Botan::EC_Group secp256k1("secp256k1");
 
+        Botan::PointGFp point = secp256k1.point(x_bigint, y_bigint);
 
-        Botan::secure_vector<uint8_t> decodedData = Botan::base64_decode(publicKeyBase64);
+        Botan::ECDSA_PublicKey publicKey(secp256k1, point);
+        Botan::PK_Verifier verifier(publicKey, "EMSA1(SHA-256)", Botan::DER_SEQUENCE);
+        verifier.update(messages);
 
-        
-         std::string pemPublicKey = Botan::PEM_Code::encode(decodedData.data(), decodedData.size(), "PUBLIC KEY");
-         pemPublicKey = "-----BEGIN PUBLIC KEY-----\n" + pemPublicKey + "\n-----END PUBLIC KEY-----\n";
-         Botan::secure_vector<uint8_t> PemString =Botan::secure_vector<uint8_t>(pemPublicKey.begin(), pemPublicKey.end());
-         
-        
-        //std::string pemKey = Botan::PEM_Code::encode(decodedData.data(), decodedData.size(), "PUBLIC KEY");
-        //std::string convertedData= ConvertToPEM(decodedData);
-  
-        //std::string pemPublicKey = ConvertToPEM(decodedData);
-        //TextBox->AppendText(pemPublicKey);Botan::
-        //TextBox->AppendText("\nPEM KEY");
-        //TextBox->AppendText(pemKey);
-
-        Botan::DataSource_Memory publicKeySource(PemString.data(), PemString.size());
-        std::unique_ptr<Botan::Public_Key> publicKey(Botan::X509::load_key(publicKeySource));
-        
-        Botan::PK_Verifier verifier(*publicKey, "EMSA1(SHA-256)", Botan::DER_SEQUENCE);
-
-        verifier.update(reinterpret_cast<const uint8_t*>(message.data()), message.size());
-
-        //verifier.update(message);
-        //return verifier.check_signature(Botan::hex_decode(signatureHex));
-        if (verifier.check_signature(Botan::hex_decode(signatureHex)))
-        {
-            return true;
-        }
-        else return false;
+        return verifier.check_signature(signature);
     }
     catch (const std::exception& ex)
     {
-        std::cerr << "Error verify: " << ex.what() << std::endl;
-        TextBox->AppendText(ex.what());
+        std::cerr << "Error: " << ex.what() << std::endl;
         return false;
     }
 }
@@ -845,6 +833,8 @@ void MainFrame::GetPendings()
     }
     //Example Answer with pending Order: Getting Pending orders from Node.
     //TRFR, NBFX6wuUKc1hwFWSA9kctv9XhohbEs, N3J2F4YDFFauC1aVBVuStFeFLwcwsDD, 2000000000, 1000000 //Example sending 20 NOSO fomr Addrress NBF* to N3J2*, wich 0.1 commission.
+    //TRFR,NbvGykuZ1ZXzdbk9pKkydBFcGbX1Ft,N3J2F4YDFFauC1aVBVuStFeFLwcwsDD,2030000000,1000000 Example sending 20.3 NOSO.
+
 
 }
 
@@ -855,9 +845,113 @@ int64_t MainFrame::GetAddressPendingPays(std::string NosoAddress)
     return 0;
 }
 
+std::vector<unsigned char> MainFrame::nosoBase64Decode(const std::string& input) //Thanks to PasichDEV https://github.com/pasichDev/NosoCpp/blob/d8ee2b5de00ac21eb200eef2a8faf4cdec19aa9a/nCripto.cpp#L225
+
+{
+
+    std::vector<int> indexList;
+    for (char c : input) {
+        auto it = B64Alphabet.find(c);
+        if (it != std::string::npos) {
+            indexList.push_back(static_cast<int>(it));
+        }
+    }
+
+    std::string binaryString;
+    for (int i : indexList) {
+        std::string binary = std::bitset<6>(i).to_string();
+        binaryString += binary;
+    }
+
+    std::string strAux = binaryString;
+    std::vector<unsigned char> tempByteArray;
+
+    while (strAux.length() >= 8) {
+        std::string currentGroup = strAux.substr(0, 8);
+        int intVal = std::stoi(currentGroup, nullptr, 2);
+        tempByteArray.push_back(static_cast<unsigned char>(intVal));
+        strAux = strAux.substr(8);
+    }
+
+    return tempByteArray;
+}
 
 
 
+/*
+function SendTo(Destination:String;Ammount:int64;Reference:String):string;
+var
+  CurrTime : String;
+  fee : int64;
+  ShowAmmount, ShowFee : int64;
+  Remaining : int64;
+  CoinsAvailable : int64;
+  KeepProcess : boolean = true;
+  ArrayTrfrs : Array of orderdata;
+  counter : integer;
+  OrderHashString : string;
+  TrxLine : integer = 0;
+  ResultOrderID : String = '';
+  OrderString : string;
+  PreviousRefresh : integer;
+Begin
+PreviousRefresh := WO_Refreshrate;
+result := '';
+if reference = '' then reference := 'null';
+CurrTime := UTCTime.ToString;
+fee := GetFee(Ammount);
+ShowAmmount := Ammount;
+ShowFee := fee;
+Remaining := Ammount+fee;
+if WO_Multisend then CoinsAvailable := Int_WalletBalance
+else CoinsAvailable := GetAddressBalanceFromSumary(ARRAY_Addresses[0].Hash);
+if not IsValidAddressHash(Destination) then
+   Destination := ARRAY_Sumary[AddressSumaryIndex(Destination)].Hash;
+
+if Remaining > CoinsAvailable then
+      begin
+      ToLog(rsError0012);
+      KeepProcess := false;
+      end;
+if KeepProcess then
+   begin
+   Setlength(ArrayTrfrs,0);
+   counter := 0;
+   OrderHashString := currtime;
+   while Ammount > 0 do
+      begin
+      if ARRAY_Addresses[counter].Balance-GetAddressPendingPays(ARRAY_Addresses[counter].Hash) > 0 then
+         begin
+         TrxLine := TrxLine+1;
+         Setlength(ArrayTrfrs,length(arraytrfrs)+1);
+         ArrayTrfrs[length(arraytrfrs)-1]:= SendFundsFromAddress(ARRAY_Addresses[counter].Hash,
+                                            Destination,ammount, fee, reference, CurrTime,TrxLine);
+         fee := fee-ArrayTrfrs[length(arraytrfrs)-1].AmmountFee;
+         ammount := ammount-ArrayTrfrs[length(arraytrfrs)-1].AmmountTrf;
+         OrderHashString := OrderHashString+ArrayTrfrs[length(arraytrfrs)-1].TrfrID;
+         end;
+      counter := counter +1;
+      end;
+   for counter := 0 to length(ArrayTrfrs)-1 do
+      begin
+      ArrayTrfrs[counter].OrderID:=GetOrderHash(IntToStr(trxLine)+OrderHashString);
+      ArrayTrfrs[counter].OrderLines:=trxLine;
+      end;
+   ResultOrderID := GetOrderHash(IntToStr(trxLine)+OrderHashString);
+   result := ResultOrderID;
+   OrderString := GetPTCEcn('ORDER')+'ORDER '+IntToStr(trxLine)+' $';
+   for counter := 0 to length(ArrayTrfrs)-1 do
+      begin
+      OrderString := orderstring+GetStringfromOrder(ArrayTrfrs[counter])+' $';
+      end;
+   Setlength(orderstring,length(orderstring)-2);
+   //ToLog(OrderString);
+   Result := SendOrder(OrderString);
+   end;
+WO_Refreshrate := PreviousRefresh;
+End;
+
+*/
 
 
 

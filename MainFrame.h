@@ -64,6 +64,8 @@ private:
 	//	ordertime:String; linea:integer) :OrderData;
 	void GetPendings();
 	int64_t GetAddressPendingPays(std::string NosoAddress);
+	std::vector<unsigned char> nosoBase64Decode(const std::string& input); // Thanks to PasichDEV https://github.com/pasichDev/NosoCpp/blob/d8ee2b5de00ac21eb200eef2a8faf4cdec19aa9a/nCripto.cpp#L225
+
 	
 
 
