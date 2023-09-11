@@ -61,7 +61,7 @@ namespace fs = std::filesystem;
 #include <botan/pk_keys.h>
 #include <iostream>
 #include <vector>
-#include <cryptopp/eccrypto.h>
+//#include <cryptopp/eccrypto.h>
 #include <bitset>
 
 const std::string B64Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
