@@ -128,10 +128,7 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
     statusBar->SetDoubleBuffered(true);
     statusBar->SetFieldsCount(3);
     SetStatusBar(statusBar);
-     
-    //Connect(wxID_ANY, wxEVT_TIMER, wxTimerEventHandler(MainFrame::OnTimer));
- 
-      //  SetBackgroundColor(1, wxColor(0, 255, 0)); // Green background for field 2
+
 }
 
 
@@ -171,19 +168,15 @@ void MainFrame::OnConnectButtonClicked(wxCommandEvent& evt)
     NodeStatusIss >> data.PSOHash;
 
     std::string CurrentBlockString = std::to_string(data.BlockNumber); //Transform from Integer to String
-    //CurrentBlock->SetLabel(wxString(CurrentBlockString));
+
     statusBar->SetStatusText("Current Block: " + CurrentBlockString, 0);
-    //StatusBar->SetStatusText("Field 2 Text", 1);
-    //SetBackgroundColor(1, wxColor(0, 255, 0));
-    // Modify Static text to show Current Block
-    //statusBar->SetBackgroundColour(0,wxColor(0, 255, 0));
-    //TextBox->Clear();
+   
     TextBox->AppendText("Connection Sucessful\n");
-	//wxLogStatus("Connected, NODESTATUS SAVED.");
+	
 
 }
 
-void MainFrame::DownloadSumary()
+std::vector<TSummaryData> MainFrame::DownloadSumary()
 {
     TextBox->AppendText("Downloading Sumary....\n");
     std::string DefaultNodeIp = "4.233.61.8";						//PENDING: Send commmand to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
@@ -218,20 +211,22 @@ void MainFrame::DownloadSumary()
 
     std::vector<TSummaryData> dataVector(numRecords);
 
+    //UpdateTableBalance(datavector);
+
+
     inputFile.read(reinterpret_cast<char*>(dataVector.data()), fileSize);
 
     inputFile.close();
+    return dataVector;
+    //UpdateTable(dataVector);
+    
+    
+
 
 
 }
 
-/*
-void MainFrame::SyncMainNetTime()
-{
-    int timer = GetMainetTimeStamp();
-    //MainNetTimeText->SetLabel(std::to_string(GetMainetTimeStamp()));
-}
-*/
+
 void MainFrame::OnClose(wxCloseEvent& evt) {
     wxLogMessage("Wallet Closed");
     evt.Skip();
@@ -246,7 +241,7 @@ void MainFrame::GetMasterNodeList(wxCommandEvent& evt)
     std::string MasterNodeListString = SendStringToNode(DefaultNodeIp, DefaultNodePort, NODESTATUS_COMMAND);
     TextBox->SetLabel(MasterNodeListString);
     //MasterNodeListText->SetLabel("Master Node List OK");
-
+    
 }
 
 void MainFrame::GenerateKeys(wxCommandEvent& evt)
@@ -277,20 +272,20 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
 
   
 
-    TextBox->AppendText("\nCurrent Wallet PrivateKey: ");
-    TextBox->AppendText(MyWallet.GetPrivateKey());
-    TextBox->AppendText("\nCurrent Wallet PublicKey: ");
-    TextBox->AppendText(MyWallet.GetPublicKey());
+    //TextBox->AppendText("\nCurrent Wallet PrivateKey: ");
+    //TextBox->AppendText(MyWallet.GetPrivateKey());
+    //TextBox->AppendText("\nCurrent Wallet PublicKey: ");
+    //TextBox->AppendText(MyWallet.GetPublicKey());
     
     ///Show Results
 
-    TextBox->AppendText("\n\nPUBLIC KEY: \n");
+    //TextBox->AppendText("\n\nPUBLIC KEY: \n");
     //TextBox->AppendText(publicKeyStr);
     //TextBoz->AppendTest("\n PUBLIC KEY SIZE: \n")
-    TextBox->AppendText(publicKeyPointBase64);
-    TextBox->AppendText("\n\nPRIVATE KEY: \n");
+    //TextBox->AppendText(publicKeyPointBase64);
+    //TextBox->AppendText("\n\nPRIVATE KEY: \n");
     //TextBox->AppendText(privateKeyStr);
-    TextBox->AppendText(privateKeyBase64);
+    //TextBox->AppendText(privateKeyBase64);
 
 
     //Generate NOSO ADDRESS
@@ -317,6 +312,10 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
 
     // Create a function to update GRID.
 
+    UpdateTable(walletCPPDataLoaded);
+
+    
+    /*
     NosoAddressGrid->DeleteRows();
     for (size_t i = 0; i < walletCPPDataLoaded.size(); ++i) {
         std::string HashKeyLoaded = walletCPPDataLoaded[i].GetHash();
@@ -329,9 +328,14 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
         NosoAddressGrid->SetCellValue(i, 2, std::to_string(Pending));
         NosoAddressGrid->SetCellValue(i, 3, std::to_string(Balance));
     }
+    */
+    //UpdateTable(*walletCPPDataLoaded);
+    
+    
 
-
+    
     //TEST SIGN and VERIFY
+    /*
     std::string TestMessage = "Hello World";
     std::string SignedMessage;
     std::string TestErrorSign = "Pepe";
@@ -346,6 +350,7 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     bool Verify2 = VerifySignature(TestErrorSign, SignedMessage, publicKeyPointBase64);
     TextBox->AppendText("\nVerify Result FALSE TEST : ");
     TextBox->AppendText(std::to_string(Verify2));
+    */
 }
 
 
@@ -704,20 +709,17 @@ void MainFrame::InitializeWallet()
     Connect(timer->GetId(), wxEVT_TIMER, wxTimerEventHandler(MainFrame::OnTimer), NULL, this);
 
 
-
-    //std::string WalletFullPath = (fs::current_path() / "data" / "wallet.pkw").string();
-    std::string WalletCPPFullPath= (fs::current_path() / "data" / "walletcpp.pkw").string();
     //Call Connect ButtonFuction
     wxCommandEvent fakeEvent(wxEVT_BUTTON, wxID_ANY); // Create a fake button click event
     OnConnectButtonClicked(fakeEvent); // Call the function
     
-    //Download Summary
-    MainFrame::DownloadSumary();
-    
+ 
     //OnDownloadSummaryButtonClicked(fakeEvent);
-
+    SumarydataVector = MainFrame::DownloadSumary();
     //Check if walletcpp.pkw exists on /data directory, if exists load all addresses, if no create a new NOSO address, save to file and load Address
 
+    //std::string WalletFullPath = (fs::current_path() / "data" / "wallet.pkw").string();
+    std::string WalletCPPFullPath = (fs::current_path() / "data" / "walletcpp.pkw").string();
 
     if (DoesFileExist(WalletCPPFullPath))
     {
@@ -725,12 +727,15 @@ void MainFrame::InitializeWallet()
         std::vector<WalletData> walletCPPDataLoaded = ReadWalletDataFromNosoCPP(WalletCPPFullPath);
         TextBox->AppendText("\nTotal NOSOCPP address loaded : ");
         TextBox->AppendText(std::to_string(walletCPPDataLoaded.size()));
+
+        //Show Data on central Table
         NosoAddressGrid->DeleteRows();
         for (size_t i = 0; i < walletCPPDataLoaded.size(); ++i) {
             std::string HashKeyLoaded = walletCPPDataLoaded[i].GetHash();
             std::string Label = walletCPPDataLoaded[i].GetLabel();
             std::int64_t Pending = walletCPPDataLoaded[i].GetPending();
             std::int64_t Balance = walletCPPDataLoaded[i].GetBalance();
+            //std::int64_t Balance = GetBalanceFromNosoAddresswalletCPPDataLoaded[i].GetBalance();
             NosoAddressGrid->AppendRows(1); // Add a new row
             NosoAddressGrid->SetCellValue(i, 0, HashKeyLoaded);
             NosoAddressGrid->SetCellValue(i, 1, Label);
@@ -744,7 +749,10 @@ void MainFrame::InitializeWallet()
         TextBox->AppendText("\nWalletcpp.pkw File does not exist, some probems happened as walletcpp.pkw cannot be created in Data directory.\n ");
 
     }
+    //Download Summary
   
+    UpdateTable(walletCPPDataLoaded);
+
     MainFrame::GetPendings();
     //Update TIme
     //MainFrame::UpdateDateAndTime();
@@ -816,9 +824,9 @@ void MainFrame::OnTimer(wxTimerEvent& event) {
     UpdateDateAndTime();
 }
 
-void MainFrame::GetPendings()
+std::string MainFrame::GetPendings()
 {
-    TextBox->Clear();
+    //TextBox->Clear();
     TextBox->AppendText("Getting Pending orders from Node.\n");
     std::string NODESTATUS_COMMAND = "NSLPEND\n";
     std::string DefaultNodeIp = "20.199.50.27";						//PENDDING: Send commmand to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
@@ -827,9 +835,11 @@ void MainFrame::GetPendings()
     if (PendingOrders == "")
     { 
         TextBox->AppendText("No pending Orders");
+        return "NULL";
     }
     else {
         TextBox->AppendText(PendingOrders);
+        return PendingOrders;
     }
     //Example Answer with pending Order: Getting Pending orders from Node.
     //TRFR, NBFX6wuUKc1hwFWSA9kctv9XhohbEs, N3J2F4YDFFauC1aVBVuStFeFLwcwsDD, 2000000000, 1000000 //Example sending 20 NOSO fomr Addrress NBF* to N3J2*, wich 0.1 commission.
@@ -840,9 +850,24 @@ void MainFrame::GetPendings()
 
 int64_t MainFrame::GetAddressPendingPays(std::string NosoAddress)
 {
-   // Get Pending Payments from NosoAddress Address
+   // Get Pending Payments from NosoAddress Address, Send order Pending, and check if the source address has something pending.
+
+    // 1- Get Pending Orders, if NULL then continue, else check if NosoAddress is is the list, and return the total amount pending.
     
-    return 0;
+    std::string ListOfPendings = GetPendings();
+
+    if (ListOfPendings != "NULL")
+    {
+
+
+
+    }
+    else 
+    {
+        return 0;
+    }
+    
+   
 }
 
 std::vector<unsigned char> MainFrame::nosoBase64Decode(const std::string& input) //Thanks to PasichDEV https://github.com/pasichDev/NosoCpp/blob/d8ee2b5de00ac21eb200eef2a8faf4cdec19aa9a/nCripto.cpp#L225
@@ -875,6 +900,102 @@ std::vector<unsigned char> MainFrame::nosoBase64Decode(const std::string& input)
 
     return tempByteArray;
 }
+
+OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::string& DestinationAddress, int64_t& AmountToSend, int64_t& Commision, std::string& Reference, std::string& OrderTime, int line)
+{
+    //SourceAddress Sender
+    //DestionAddress
+    //AmountToSend
+    //Comision
+    //Reference
+    //OrderTime
+    //Line
+
+    //SourceAddress NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb
+    //DestinationAddress N2XjEbgabYNXdH1mzoWjJWJgMyPtZFr
+    // amount: 0.2
+    // Comision 0.1
+    // Reference
+    // OrderTime
+    // Line
+    
+    int64_t AvailableAmmount;
+    int64_t TransferAmmount;
+    int64_t TransferCommision;
+    OrderData OrderInfo;
+    
+    //Check Total Noso on Source Address, adding if there is any pending transaction ! Pending.
+
+    //Create SendOrder String.
+
+    
+
+
+
+    
+    return OrderInfo;
+}
+
+int64_t MainFrame::GetBalanceFromNosoAddress(const std::vector<TSummaryData>& DataVector, const char* NosoAddress)
+{
+    //TextBox->AppendText("\nSearching for Noso Address Balance : ");
+    //TextBox->AppendText(NosoAddress);
+    
+    
+    
+    for (const TSummaryData& datos : DataVector) {
+        //TextBox->AppendText("\nTesting this Hash ");
+        //TextBox->AppendText(datos.Hash);
+        if (std::strcmp(datos.Hash, NosoAddress) == 0) {
+            //return datos.Balance;
+            TextBox->AppendText("\nFound Noso Balance from Specific Address -> ");
+            TextBox->AppendText(NosoAddress);
+            TextBox->AppendText("Balance -> ");
+            TextBox->AppendText(std::to_string(datos.Balance));
+            return datos.Balance;
+
+        }
+    }
+    
+    return 0; // Control what happens if there is no address.
+}
+
+void MainFrame::UpdateTable(std::vector<WalletData>& dataVectorAddress)
+{
+    
+   // Read info from DataVectorAddress
+    NosoAddressGrid->DeleteRows();
+    for (size_t i = 0; i < dataVectorAddress.size(); ++i) {
+        std::string HashKeyLoaded = dataVectorAddress[i].GetHash();
+        std::string Label = dataVectorAddress[i].GetLabel();
+        std::int64_t Pending = dataVectorAddress[i].GetPending();
+        //std::int64_t Balance = dataVectorAddress[i].GetBalance();
+        //TextBox->AppendText("\Query Balance from \n");
+        //TextBox->AppendText(HashKeyLoaded);
+        std::int64_t Balance = GetBalanceFromNosoAddress(SumarydataVector, HashKeyLoaded.c_str());
+        //NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb 1 noso.
+        NosoAddressGrid->AppendRows(1); // Add a new row
+        NosoAddressGrid->SetCellValue(i, 0, HashKeyLoaded);
+        NosoAddressGrid->SetCellValue(i, 1, Label);
+        NosoAddressGrid->SetCellValue(i, 2, std::to_string(Pending));
+        NosoAddressGrid->SetCellValue(i, 3, std::to_string(Balance));
+    }
+
+    
+
+   //Show Info on Central Table
+ 
+}
+
+
+
+/*
+void MainFrame::UpdateTableBalance(std::vector<TSummaryData>& dataVectorUpdate, std::vector<WalletData>& dataVectorAddress)
+{
+
+
+}
+*/  
 
 
 

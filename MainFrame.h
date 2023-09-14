@@ -3,15 +3,6 @@
 #include <wx/textctrl.h>
 #include <wx/grid.h>
 #include <string>
-//#include <cryptopp/eccrypto.h>
-//#include <cryptopp/osrng.h>
-//#include <cryptopp/oids.h>
-//#include <cryptopp/hex.h>
-//#include <cryptopp/cryptlib.h>
-//#include <cryptopp/ripemd.h>
-//#include <cryptopp/cryptlib.h>
-//#include <cryptopp/integer.h>
-//#include <cryptopp/algebra.h>
 #include "DataStructures.h"
 
 
@@ -33,10 +24,7 @@ private:
 
 
 	void OnConnectButtonClicked(wxCommandEvent& evt); //Call Connect to Main net and Get NODESATUS
-	void DownloadSumary();
-	//void OnDownloadSummaryButtonClicked(wxCommandEvent& evt);
-	//time_t GetNTPTime();
-	//void SyncMainNetTime();
+	std::vector<TSummaryData> DownloadSumary();
 	void OnClose(wxCloseEvent& evt);
 	void GetMasterNodeList(wxCommandEvent& evt);
 	void GenerateKeys(wxCommandEvent& evt);
@@ -51,24 +39,20 @@ private:
 	bool VerifySignature(const std::string& message, const std::string& signatureBase64, const std::string& publicKeyBase64);
 	std::string base64ToPEMPrivateKey(const std::string& privateKeyBase64);
 	std::string addPEMHeaders(const std::string& privateKeyBase64, const std::string& header, const std::string& footer);
-
-	//bool VerifyMessage(const std::string& message, const std::string& signature, const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey& publicKey);
-	//void SignAndVerify(wxCommandEvent& evt);
 	std::string HexToBase64(const std::string& hexString);
 	bool SaveWalletDataToFile(const WalletData& walletData, const std::string& filePath);
 	void UpdateDateAndTime();
 	void OnTimer(wxTimerEvent& event);
-	//std::string ConvertToPEM(const Botan::secure_vector<uint8_t>& data);
-	//std::string ConvertToPEM(const Botan::secure_vector<uint8_t>& keyData);
-	//Function SendFundsFromAddress(Origen, Destino:String; monto, comision:int64; reference,
-	//	ordertime:String; linea:integer) :OrderData;
-	void GetPendings();
+	std::string GetPendings();
 	int64_t GetAddressPendingPays(std::string NosoAddress);
 	std::vector<unsigned char> nosoBase64Decode(const std::string& input); // Thanks to PasichDEV https://github.com/pasichDev/NosoCpp/blob/d8ee2b5de00ac21eb200eef2a8faf4cdec19aa9a/nCripto.cpp#L225
-
-	
-
-
+	OrderData SendFundsFromAddress(std::string& SourceAddress, std::string& DestinationAddress, int64_t& AmountToSend, int64_t& Commision, std::string& Reference, std::string& OrderTime, int line);
+	int64_t GetBalanceFromNosoAddress(const std::vector<TSummaryData>& DataVector, const char* NosoAddress);
+	void UpdateTable(std::vector<WalletData>& dataVectorAddressTable);
+	//std::vector<WalletData> walletCPPDataLoaded
+	//void UpdateTableBalance(std::vector<WalletData>& walletCPPDataLoaded, std::vector<TSummaryData>& dataVector);
+	//std::vector<WalletData> walletCPPDataLoaded;
+	//std::vector<TSummaryData> dataVector;
 
 
 	void OnOpen(wxCommandEvent& event);
@@ -106,7 +90,9 @@ private:
 
 	wxStatusBar* statusBar;
 
- 
+	std::vector<WalletData> walletCPPDataLoaded;
+	std::vector<TSummaryData> SumarydataVector;
+
 };
 
 
