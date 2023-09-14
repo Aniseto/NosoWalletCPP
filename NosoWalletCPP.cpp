@@ -753,6 +753,7 @@ void MainFrame::InitializeWallet()
   
     UpdateTable(walletCPPDataLoaded);
 
+
     MainFrame::GetPendings();
     //Update TIme
     //MainFrame::UpdateDateAndTime();
@@ -973,12 +974,21 @@ void MainFrame::UpdateTable(std::vector<WalletData>& dataVectorAddress)
         //TextBox->AppendText("\Query Balance from \n");
         //TextBox->AppendText(HashKeyLoaded);
         std::int64_t Balance = GetBalanceFromNosoAddress(SumarydataVector, HashKeyLoaded.c_str());
+        //int64_t integerNumber = 1234567890; // Your int64_t number
+        //double decimalBalance = static_cast<double>(Balance); // Convert to double
+        double decimalBalance = static_cast<double>(Balance) / 100000000.0;
+        std::stringstream stream;
+        stream << std::fixed << std::setprecision(8) << decimalBalance;
+        std::string formattedDecimalBalance = stream.str();
+        // Output the decimal number with precision (e.g., 2 decimal places)
+        //std::cout << std::fixed << std::setprecision(2) << decimalBalance << std::endl;
+
         //NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb 1 noso.
         NosoAddressGrid->AppendRows(1); // Add a new row
         NosoAddressGrid->SetCellValue(i, 0, HashKeyLoaded);
         NosoAddressGrid->SetCellValue(i, 1, Label);
         NosoAddressGrid->SetCellValue(i, 2, std::to_string(Pending));
-        NosoAddressGrid->SetCellValue(i, 3, std::to_string(Balance));
+        NosoAddressGrid->SetCellValue(i, 3, formattedDecimalBalance);
     }
 
     
