@@ -48,8 +48,9 @@
  //OrderData Struct
 
 #pragma pack(push, 1)
-    struct OrderData {
+    class OrderData {
 
+    private:
         int Block;
         std::string OrderID;
         int OrderLines;
@@ -64,6 +65,125 @@
         int64_t AmmountTrf;
         char Signature[120];
         char TrfrID[64];
+    public:
+
+        void SetSenderPublicKey(const std::string& SenderAddress) //Save Public Key from Sender Noso Address
+        {
+            {
+
+                size_t copySize = std::min(SenderAddress.size(), sizeof(SenderAddress) - 1);
+
+                // Copiar los datos manualmente
+                for (size_t i = 0; i < copySize; ++i) {
+                    Sender[i] = SenderAddress[i];
+                }
+            }
+        }
+        void SetSenderHashAddress(const std::string& SenderHashAddress) //Save Sender NOSO address Hash propertie
+        {
+            {
+
+                size_t copySize = std::min(SenderHashAddress.size(), sizeof(SenderHashAddress) - 1);
+
+                // Copiar los datos manualmente
+                for (size_t i = 0; i < copySize; ++i) {
+                    Address[i] = SenderHashAddress[i];
+                }
+            }
+        }
+        void SetReceiverHashAddress(const std::string& ReceiverHashAddress) //Save Sender NOSO address Hash propertie
+        {
+            {
+
+                size_t copySize = std::min(ReceiverHashAddress.size(), sizeof(ReceiverHashAddress) - 1);
+
+                // Copiar los datos manualmente
+                for (size_t i = 0; i < copySize; ++i) {
+                    Receiver[i] = ReceiverHashAddress[i];
+                }
+            }
+        }
+    
+        void SetOrderType(const std::string& OrderTypeSet) //Save Sender NOSO address Hash propertie
+        {
+             {
+
+                 size_t copySize = std::min(OrderTypeSet.size(), sizeof(OrderTypeSet) - 1);
+
+            // Copiar los datos manualmente
+                 for (size_t i = 0; i < copySize; ++i) {
+                        OrderType[i] = OrderTypeSet[i];
+                   }
+            }
+        }
+        void SetOrderReference(const std::string& OrderReference) 
+        {
+            {
+
+                size_t copySize = std::min(OrderReference.size(), sizeof(OrderReference) - 1);
+
+                // Copiar los datos manualmente
+                for (size_t i = 0; i < copySize; ++i) {
+                    Reference[i] = OrderReference[i];
+                }
+            }
+        }
+        void SetBlock(const int block) 
+        {
+            Block = block;
+        }
+        void SetOrderID(const std::string& SetOrdferID)
+        {
+            OrderID = OrderID;
+        }
+        void SetOrderLines(const int Orderlines)
+        {
+            OrderLines = Orderlines;
+        }
+        void SetTimeSpamp(const int Timestamp)
+        {
+            TimeStamp = Timestamp;
+        }
+        void SetTrxLine(const int Trxline)
+        {
+            TrxLine = Trxline;
+        }
+       
+        void SetAmmountFee(const int64_t Ammountfee)
+        {
+            AmmountFee = Ammountfee;
+        }
+        void SetAmmountTrfe(const int64_t Ammounttrf)
+        {
+            AmmountTrf = Ammounttrf;
+        }
+   
+       
+        void SetSignature(const std::string& signature)
+        {
+            {
+
+                size_t copySize = std::min(signature.size(), sizeof(signature) - 1);
+
+                // Copiar los datos manualmente
+                for (size_t i = 0; i < copySize; ++i) {
+                    Signature[i] = signature[i];
+                }
+            }
+        }
+    
+        void SetTrfID(const std::string& trfid)
+        {
+            {
+
+                size_t copySize = std::min(trfid.size(), sizeof(trfid) - 1);
+
+                // Copiar los datos manualmente
+                for (size_t i = 0; i < copySize; ++i) {
+                    TrfrID[i] = trfid[i];
+                }
+            }
+        }
     };
 #pragma pack(pop)
   /*OrderData = Packed Record

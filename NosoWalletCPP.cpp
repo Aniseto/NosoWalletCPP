@@ -734,13 +734,22 @@ void MainFrame::InitializeWallet()
             std::string HashKeyLoaded = walletCPPDataLoaded[i].GetHash();
             std::string Label = walletCPPDataLoaded[i].GetLabel();
             std::int64_t Pending = walletCPPDataLoaded[i].GetPending();
-            std::int64_t Balance = walletCPPDataLoaded[i].GetBalance();
+            //std::int64_t Balance = walletCPPDataLoaded[i].GetBalance();
             //std::int64_t Balance = GetBalanceFromNosoAddresswalletCPPDataLoaded[i].GetBalance();
+            std::int64_t Balance = GetBalanceFromNosoAddress(SumarydataVector, HashKeyLoaded.c_str());
+            //int64_t integerNumber = 1234567890; // Your int64_t number
+            //double decimalBalance = static_cast<double>(Balance); // Convert to double
+            double decimalBalance = static_cast<double>(Balance) / 100000000.0;
+            std::stringstream stream;
+            stream << std::fixed << std::setprecision(8) << decimalBalance;
+            std::string formattedDecimalBalance = stream.str();
+            
+            
             NosoAddressGrid->AppendRows(1); // Add a new row
             NosoAddressGrid->SetCellValue(i, 0, HashKeyLoaded);
             NosoAddressGrid->SetCellValue(i, 1, Label);
             NosoAddressGrid->SetCellValue(i, 2, std::to_string(Pending));
-            NosoAddressGrid->SetCellValue(i, 3, std::to_string(Balance));
+            NosoAddressGrid->SetCellValue(i, 3, formattedDecimalBalance);
     }
 
     }
@@ -904,8 +913,8 @@ std::vector<unsigned char> MainFrame::nosoBase64Decode(const std::string& input)
 
 OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::string& DestinationAddress, int64_t& AmountToSend, int64_t& Commision, std::string& Reference, std::string& OrderTime, int line)
 {
-    //SourceAddress Sender
-    //DestionAddress
+    //SourceAddress Sender NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb
+    //DestionAddress 
     //AmountToSend
     //Comision
     //Reference
@@ -924,6 +933,7 @@ OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::strin
     int64_t TransferAmmount;
     int64_t TransferCommision;
     OrderData OrderInfo;
+    
     
     //Check Total Noso on Source Address, adding if there is any pending transaction ! Pending.
 
