@@ -66,7 +66,16 @@
         char Signature[120];
         char TrfrID[64];
     public:
+        //Getters
+        int64_t GetTimeStamp() {
 
+            return TimeStamp;
+        }
+
+
+        
+        
+        //Setters
         void SetSenderPublicKey(const std::string& SenderAddress) //Save Public Key from Sender Noso Address
         {
             {
@@ -140,7 +149,7 @@
         {
             OrderLines = Orderlines;
         }
-        void SetTimeSpamp(const int Timestamp)
+        void SetTimeStamp(const int Timestamp)
         {
             TimeStamp = Timestamp;
         }

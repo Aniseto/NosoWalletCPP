@@ -14,6 +14,7 @@ bool App::OnInit() {
 	mainFrame->Show();
 	mainFrame->InitializeWallet();
 	
+	
 	//wxTimer* timer = new wxTimer(this, wxID_ANY);
 	//timer->Start(1000);
 	

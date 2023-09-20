@@ -913,34 +913,36 @@ std::vector<unsigned char> MainFrame::nosoBase64Decode(const std::string& input)
 
 OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::string& DestinationAddress, int64_t& AmountToSend, int64_t& Commision, std::string& Reference, std::string& OrderTime, int line)
 {
-    //SourceAddress Sender NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb
-    //DestionAddress 
-    //AmountToSend
-    //Comision
-    //Reference
-    //OrderTime
-    //Line
-
-    //SourceAddress NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb
-    //DestinationAddress N2XjEbgabYNXdH1mzoWjJWJgMyPtZFr
-    // amount: 0.2
-    // Comision 0.1
-    // Reference
-    // OrderTime
-    // Line
+    //SourceAddress Sender :NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb
+    //DestionAddress       :N2XjEbgabYNXdH1mzoWjJWJgMyPtZFr
+    //AmountToSend         :010000000
+    //Comision             :001000000 
+    //Reference            :Test
+    //OrderTime            :GetMainetTime
+    //Line                 :1
+    //SendFundsFromAddress(NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb,N2XjEbgabYNXdH1mzoWjJWJgMyPtZFr,010000000,001000000,Test,GetMainnetTime(),1)
     
-    int64_t AvailableAmmount;
-    int64_t TransferAmmount;
-    int64_t TransferCommision;
+    int64_t AvailableAmmount=0;
+    int64_t TransferAmmount=0;
+    int64_t TransferCommision=0;
     OrderData OrderInfo;
-    
-    
-    //Check Total Noso on Source Address, adding if there is any pending transaction ! Pending.
+    std::stringstream ss(OrderTime);
+    long long OrderTimeint64_value = 0;
+    ss >> OrderTimeint64_value;
 
-    //Create SendOrder String.
-
-    
-
+    OrderInfo.SetSenderHashAddress(SourceAddress);
+    OrderInfo.SetReceiverHashAddress(DestinationAddress);
+    OrderInfo.SetAmmountTrfe(AmountToSend);
+    OrderInfo.SetAmmountFee(Commision);
+    OrderInfo.SetOrderReference(Reference);
+    OrderInfo.SetTimeStamp(OrderTimeint64_value);
+    OrderInfo.SetOrderLines(line);
+    OrderInfo.SetOrderID("");
+    OrderInfo.SetOrderType("TRFR");
+    OrderInfo.SetSenderPublicKey(GetPublicKeyFromNosoAddress(SourceAddress));
+    OrderInfo.SetSignature(SignMessage(std::to_string(OrderInfo.GetTimeStamp()) + SourceAddress + DestinationAddress + std::to_string(TransferAmmount) +
+        std::to_string(TransferCommision) + std::to_string(line), GetPrivateKeyFromNosoAddress(SourceAddress)));
+    OrderInfo.SetTrfID(GetTransferHash(std::to_string(OrderInfo.GetTimeStamp()) + SourceAddress + DestinationAddress + std::to_string(AmountToSend) + CurrentBlockString));
 
 
     
@@ -1005,6 +1007,101 @@ void MainFrame::UpdateTable(std::vector<WalletData>& dataVectorAddress)
 
    //Show Info on Central Table
  
+}
+
+std::string MainFrame::GetPublicKeyFromNosoAddress(const std::string & NosoAddress)
+{
+   
+    std::string notfound="Not Found";
+
+    for (size_t i = 0; i < walletCPPDataLoaded.size(); ++i)
+    {
+        if (walletCPPDataLoaded[i].GetHash() == NosoAddress)
+            return walletCPPDataLoaded[i].GetPublicKey();
+    }
+
+    return notfound;
+}
+
+std::string MainFrame::GetPrivateKeyFromNosoAddress(const std::string& NosoAddress)
+{
+
+
+        std::string notfound = "Not Found";
+
+        for (size_t i = 0; i < walletCPPDataLoaded.size(); ++i)
+        {
+            if (walletCPPDataLoaded[i].GetHash() == NosoAddress)
+                return walletCPPDataLoaded[i].GetPrivateKey();
+        }
+
+        return notfound;
+
+}
+
+std::string MainFrame::GetTransferHash(const std::string& Transfer)
+{
+    std::string ResultString = "";
+    std::string ResultStringToSHA256 = "";
+    std::string ResultStringToHex58 = "";
+    std::string Base58Sumatory="";
+    std::string Key;
+
+    ResultStringToSHA256 = PublicKeyToSHA256(Transfer);
+    ResultStringToHex58 = EncodeBase58(ResultStringToSHA256);
+
+    Base58Sumatory = BMB58Sumatory(ResultStringToHex58);
+    //sumatoria: = BMB58resumen(Resultado); Pendiente !
+
+
+
+    Key = BmDecto58(Base58Sumatory);
+    ResultString = "tR" + ResultStringToHex58 + Key;
+    /*
+        function GetTransferHash(TextLine:string):String;
+var
+  Resultado : String = '';
+  Sumatoria, clave : string;
+Begin
+Resultado := HashSHA256String(TextLine);
+Resultado := BMHexTo58(Resultado,58);
+sumatoria := BMB58resumen(Resultado);
+clave := BMDecTo58(sumatoria);
+Result := 'tR'+Resultado+clave;
+End;
+
+
+        
+        Resultado : String = '';
+    Sumatoria, clave : string;
+    Begin
+        Resultado : = HashSHA256String(TextLine);
+Resultado: = BMHexTo58(Resultado, 58);
+sumatoria: = BMB58resumen(Resultado);
+clave: = BMDecTo58(sumatoria);
+Result: = 'tR' + Resultado + clave;
+    End;
+    
+    */
+    return ResultString;
+}
+
+std::string MainFrame::BMB58Sumatory(const std::string& Base58Number)
+{
+    const std::string B58Alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+    int total = 0;
+
+    for (size_t counter = 0; counter < Base58Number.length(); ++counter) {
+        char currentChar = Base58Number[counter];
+        size_t pos = B58Alphabet.find(currentChar);
+
+        if (pos != std::string::npos) {
+            total += static_cast<int>(pos);
+        }
+    }
+
+    return std::to_string(total);
+   
 }
 
 

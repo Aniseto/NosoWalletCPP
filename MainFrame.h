@@ -49,10 +49,10 @@ private:
 	OrderData SendFundsFromAddress(std::string& SourceAddress, std::string& DestinationAddress, int64_t& AmountToSend, int64_t& Commision, std::string& Reference, std::string& OrderTime, int line);
 	int64_t GetBalanceFromNosoAddress(const std::vector<TSummaryData>& DataVector, const char* NosoAddress);
 	void UpdateTable(std::vector<WalletData>& dataVectorAddressTable);
-	//std::vector<WalletData> walletCPPDataLoaded
-	//void UpdateTableBalance(std::vector<WalletData>& walletCPPDataLoaded, std::vector<TSummaryData>& dataVector);
-	//std::vector<WalletData> walletCPPDataLoaded;
-	//std::vector<TSummaryData> dataVector;
+	std::string GetPublicKeyFromNosoAddress(const std::string& NosoAddress);
+	std::string GetPrivateKeyFromNosoAddress(const std::string& NosoAddress);
+	std::string GetTransferHash(const std::string& Transfer);
+	std::string BMB58Sumatory(const std::string& Base58Number);
 
 
 	void OnOpen(wxCommandEvent& event);
@@ -92,7 +92,7 @@ private:
 
 	std::vector<WalletData> walletCPPDataLoaded;
 	std::vector<TSummaryData> SumarydataVector;
-
+	std::string CurrentBlockString;
 };
 
 
