@@ -53,6 +53,7 @@ private:
 	std::string GetPrivateKeyFromNosoAddress(const std::string& NosoAddress);
 	std::string GetTransferHash(const std::string& Transfer);
 	std::string BMB58Sumatory(const std::string& Base58Number);
+	bool CheckIfNosoAddressExistsOnMyWallet(const std::string& NosoAddressToCheck, std::vector<WalletData> WalletToSearch);
 
 
 	void OnOpen(wxCommandEvent& event);

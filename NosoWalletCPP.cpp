@@ -67,6 +67,16 @@ namespace fs = std::filesystem;
 const std::string B64Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 
+
+//TODO
+//1- Get a list of Master Nodes from a DNS entry.
+//2- Get a list of available Nodes ( NSO CONFIG ) and get this list as list of servers to connect and send commands, priorize older
+//nodes first, and control if there is an issue conecting then go to next node in the list. Maybe create a Random node select to balance connections
+//between current nodes ?
+//3- Create Send Noso form, adding Source Address ( from current Wallet addressess list ), Destination Address ( verifying that is a valid NOSO address, 
+//Ammount to send, checking if there is enought noso on source address ( checking if ther eis any pending operations also ).
+//4- Complete a Send Noso operation manually 
+
 MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {   //Constructor Base class
 	wxPanel* panel = new wxPanel(this);
 
@@ -314,7 +324,23 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
 
     UpdateTable(walletCPPDataLoaded);
 
-    
+    /// Test NOSO ADDRESS EXISTIS:
+
+    bool ExistsSourceAddress = CheckIfNosoAddressExistsOnMyWallet("NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb",walletCPPDataLoaded);
+    if (ExistsSourceAddress) {
+        TextBox->AppendText("\nAddress NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb Exists !");
+    }
+    else {
+        TextBox->AppendText("\nAddress NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb does not Exists !");
+    }
+    bool ExistsSourceAddress2 = CheckIfNosoAddressExistsOnMyWallet("NZX22V6SHcJ6xhhX2Bgid4ofQqsbEb",walletCPPDataLoaded);
+    if (ExistsSourceAddress2) {
+        TextBox->AppendText("\nAddress NZX22V6SHcJ6xhhX2Bgid4ofQqsbEb does not Exist !");
+    }
+    else
+    {
+        TextBox->AppendText("\nAddress does not exist !");
+    }
     /*
     NosoAddressGrid->DeleteRows();
     for (size_t i = 0; i < walletCPPDataLoaded.size(); ++i) {
@@ -868,7 +894,7 @@ int64_t MainFrame::GetAddressPendingPays(std::string NosoAddress)
 
     if (ListOfPendings != "NULL")
     {
-
+        return 1;
 
 
     }
@@ -921,11 +947,25 @@ OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::strin
     //OrderTime            :GetMainetTime
     //Line                 :1
     //SendFundsFromAddress(NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb,N2XjEbgabYNXdH1mzoWjJWJgMyPtZFr,010000000,001000000,Test,GetMainnetTime(),1)
-    
+    OrderData OrderInfo;
+    if (CheckIfNosoAddressExistsOnMyWallet(SourceAddress,walletCPPDataLoaded))
+    {
+    return OrderInfo;
+
+    }
+
+    else
+
+    {
+        TextBox->AppendText("\nERROR SOURCE ADDRESS DOES NOT EXISTS -> ");
+        TextBox->AppendText(SourceAddress);
+    }
+   
+    /*
     int64_t AvailableAmmount=0;
     int64_t TransferAmmount=0;
     int64_t TransferCommision=0;
-    OrderData OrderInfo;
+   
     std::stringstream ss(OrderTime);
     long long OrderTimeint64_value = 0;
     ss >> OrderTimeint64_value;
@@ -944,7 +984,7 @@ OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::strin
         std::to_string(TransferCommision) + std::to_string(line), GetPrivateKeyFromNosoAddress(SourceAddress)));
     OrderInfo.SetTrfID(GetTransferHash(std::to_string(OrderInfo.GetTimeStamp()) + SourceAddress + DestinationAddress + std::to_string(AmountToSend) + CurrentBlockString));
 
-
+    */
     
     return OrderInfo;
 }
@@ -1103,6 +1143,28 @@ std::string MainFrame::BMB58Sumatory(const std::string& Base58Number)
     return std::to_string(total);
    
 }
+
+bool MainFrame::CheckIfNosoAddressExistsOnMyWallet(const std::string& NosoAddressToCheck,std::vector<WalletData> WalletToSearch)
+{
+//for (size_t i = 0; i < walletCPPDataLoaded.size(); ++i)
+//{
+    //TextBox->AppendText("\nSearching Address");
+    //TextBox->AppendText(NosoAddressToCheck);
+   //// TextBox->AppendText("\nComparing with ");
+   // TextBox->AppendText(walletCPPDataLoaded[i].GetHash());
+    for (size_t i = 0; i < WalletToSearch.size(); ++i)
+    {
+       // TextBox->AppendText(NosoAddressToCheck);
+        if (WalletToSearch[i].GetHash() == NosoAddressToCheck)
+        {
+            return true;
+        }
+    }
+        return false;
+    
+     
+}
+
 
 
 
