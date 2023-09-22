@@ -15,7 +15,6 @@ Libraries:
 
 - Boost(https://www.boost.org/)
 - Botan (https://botan.randombit.net/)
-- CryptoPP(https://www.cryptopp.com/)
 - WxWidgets(https://www.wxwidgets.org/)
 
 Follow how to install those libraries from respective Websites, if using Visual Studio then you can use VCPKG(https://vcpkg.io/en/) package manager to compile and install libraries.
