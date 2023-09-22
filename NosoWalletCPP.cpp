@@ -324,23 +324,7 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
 
     UpdateTable(walletCPPDataLoaded);
 
-    /// Test NOSO ADDRESS EXISTIS:
-
-    bool ExistsSourceAddress = CheckIfNosoAddressExistsOnMyWallet("NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb",walletCPPDataLoaded);
-    if (ExistsSourceAddress) {
-        TextBox->AppendText("\nAddress NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb Exists !");
-    }
-    else {
-        TextBox->AppendText("\nAddress NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb does not Exists !");
-    }
-    bool ExistsSourceAddress2 = CheckIfNosoAddressExistsOnMyWallet("NZX22V6SHcJ6xhhX2Bgid4ofQqsbEb",walletCPPDataLoaded);
-    if (ExistsSourceAddress2) {
-        TextBox->AppendText("\nAddress NZX22V6SHcJ6xhhX2Bgid4ofQqsbEb does not Exist !");
-    }
-    else
-    {
-        TextBox->AppendText("\nAddress does not exist !");
-    }
+   
     /*
     NosoAddressGrid->DeleteRows();
     for (size_t i = 0; i < walletCPPDataLoaded.size(); ++i) {
@@ -950,7 +934,8 @@ OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::strin
     OrderData OrderInfo;
     if (CheckIfNosoAddressExistsOnMyWallet(SourceAddress,walletCPPDataLoaded))
     {
-    return OrderInfo;
+    
+        return OrderInfo;
 
     }
 
@@ -1146,12 +1131,7 @@ std::string MainFrame::BMB58Sumatory(const std::string& Base58Number)
 
 bool MainFrame::CheckIfNosoAddressExistsOnMyWallet(const std::string& NosoAddressToCheck,std::vector<WalletData> WalletToSearch)
 {
-//for (size_t i = 0; i < walletCPPDataLoaded.size(); ++i)
-//{
-    //TextBox->AppendText("\nSearching Address");
-    //TextBox->AppendText(NosoAddressToCheck);
-   //// TextBox->AppendText("\nComparing with ");
-   // TextBox->AppendText(walletCPPDataLoaded[i].GetHash());
+
     for (size_t i = 0; i < WalletToSearch.size(); ++i)
     {
        // TextBox->AppendText(NosoAddressToCheck);
@@ -1164,6 +1144,107 @@ bool MainFrame::CheckIfNosoAddressExistsOnMyWallet(const std::string& NosoAddres
     
      
 }
+
+bool MainFrame::CheckIfNosoAddressIsValid(const std::string& NosoAddressToCheckIfValid)
+{
+    
+    bool result = false;
+
+    if (NosoAddressToCheckIfValid.length() > 20 && NosoAddressToCheckIfValid[0] == 'N') {
+        std::string OrigHash = NosoAddressToCheckIfValid.substr(1, NosoAddressToCheckIfValid.length() - 1);
+
+        if (IsValid58(OrigHash)) {
+            std::string Clave = BmDecto58(BMB58Resumen(OrigHash));
+            OrigHash = 'N' + OrigHash + Clave;
+
+            result = (OrigHash == NosoAddressToCheckIfValid);
+        }
+    }
+
+    return result;
+}
+
+bool MainFrame::IsValid58(const std::string& Base58Text)
+{
+    const std::string B58Alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
+    bool result = true;
+
+    if (Base58Text.length() > 0) {
+        for (size_t i = 0; i < Base58Text.length(); i++) {
+            bool isCharValid = false;
+
+            for (size_t j = 0; j < B58Alphabet.length(); j++) {
+                if (Base58Text[i] == B58Alphabet[j]) {
+                    isCharValid = true;
+                    break;
+                }
+            }
+
+            if (!isCharValid) {
+                result = false;
+                break;
+            }
+        }
+    }
+    else {
+        result = false;
+    }
+
+    return result;
+    
+}
+
+DivResult MainFrame::BMDividir(const std::string& FirstNumber, const std::string& SecondNumber)
+{
+    DivResult result;
+    int counter;
+    std::string cociente = "";
+    int longValue = FirstNumber.length();
+    int64_t Divisor = std::stoll(SecondNumber);
+    std::string ThisStep = "";
+
+    for (counter = 0; counter < longValue; counter++) {
+        ThisStep += FirstNumber[counter];
+        int64_t ThisStepInt = std::stoll(ThisStep);
+
+        if (ThisStepInt >= Divisor) {
+            cociente += std::to_string(ThisStepInt / Divisor);
+            ThisStep = std::to_string(ThisStepInt % Divisor);
+        }
+        else {
+            cociente += '0';
+        }
+    }
+
+    result.cociente = cociente;
+    result.residuo = ThisStep;
+
+    // You may want to clear leading zeros here, as in your Pascal code
+    // This can be done by iterating through result.cociente and result.residuo
+    // and removing leading '0' characters if necessary.
+
+    return result;
+    //return DivResult();
+}
+
+std::string MainFrame::BMB58Resumen(const std::string& Number58)
+{
+    
+    const std::string B58Alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
+    int total = 0;
+        for (size_t counter = 0; counter < Number58.length(); counter++) {
+            total += B58Alphabet.find(Number58[counter]) - 1;
+        }
+        return std::to_string(total);
+}
+    
+   
+
+    
+    
+
 
 
 

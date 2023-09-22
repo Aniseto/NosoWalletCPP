@@ -323,3 +323,7 @@
     };
 #pragma pack(pop)
 
+    struct DivResult {
+        std::string cociente;
+        std::string residuo;
+    };

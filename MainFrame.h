@@ -54,6 +54,10 @@ private:
 	std::string GetTransferHash(const std::string& Transfer);
 	std::string BMB58Sumatory(const std::string& Base58Number);
 	bool CheckIfNosoAddressExistsOnMyWallet(const std::string& NosoAddressToCheck, std::vector<WalletData> WalletToSearch);
+	bool CheckIfNosoAddressIsValid(const std::string& NosoAddressToCheckIfValid);
+	bool IsValid58(const std::string& Base58Text);
+	DivResult BMDividir(const std::string& FirstNumber, const std::string& SecondNumber);
+	std::string BMB58Resumen(const std::string& Number58);
 
 
 	void OnOpen(wxCommandEvent& event);
