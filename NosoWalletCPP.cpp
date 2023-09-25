@@ -324,6 +324,37 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
 
     UpdateTable(walletCPPDataLoaded);
 
+    
+    //  //SourceAddress Sender :NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb
+    //DestionAddress       :N2XjEbgabYNXdH1mzoWjJWJgMyPtZFr
+    bool IsValid = CheckIfNosoAddressIsValid("NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb");
+    if (IsValid) {
+        TextBox->AppendText("\nIs Valid");
+    }
+    else {
+        TextBox->AppendText("\nIs not Valid");
+            
+    }
+    //TEST IsValid58
+    TextBox->AppendText("\nTesting is Valid ZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb ");
+    bool valid58 = IsValid58("ZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb");
+    if (valid58)
+    {
+        TextBox->AppendText("Is Valid !");
+    }
+    else {
+        TextBox->AppendText("Is NOT Valid !");
+    }
+    TextBox->AppendText("\nTesting is Valid ZXpFV6SHcJ6xhhX2Bgid4ofQqsbE. ");
+    valid58 = IsValid58("ZXpFV6SHcJ6xhhX2Bgid4ofQqsbE.");
+    if (valid58)
+    {
+        TextBox->AppendText("Is Valid !");
+    }
+    else {
+        TextBox->AppendText("Is NOT Valid !");
+    }
+
    
     /*
     NosoAddressGrid->DeleteRows();
@@ -932,9 +963,9 @@ OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::strin
     //Line                 :1
     //SendFundsFromAddress(NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb,N2XjEbgabYNXdH1mzoWjJWJgMyPtZFr,010000000,001000000,Test,GetMainnetTime(),1)
     OrderData OrderInfo;
-    if (CheckIfNosoAddressExistsOnMyWallet(SourceAddress,walletCPPDataLoaded))
+    if (CheckIfNosoAddressExistsOnMyWallet(SourceAddress,walletCPPDataLoaded)&&CheckIfNosoAddressIsValid(DestinationAddress))
     {
-    
+       
         return OrderInfo;
 
     }
@@ -1150,14 +1181,44 @@ bool MainFrame::CheckIfNosoAddressIsValid(const std::string& NosoAddressToCheckI
     
     bool result = false;
 
+    //Debug
+    TextBox->AppendText("\nTesting If Address is valid ->: ");
+    TextBox->AppendText(NosoAddressToCheckIfValid);
+    TextBox->AppendText("\nLongitud de la dirección es de ->: ");
+    TextBox->AppendText(std::to_string(NosoAddressToCheckIfValid.length()));
+    TextBox->AppendText("\nTesting If Address starts with 'N' ->: ");
+    TextBox->AppendText(NosoAddressToCheckIfValid);
+    if (NosoAddressToCheckIfValid[0] == 'N') {
+        TextBox->AppendText("\nYes !");
+    }
+    else {
+        TextBox->AppendText("\nNo ! ");
+    }
+    
+
+
+    //Debug
+
     if (NosoAddressToCheckIfValid.length() > 20 && NosoAddressToCheckIfValid[0] == 'N') {
         std::string OrigHash = NosoAddressToCheckIfValid.substr(1, NosoAddressToCheckIfValid.length() - 1);
-
+        TextBox->AppendText("\nOriginal Hash :  ");
+        TextBox->AppendText(OrigHash);
         if (IsValid58(OrigHash)) {
-            std::string Clave = BmDecto58(BMB58Resumen(OrigHash));
-            OrigHash = 'N' + OrigHash + Clave;
+            std:: string Hash=  OrigHash.substr(0, OrigHash.length() - 2);
+            int Checksum = CalculateCheckSum(Hash);
+           // Checksum = CalculateCheckSum(Base58);
+            std::string CheckSumBase58 = BmDecto58(std::to_string(Checksum));
+            TextBox->AppendText("\nCheckSumCaulated");
+            TextBox->AppendText(CheckSumBase58);
+            //std::string Clave = BmDecto58(BMB58Resumen(OrigHash));
+            OrigHash = 'N' + Hash + CheckSumBase58;
+            TextBox->AppendText("\nComparing Keys to see if it's valid");
+            TextBox->AppendText("");
 
-            result = (OrigHash == NosoAddressToCheckIfValid);
+            if (OrigHash == NosoAddressToCheckIfValid) {
+                result = true;
+                return result;
+            }
         }
     }
 
