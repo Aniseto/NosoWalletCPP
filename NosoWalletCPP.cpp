@@ -316,7 +316,8 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
 
     std::string NosoWalletCPPPath = (fs::current_path() / "data" / "walletcpp.pkw").string();
     SaveWalletDataToFile(MyWallet, NosoWalletCPPPath);
-    std::vector<WalletData> walletCPPDataLoaded = ReadWalletDataFromNosoCPP(NosoWalletCPPPath); 
+    //std::vector<WalletData> walletCPPDataLoaded = ReadWalletDataFromNosoCPP(NosoWalletCPPPath); 
+    walletCPPDataLoaded = ReadWalletDataFromNosoCPP(NosoWalletCPPPath);
     TextBox->AppendText("\nTotal NOSOCPP address loaded : ");
     TextBox->AppendText(std::to_string(walletCPPDataLoaded.size()));
 
@@ -355,7 +356,37 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
         TextBox->AppendText("Is NOT Valid !");
     }
 
-   
+    TextBox->AppendText("\nTesting is Valid N2XjEbgabYNXdH1mzoWjJWJgMyPtZFr ");
+    valid58 = IsValid58("N2XjEbgabYNXdH1mzoWjJWJgMyPtZFr");
+    if (valid58)
+    {
+        TextBox->AppendText("Is Valid !");
+    }
+    else {
+        TextBox->AppendText("Is NOT Valid !");
+    }
+
+    //TESTING SendNosoFromAddress
+    OrderData TestOrder;
+    std::string SourceAddressNoso = "NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb";
+    std::string DestinationAddressNoso = "N2XjEbgabYNXdH1mzoWjJWJgMyPtZFr";
+    std::string ReferenceNoso = "Test Reference";
+    std::string OrderTimeTest = "Test Order Time";
+    int64_t AmmountToSend = 1;
+    int64_t Comision = 1;
+    TestOrder = SendFundsFromAddress(SourceAddressNoso, DestinationAddressNoso, AmmountToSend, Comision, ReferenceNoso, OrderTimeTest, 1);
+    bool IsValid1 = CheckIfNosoAddressExistsOnMyWallet(SourceAddressNoso, walletCPPDataLoaded);
+    //bool IsValid2 = CheckIfNosoAddressIsValid(DestinationAddress);
+
+    TextBox->AppendText("\nExists on Wallet? Called Directly from Generate Keys ");
+    if (IsValid1)
+    {
+        TextBox->AppendText("\nAddress Exists on Wallet");
+    }
+    else {
+        TextBox->AppendText("\nAddres does no exists on Walet ");
+
+    }
     /*
     NosoAddressGrid->DeleteRows();
     for (size_t i = 0; i < walletCPPDataLoaded.size(); ++i) {
@@ -962,10 +993,42 @@ OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::strin
     //OrderTime            :GetMainetTime
     //Line                 :1
     //SendFundsFromAddress(NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb,N2XjEbgabYNXdH1mzoWjJWJgMyPtZFr,010000000,001000000,Test,GetMainnetTime(),1)
+    TextBox->AppendText("\nTesting Send Funds From SendFundsFromAddress function ");
     OrderData OrderInfo;
+    //walletCPPDataLoaded.
+    //Debug
+    TextBox->AppendText("\nwalletCPPDataLoaded Items: ");
+    TextBox->AppendText(std::to_string(walletCPPDataLoaded.size()));
+    bool IsValid1 = CheckIfNosoAddressExistsOnMyWallet(SourceAddress, walletCPPDataLoaded);
+    bool IsValid2 = CheckIfNosoAddressIsValid(DestinationAddress);
+
+    TextBox->AppendText("\nExists on Wallet? ");
+    if (IsValid1)
+    {
+        TextBox->AppendText("\nAddress Exists on Wallet");
+    }
+    else {
+        TextBox->AppendText("\nAddres does no exists on Walet ");
+
+    }
+    TextBox->AppendText("\nDestination is Valid ? ");
+    if (IsValid2)
+    {
+        TextBox->AppendText("\nDestination Address Is Valid!");
+    }
+    else {
+        TextBox->AppendText("\nAddres does no exists on Walet ");
+
+    }
+
+
+
+    //Debug
+
     if (CheckIfNosoAddressExistsOnMyWallet(SourceAddress,walletCPPDataLoaded)&&CheckIfNosoAddressIsValid(DestinationAddress))
     {
-       
+        TextBox->AppendText("\nSource Address and Destination Addres are VALID !");
+    
         return OrderInfo;
 
     }
@@ -973,7 +1036,7 @@ OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::strin
     else
 
     {
-        TextBox->AppendText("\nERROR SOURCE ADDRESS DOES NOT EXISTS -> ");
+        TextBox->AppendText("\nERROR SOURCE ADDRESS OR DESTINATION ADDRESS ARE NOT VALID");
         TextBox->AppendText(SourceAddress);
     }
    
