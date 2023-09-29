@@ -64,7 +64,7 @@ namespace fs = std::filesystem;
 //#include <cryptopp/eccrypto.h>
 #include <bitset>
 
-const std::string B64Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+//const std::string B64Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 
 
@@ -139,6 +139,22 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
     statusBar->SetFieldsCount(3);
     SetStatusBar(statusBar);
 
+    //Send funds 
+
+    SourceAddressText= new wxStaticText(panel, wxID_ANY, "Source Address: ", wxPoint(250, 50));
+    SourceAddressText->SetFont(wxFontInfo(8).Bold());
+    SourceAddressCtrl = new wxTextCtrl(panel, wxID_ANY, "", wxPoint(375, 50));
+    SourceAddressCtrl->SetSize(wxSize(200, -1));
+    DestinationAddressText = new wxStaticText(panel, wxID_ANY, "Destination Address: ", wxPoint(250, 75));
+    DestinationAddressText->SetFont(wxFontInfo(8).Bold());
+    DestinationAddressCtrl = new wxTextCtrl(panel, wxID_ANY, "", wxPoint(375, 75));
+    DestinationAddressCtrl->SetSize(wxSize(200, -1));
+    AmountToSendText = new wxStaticText(panel, wxID_ANY, "Amount To Send: ", wxPoint(250, 100));
+    AmountToSendText->SetFont(wxFontInfo(8).Bold());
+    AmountToSendCtrl = new wxTextCtrl(panel, wxID_ANY, "", wxPoint(375, 100));
+    AmountToSendCtrl->SetSize(wxSize(200, -1));
+    wxButton* SendFunds_Button = new wxButton(panel, wxID_ANY, "Send", wxPoint(425, 150), wxSize(150, 25));
+    SendFunds_Button->Bind(wxEVT_BUTTON, &MainFrame::OnSendNosoButtonClicked, this);
 }
 
 
@@ -147,10 +163,10 @@ void MainFrame::OnConnectButtonClicked(wxCommandEvent& evt)
 {
     TextBox->Clear();
     TextBox->AppendText("Connecting to Mainet....\n");
-	std::string NODESTATUS_COMMAND= "NODESTATUS\n";
-	std::string DefaultNodeIp = "4.233.61.8";						//PENDDING: Send commmand to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
-	int DefaultNodePort = 8080;										//PENDING: Set PORT from List of Nodes.
-	std::string NodeStatus = SendStringToNode(DefaultNodeIp, DefaultNodePort, NODESTATUS_COMMAND);
+    std::string NODESTATUS_COMMAND = "NODESTATUS\n";
+    std::string DefaultNodeIp = "4.233.61.8";						//PENDDING: Send commmand to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
+    int DefaultNodePort = 8080;										//PENDING: Set PORT from List of Nodes.
+    std::string NodeStatus = SendStringToNode(DefaultNodeIp, DefaultNodePort, NODESTATUS_COMMAND);
     std::istringstream NodeStatusIss(NodeStatus);
     NodeStatusData data;
     //NODESTATUS 4 117969 0 0 65B69 0.4.1Aa1 1688913930 C4A6A 266 45996FF8BFA3287267CE2CE8746D3E02 FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF1 1688913600 NpryectdevepmentfundsGE 0 62 FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF1 27D68 9E57A 54526 7DEA3"
@@ -179,10 +195,16 @@ void MainFrame::OnConnectButtonClicked(wxCommandEvent& evt)
 
     std::string CurrentBlockString = std::to_string(data.BlockNumber); //Transform from Integer to String
 
+    if (CurrentBlockString == "0") {
+        statusBar->SetStatusText("Current Block: Error Getting Summary", 0);
+    }
+    else {
+
+    
     statusBar->SetStatusText("Current Block: " + CurrentBlockString, 0);
-   
+
     TextBox->AppendText("Connection Sucessful\n");
-	
+    }
 
 }
 
@@ -372,57 +394,12 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     std::string DestinationAddressNoso = "N2XjEbgabYNXdH1mzoWjJWJgMyPtZFr";
     std::string ReferenceNoso = "Test Reference";
     std::string OrderTimeTest = "Test Order Time";
-    int64_t AmmountToSend = 1;
-    int64_t Comision = 1;
+    int64_t AmmountToSend = 300000000;
+    int64_t Comision = 010000000;
     TestOrder = SendFundsFromAddress(SourceAddressNoso, DestinationAddressNoso, AmmountToSend, Comision, ReferenceNoso, OrderTimeTest, 1);
     bool IsValid1 = CheckIfNosoAddressExistsOnMyWallet(SourceAddressNoso, walletCPPDataLoaded);
     //bool IsValid2 = CheckIfNosoAddressIsValid(DestinationAddress);
 
-    TextBox->AppendText("\nExists on Wallet? Called Directly from Generate Keys ");
-    if (IsValid1)
-    {
-        TextBox->AppendText("\nAddress Exists on Wallet");
-    }
-    else {
-        TextBox->AppendText("\nAddres does no exists on Walet ");
-
-    }
-    /*
-    NosoAddressGrid->DeleteRows();
-    for (size_t i = 0; i < walletCPPDataLoaded.size(); ++i) {
-        std::string HashKeyLoaded = walletCPPDataLoaded[i].GetHash();
-        std::string Label = walletCPPDataLoaded[i].GetLabel();
-        std::int64_t Pending = walletCPPDataLoaded[i].GetPending();
-        std::int64_t Balance = walletCPPDataLoaded[i].GetBalance();
-        NosoAddressGrid->AppendRows(1); // Add a new row
-        NosoAddressGrid->SetCellValue(i, 0, HashKeyLoaded);
-        NosoAddressGrid->SetCellValue(i, 1, Label);
-        NosoAddressGrid->SetCellValue(i, 2, std::to_string(Pending));
-        NosoAddressGrid->SetCellValue(i, 3, std::to_string(Balance));
-    }
-    */
-    //UpdateTable(*walletCPPDataLoaded);
-    
-    
-
-    
-    //TEST SIGN and VERIFY
-    /*
-    std::string TestMessage = "Hello World";
-    std::string SignedMessage;
-    std::string TestErrorSign = "Pepe";
-    
-
-    SignedMessage = SignMessage(TestMessage, privateKeyBase64);
-    TextBox->AppendText("\nSigned Message : Hello World Resut ->  ");
-    TextBox->AppendText(SignedMessage);
-    bool Verify = VerifySignature(TestMessage, SignedMessage, publicKeyPointBase64);
-    TextBox->AppendText("\nVerify Result : ");
-    TextBox->AppendText(std::to_string(Verify));
-    bool Verify2 = VerifySignature(TestErrorSign, SignedMessage, publicKeyPointBase64);
-    TextBox->AppendText("\nVerify Result FALSE TEST : ");
-    TextBox->AppendText(std::to_string(Verify2));
-    */
 }
 
 
@@ -997,8 +974,9 @@ OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::strin
     OrderData OrderInfo;
     //walletCPPDataLoaded.
     //Debug
-    TextBox->AppendText("\nwalletCPPDataLoaded Items: ");
-    TextBox->AppendText(std::to_string(walletCPPDataLoaded.size()));
+    //TextBox->AppendText("\nwalletCPPDataLoaded Items: ");
+    //TextBox->AppendText(std::to_string(walletCPPDataLoaded.size()));
+    /*
     bool IsValid1 = CheckIfNosoAddressExistsOnMyWallet(SourceAddress, walletCPPDataLoaded);
     bool IsValid2 = CheckIfNosoAddressIsValid(DestinationAddress);
 
@@ -1021,14 +999,24 @@ OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::strin
 
     }
 
-
+    */
 
     //Debug
 
     if (CheckIfNosoAddressExistsOnMyWallet(SourceAddress,walletCPPDataLoaded)&&CheckIfNosoAddressIsValid(DestinationAddress))
     {
         TextBox->AppendText("\nSource Address and Destination Addres are VALID !");
-    
+        int64_t SourceAddressBalance = GetBalanceFromNosoAddress(SumarydataVector,SourceAddress.c_str());
+        TextBox->AppendText("\nBalance from Source Address: ");
+        TextBox->AppendText(std::to_string(SourceAddressBalance));
+        if (AmountToSend < SourceAddressBalance)
+        {
+            TextBox->AppendText("\nSource Balance has enought Noso !");
+
+        }
+        else {
+            TextBox->AppendText("\nNot enought Source Address Balance!");
+        }
         return OrderInfo;
 
     }
@@ -1362,6 +1350,30 @@ std::string MainFrame::BMB58Resumen(const std::string& Number58)
             total += B58Alphabet.find(Number58[counter]) - 1;
         }
         return std::to_string(total);
+}
+
+void MainFrame::OnSendNosoButtonClicked(wxCommandEvent& evt)
+{
+    /* SourceAddressText= new wxStaticText(panel, wxID_ANY, "Source Address: ", wxPoint(250, 50));
+    SourceAddressText->SetFont(wxFontInfo(8).Bold());
+    SourceAddressCtrl = new wxTextCtrl(panel, wxID_ANY, "", wxPoint(375, 50));
+    SourceAddressCtrl->SetSize(wxSize(200, -1));
+    DestinationAddressText = new wxStaticText(panel, wxID_ANY, "Destination Address: ", wxPoint(250, 75));
+    DestinationAddressText->SetFont(wxFontInfo(8).Bold());
+    DestinationAddressCtrl = new wxTextCtrl(panel, wxID_ANY, "", wxPoint(375, 75));
+    DestinationAddressCtrl->SetSize(wxSize(200, -1));
+    AmountToSendText = new wxStaticText(panel, wxID_ANY, "Amount To Send: ", wxPoint(250, 100));
+    AmountToSendText->SetFont(wxFontInfo(8).Bold());
+    AmountToSendCtrl = new wxTextCtrl(panel, wxID_ANY, "", wxPoint(375, 100));
+    AmountToSendCtrl->SetSize(wxSize(200, -1));
+    wxButton* SendFunds_Button = new wxButton(panel, wxID_ANY, "Send", wxPoint(425, 150), wxSize(150, 25));
+    SendFunds_Button->Bind(wxEVT_BUTTON, &MainFrame::OnSendNosoButtonClicked, this);*/
+    
+    wxString SourceAddress = SourceAddressCtrl->GetValue();
+    wxString DestinationAddress = DestinationAddressCtrl->GetValue();
+    wxString AmountToSend = AmountToSendCtrl->GetValue();
+
+
 }
     
    

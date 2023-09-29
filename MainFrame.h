@@ -58,7 +58,7 @@ private:
 	bool IsValid58(const std::string& Base58Text);
 	DivResult BMDividir(const std::string& FirstNumber, const std::string& SecondNumber);
 	std::string BMB58Resumen(const std::string& Number58);
-
+	void OnSendNosoButtonClicked(wxCommandEvent& evt);
 
 	void OnOpen(wxCommandEvent& event);
 
@@ -91,6 +91,17 @@ private:
 
 	wxGrid* NosoAddressGrid;
 
+	//Send Noso Controls
+
+	wxStaticText* SourceAddressText;
+	wxStaticText* DestinationAddressText;
+	wxStaticText* AmountToSendText;
+	wxStaticText* ReferenceText;
+	wxTextCtrl* SourceAddressCtrl;
+	wxTextCtrl* DestinationAddressCtrl;
+	wxTextCtrl* AmountToSendCtrl;
+
+
 	//Status Bar
 
 	wxStatusBar* statusBar;
@@ -98,6 +109,7 @@ private:
 	std::vector<WalletData> walletCPPDataLoaded;
 	std::vector<TSummaryData> SumarydataVector;
 	std::string CurrentBlockString;
+	const std::string B64Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 };
 
 
