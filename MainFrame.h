@@ -59,6 +59,7 @@ private:
 	DivResult BMDividir(const std::string& FirstNumber, const std::string& SecondNumber);
 	std::string BMB58Resumen(const std::string& Number58);
 	void OnSendNosoButtonClicked(wxCommandEvent& evt);
+	int64_t GetMainetTime();
 
 	void OnOpen(wxCommandEvent& event);
 

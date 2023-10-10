@@ -903,7 +903,7 @@ std::string MainFrame::GetPendings()
     //Example Answer with pending Order: Getting Pending orders from Node.
     //TRFR, NBFX6wuUKc1hwFWSA9kctv9XhohbEs, N3J2F4YDFFauC1aVBVuStFeFLwcwsDD, 2000000000, 1000000 //Example sending 20 NOSO fomr Addrress NBF* to N3J2*, wich 0.1 commission.
     //TRFR,NbvGykuZ1ZXzdbk9pKkydBFcGbX1Ft,N3J2F4YDFFauC1aVBVuStFeFLwcwsDD,2030000000,1000000 Example sending 20.3 NOSO.
-
+    //TRFR,NBFX6wuUKc1hwFWSA9kctv9XhohbEs,N3J2F4YDFFauC1aVBVuStFeFLwcwsDD,3560000000,1000000 TRFR,NbvGykuZ1ZXzdbk9pKkydBFcGbX1Ft,N3J2F4YDFFauC1aVBVuStFeFLwcwsDD,3270000000,1000000 
 
 }
 
@@ -917,12 +917,48 @@ int64_t MainFrame::GetAddressPendingPays(std::string NosoAddress)
 
     if (ListOfPendings != "NULL")
     {
-        return 1;
+        return 0;
 
 
     }
     else 
     {
+        std::vector<std::string> items;
+        size_t pos = 0;
+        while ((pos = ListOfPendings.find("TRFR,")) != std::string::npos) {
+            items.push_back(ListOfPendings.substr(0, pos));
+            ListOfPendings.erase(0, pos + 5); // Move past "TRFR,"
+        }
+
+        // Search for the specific address
+       // std::string search_address = "NbvGykuZ1ZXzdbk9pKkydBFcGbX1Ft";
+        for (const std::string& item : items) {
+            if (item.find(NosoAddress) != std::string::npos) {
+                // Split the item by commas to extract the desired values
+                size_t start = 0;
+                size_t end = item.find(",");
+                std::vector<std::string> values;
+                while (end != std::string::npos) {
+                    values.push_back(item.substr(start, end - start));
+                    start = end + 1;
+                    end = item.find(",", start);
+                }
+                values.push_back(item.substr(start, end));
+
+                if (values.size() >= 4) {
+                   // TRFR, NBFX6wuUKc1hwFWSA9kctv9XhohbEs, N3J2F4YDFFauC1aVBVuStFeFLwcwsDD, 3560000000, 1000000
+                    std::string address = values[0];
+                    std::string value1 = values[1];
+                    std::string value2 = values[2];
+                    std::string value3 = values[3];
+                    //std::cout << "Address: " << address << std::endl;
+                    //std::cout << "Other Values: " << value1 << ", " << value2 << ", " << value3 << std::endl;
+                    return std::stoll(value2);
+                }
+            }
+        }
+
+        
         return 0;
     }
     
@@ -972,51 +1008,48 @@ OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::strin
     //SendFundsFromAddress(NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb,N2XjEbgabYNXdH1mzoWjJWJgMyPtZFr,010000000,001000000,Test,GetMainnetTime(),1)
     TextBox->AppendText("\nTesting Send Funds From SendFundsFromAddress function ");
     OrderData OrderInfo;
-    //walletCPPDataLoaded.
-    //Debug
-    //TextBox->AppendText("\nwalletCPPDataLoaded Items: ");
-    //TextBox->AppendText(std::to_string(walletCPPDataLoaded.size()));
-    /*
-    bool IsValid1 = CheckIfNosoAddressExistsOnMyWallet(SourceAddress, walletCPPDataLoaded);
-    bool IsValid2 = CheckIfNosoAddressIsValid(DestinationAddress);
-
-    TextBox->AppendText("\nExists on Wallet? ");
-    if (IsValid1)
-    {
-        TextBox->AppendText("\nAddress Exists on Wallet");
-    }
-    else {
-        TextBox->AppendText("\nAddres does no exists on Walet ");
-
-    }
-    TextBox->AppendText("\nDestination is Valid ? ");
-    if (IsValid2)
-    {
-        TextBox->AppendText("\nDestination Address Is Valid!");
-    }
-    else {
-        TextBox->AppendText("\nAddres does no exists on Walet ");
-
-    }
-
-    */
-
-    //Debug
+    
 
     if (CheckIfNosoAddressExistsOnMyWallet(SourceAddress,walletCPPDataLoaded)&&CheckIfNosoAddressIsValid(DestinationAddress))
     {
         TextBox->AppendText("\nSource Address and Destination Addres are VALID !");
+        OrderInfo.SetSenderHashAddress(SourceAddress);
+        TextBox->AppendText("\nSender Address: Added to Order Info -> ");
+        TextBox->AppendText(OrderInfo.GetSenderHashAddress());
+        OrderInfo.SetReceiverHashAddress(DestinationAddress);
+        TextBox->AppendText("\nDestination Address: Added to Order Info -> ");
+        TextBox->AppendText(OrderInfo.GetDestinationHashAddress());
         int64_t SourceAddressBalance = GetBalanceFromNosoAddress(SumarydataVector,SourceAddress.c_str());
         TextBox->AppendText("\nBalance from Source Address: ");
         TextBox->AppendText(std::to_string(SourceAddressBalance));
-        if (AmountToSend < SourceAddressBalance)
+        if (AmountToSend < (SourceAddressBalance + 0.1))
         {
             TextBox->AppendText("\nSource Balance has enought Noso !");
+            OrderInfo.SetAmmountTrfe(AmountToSend);
+            TextBox->AppendText("\nAmount to Send: ");
+           
+            OrderInfo.SetAmmountFee(Commision);
+            OrderInfo.SetOrderType("TRFR");
+            OrderInfo.SetOrderReference(Reference);
+            
+            OrderInfo.SetTimeStamp(GetMainetTime());
+            OrderInfo.SetOrderLines(line);
+            OrderInfo.SetOrderID("");
+            OrderInfo.SetOrderType("TRFR");
+            OrderInfo.SetSenderPublicKey(GetPublicKeyFromNosoAddress(SourceAddress));
+            OrderInfo.SetSignature(SignMessage(std::to_string(OrderInfo.GetTimeStamp()) + SourceAddress + DestinationAddress + std::to_string(AmountToSend) +
+                std::to_string(Commision) + std::to_string(line), GetPrivateKeyFromNosoAddress(SourceAddress)));
+            OrderInfo.SetTrfID(GetTransferHash(std::to_string(OrderInfo.GetTimeStamp()) + SourceAddress + DestinationAddress + std::to_string(AmountToSend) + CurrentBlockString));
+
+            TextBox->AppendText("\nDebug: Order Info Contents ");
+            TextBox->AppendText("\nSender Address: ");
+            //TextBox->AppendText(OrderInfo.) CREAR TOTS ELS GETTERS de ORDERINFO.
 
         }
         else {
             TextBox->AppendText("\nNot enought Source Address Balance!");
         }
+        
         return OrderInfo;
 
     }
@@ -1028,30 +1061,7 @@ OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::strin
         TextBox->AppendText(SourceAddress);
     }
    
-    /*
-    int64_t AvailableAmmount=0;
-    int64_t TransferAmmount=0;
-    int64_t TransferCommision=0;
-   
-    std::stringstream ss(OrderTime);
-    long long OrderTimeint64_value = 0;
-    ss >> OrderTimeint64_value;
-
-    OrderInfo.SetSenderHashAddress(SourceAddress);
-    OrderInfo.SetReceiverHashAddress(DestinationAddress);
-    OrderInfo.SetAmmountTrfe(AmountToSend);
-    OrderInfo.SetAmmountFee(Commision);
-    OrderInfo.SetOrderReference(Reference);
-    OrderInfo.SetTimeStamp(OrderTimeint64_value);
-    OrderInfo.SetOrderLines(line);
-    OrderInfo.SetOrderID("");
-    OrderInfo.SetOrderType("TRFR");
-    OrderInfo.SetSenderPublicKey(GetPublicKeyFromNosoAddress(SourceAddress));
-    OrderInfo.SetSignature(SignMessage(std::to_string(OrderInfo.GetTimeStamp()) + SourceAddress + DestinationAddress + std::to_string(TransferAmmount) +
-        std::to_string(TransferCommision) + std::to_string(line), GetPrivateKeyFromNosoAddress(SourceAddress)));
-    OrderInfo.SetTrfID(GetTransferHash(std::to_string(OrderInfo.GetTimeStamp()) + SourceAddress + DestinationAddress + std::to_string(AmountToSend) + CurrentBlockString));
-
-    */
+    
     
     return OrderInfo;
 }
@@ -1372,8 +1382,36 @@ void MainFrame::OnSendNosoButtonClicked(wxCommandEvent& evt)
     wxString SourceAddress = SourceAddressCtrl->GetValue();
     wxString DestinationAddress = DestinationAddressCtrl->GetValue();
     wxString AmountToSend = AmountToSendCtrl->GetValue();
+    std::string SourceAdressString = SourceAddress.ToStdString();
+    std::string DestinationAddressString = DestinationAddress.ToStdString();
+    int64_t Amount = 1;
+    int64_t Comission = 1;
+    std::string Reference;
+    std::string OrderTime = "OrderTme";
+    int lines = 1;
+    TextBox->Clear();
+    TextBox->AppendText("\nSource Address check: ");
+    TextBox->AppendText(SourceAdressString);
+    TextBox->AppendText("\nDestination Address check: ");
+    TextBox->AppendText(DestinationAddressString);
+    OrderData test;
+    test=SendFundsFromAddress(SourceAdressString, DestinationAddressString, Amount, Comission, Reference, OrderTime, lines);
+
+   
 
 
+}
+
+int64_t MainFrame::GetMainetTime()
+{
+    std::string ip = "20.199.50.27";
+    int port = 8080;
+    std::string command = "NSLTIME\n";
+    std::string TimeString = SendStringToNode(ip, port, command);
+    int64_t TimeInt = stoll(TimeString);
+    //cout << "Time Integer" << TimeInt << endl; // Control String to check answer.
+    return TimeInt;
+    
 }
     
    

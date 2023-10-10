@@ -73,9 +73,10 @@
         }
 
 
+
         
         
-        //Setters
+        //Setters & Getters
         void SetSenderPublicKey(const std::string& SenderAddress) //Save Public Key from Sender Noso Address
         {
             {
@@ -88,17 +89,26 @@
                 }
             }
         }
+        std::string GetSenderPublicKey()
+        {
+            return Sender;
+        }
         void SetSenderHashAddress(const std::string& SenderHashAddress) //Save Sender NOSO address Hash propertie
         {
             {
 
                 size_t copySize = std::min(SenderHashAddress.size(), sizeof(SenderHashAddress) - 1);
 
-                // Copiar los datos manualmente
+                // Copy data manually
                 for (size_t i = 0; i < copySize; ++i) {
                     Address[i] = SenderHashAddress[i];
                 }
+                Address[copySize] = '\0';
             }
+        }
+        std::string GetSenderHashAddress()
+        {
+            return std::string(Address);
         }
         void SetReceiverHashAddress(const std::string& ReceiverHashAddress) //Save Sender NOSO address Hash propertie
         {
@@ -110,9 +120,13 @@
                 for (size_t i = 0; i < copySize; ++i) {
                     Receiver[i] = ReceiverHashAddress[i];
                 }
+                Receiver[copySize] = '\0';
             }
         }
-    
+        std::string GetDestinationHashAddress()
+        {
+            return std::string(Receiver);
+        }
         void SetOrderType(const std::string& OrderTypeSet) //Save Sender NOSO address Hash propertie
         {
              {
