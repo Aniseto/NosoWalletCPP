@@ -347,7 +347,7 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
 
     UpdateTable(walletCPPDataLoaded);
 
-    
+    /*
     //  //SourceAddress Sender :NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb
     //DestionAddress       :N2XjEbgabYNXdH1mzoWjJWJgMyPtZFr
     bool IsValid = CheckIfNosoAddressIsValid("NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb");
@@ -387,15 +387,18 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     else {
         TextBox->AppendText("Is NOT Valid !");
     }
-
+    */
     //TESTING SendNosoFromAddress
+    
+    
     OrderData TestOrder;
     std::string SourceAddressNoso = "NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb";
     std::string DestinationAddressNoso = "N2XjEbgabYNXdH1mzoWjJWJgMyPtZFr";
     std::string ReferenceNoso = "Test Reference";
-    std::string OrderTimeTest = "Test Order Time";
-    int64_t AmmountToSend = 300000000;
-    int64_t Comision = 010000000;
+    std::string OrderTimeTest = std::to_string(GetMainetTime());
+    //1 Noso = 100000000
+    int64_t AmmountToSend = 3000000; //003000000 = 0,03 Noso
+    int64_t Comision = 1000000; // 0000100000 = 0,01 Noso
     TestOrder = SendFundsFromAddress(SourceAddressNoso, DestinationAddressNoso, AmmountToSend, Comision, ReferenceNoso, OrderTimeTest, 1);
     bool IsValid1 = CheckIfNosoAddressExistsOnMyWallet(SourceAddressNoso, walletCPPDataLoaded);
     //bool IsValid2 = CheckIfNosoAddressIsValid(DestinationAddress);
@@ -757,7 +760,6 @@ void MainFrame::InitializeWallet()
     timer->Start(1000);  // 1000 ms = 1 second
     Connect(timer->GetId(), wxEVT_TIMER, wxTimerEventHandler(MainFrame::OnTimer), NULL, this);
 
-
     //Call Connect ButtonFuction
     wxCommandEvent fakeEvent(wxEVT_BUTTON, wxID_ANY); // Create a fake button click event
     OnConnectButtonClicked(fakeEvent); // Call the function
@@ -773,7 +775,8 @@ void MainFrame::InitializeWallet()
     if (DoesFileExist(WalletCPPFullPath))
     {
         TextBox->AppendText("\nNOSOCPP Wallet File Detected. Loading addresses\n");
-        std::vector<WalletData> walletCPPDataLoaded = ReadWalletDataFromNosoCPP(WalletCPPFullPath);
+        //std::vector<WalletData> walletCPPDataLoaded = ReadWalletDataFromNosoCPP(WalletCPPFullPath);
+        walletCPPDataLoaded = ReadWalletDataFromNosoCPP(WalletCPPFullPath);
         TextBox->AppendText("\nTotal NOSOCPP address loaded : ");
         TextBox->AppendText(std::to_string(walletCPPDataLoaded.size()));
 
@@ -1006,9 +1009,17 @@ OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::strin
     //OrderTime            :GetMainetTime
     //Line                 :1
     //SendFundsFromAddress(NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb,N2XjEbgabYNXdH1mzoWjJWJgMyPtZFr,010000000,001000000,Test,GetMainnetTime(),1)
-    TextBox->AppendText("\nTesting Send Funds From SendFundsFromAddress function ");
+    TextBox->AppendText("\nTesting Send Funds From SendFundsFromAddress function -> Amount To Send:");
+    //std::string octalamount=std::oct << AmountToSend;
+    TextBox->AppendText(std::to_string(AmountToSend));
     OrderData OrderInfo;
-    
+    bool Exists = CheckIfNosoAddressExistsOnMyWallet(SourceAddress, walletCPPDataLoaded);
+    TextBox->AppendText("\nChecking if Source Address Exists on WalletCPP -> ");
+    TextBox->AppendText(SourceAddress);
+    TextBox->AppendText("\nDestination Address : ");
+    TextBox->AppendText(DestinationAddress);
+    TextBox->AppendText("\nResultado: ");
+    TextBox->AppendText(std::to_string(Exists));
 
     if (CheckIfNosoAddressExistsOnMyWallet(SourceAddress,walletCPPDataLoaded)&&CheckIfNosoAddressIsValid(DestinationAddress))
     {
@@ -1022,16 +1033,24 @@ OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::strin
         int64_t SourceAddressBalance = GetBalanceFromNosoAddress(SumarydataVector,SourceAddress.c_str());
         TextBox->AppendText("\nBalance from Source Address: ");
         TextBox->AppendText(std::to_string(SourceAddressBalance));
-        if (AmountToSend < (SourceAddressBalance + 0.1))
+        TextBox->AppendText("\nAmount To Send : ");
+        TextBox->AppendText(std::to_string(AmountToSend));
+        ////// BUG Int64 Value.
+
+        if (AmountToSend < (SourceAddressBalance + static_cast<int64_t>(0.1)))
         {
-            TextBox->AppendText("\nSource Balance has enought Noso !");
+            TextBox->AppendText("\nSource Balance has enought Noso ! = >");
+            TextBox->AppendText(std::to_string(AmountToSend));
             OrderInfo.SetAmmountTrfe(AmountToSend);
+            TextBox->AppendText("\nTransfering -> ");
+            TextBox->AppendText(std::to_string(OrderInfo.GetAmountTrfe()));
             TextBox->AppendText("\nAmount to Send: ");
-           
             OrderInfo.SetAmmountFee(Commision);
+            TextBox->AppendText("\nAmount Fee: ");
+            TextBox->AppendText(std::to_string(OrderInfo.GetAmountFee()));
             OrderInfo.SetOrderType("TRFR");
             OrderInfo.SetOrderReference(Reference);
-            
+            //Continue, Geting Reference.
             OrderInfo.SetTimeStamp(GetMainetTime());
             OrderInfo.SetOrderLines(line);
             OrderInfo.SetOrderID("");
@@ -1384,9 +1403,9 @@ void MainFrame::OnSendNosoButtonClicked(wxCommandEvent& evt)
     wxString AmountToSend = AmountToSendCtrl->GetValue();
     std::string SourceAdressString = SourceAddress.ToStdString();
     std::string DestinationAddressString = DestinationAddress.ToStdString();
-    int64_t Amount = 1;
-    int64_t Comission = 1;
-    std::string Reference;
+    int64_t Amount = 0.01;
+    int64_t Comission = 0.01;
+    std::string Reference = "Hello";
     std::string OrderTime = "OrderTme";
     int lines = 1;
     TextBox->Clear();
@@ -1408,7 +1427,7 @@ int64_t MainFrame::GetMainetTime()
     int port = 8080;
     std::string command = "NSLTIME\n";
     std::string TimeString = SendStringToNode(ip, port, command);
-    int64_t TimeInt = stoll(TimeString);
+   int64_t TimeInt = stoll(TimeString);
     //cout << "Time Integer" << TimeInt << endl; // Control String to check answer.
     return TimeInt;
     

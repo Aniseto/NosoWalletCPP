@@ -180,8 +180,14 @@
         {
             AmmountTrf = Ammounttrf;
         }
-   
-       
+        int64_t GetAmountTrfe()
+        {
+            return AmmountTrf;
+        }
+        int64_t GetAmountFee()
+        {
+            return AmmountFee;
+        }
         void SetSignature(const std::string& signature)
         {
             {
