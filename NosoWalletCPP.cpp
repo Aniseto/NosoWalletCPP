@@ -889,7 +889,7 @@ void MainFrame::OnTimer(wxTimerEvent& event) {
 std::string MainFrame::GetPendings()
 {
     //TextBox->Clear();
-    TextBox->AppendText("Getting Pending orders from Node.\n");
+    TextBox->AppendText("\nGetting Pending orders from Node.\n");
     std::string NODESTATUS_COMMAND = "NSLPEND\n";
     std::string DefaultNodeIp = "20.199.50.27";						//PENDDING: Send commmand to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
     int DefaultNodePort = 8080;										//PENDING: Set PORT from List of Nodes.
@@ -1087,26 +1087,22 @@ OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::strin
 
 int64_t MainFrame::GetBalanceFromNosoAddress(const std::vector<TSummaryData>& DataVector, const char* NosoAddress)
 {
-    //TextBox->AppendText("\nSearching for Noso Address Balance : ");
-    //TextBox->AppendText(NosoAddress);
-    
-    
     
     for (const TSummaryData& datos : DataVector) {
         //TextBox->AppendText("\nTesting this Hash ");
         //TextBox->AppendText(datos.Hash);
         if (std::strcmp(datos.Hash, NosoAddress) == 0) {
             //return datos.Balance;
-            TextBox->AppendText("\nFound Noso Balance from Specific Address -> ");
-            TextBox->AppendText(NosoAddress);
-            TextBox->AppendText("Balance -> ");
-            TextBox->AppendText(std::to_string(datos.Balance));
+            //TextBox->AppendText("\nFound Noso Balance from Specific Address -> ");
+            //TextBox->AppendText(NosoAddress);
+            //TextBox->AppendText("Balance -> ");
+            //TextBox->AppendText(std::to_string(datos.Balance));
             return datos.Balance;
 
         }
     }
     
-    return 0; // Control what happens if there is no address.
+    return 0; // Control what happens if there is no address, then the balance is 0 ?
 }
 
 void MainFrame::UpdateTable(std::vector<WalletData>& dataVectorAddress)
@@ -1403,7 +1399,7 @@ void MainFrame::OnSendNosoButtonClicked(wxCommandEvent& evt)
     wxString AmountToSend = AmountToSendCtrl->GetValue();
     std::string SourceAdressString = SourceAddress.ToStdString();
     std::string DestinationAddressString = DestinationAddress.ToStdString();
-    int64_t Amount = 0.01;
+    int64_t Amount = std::stoll(AmountToSend.ToStdString());
     int64_t Comission = 0.01;
     std::string Reference = "Hello";
     std::string OrderTime = "OrderTme";
@@ -1413,6 +1409,8 @@ void MainFrame::OnSendNosoButtonClicked(wxCommandEvent& evt)
     TextBox->AppendText(SourceAdressString);
     TextBox->AppendText("\nDestination Address check: ");
     TextBox->AppendText(DestinationAddressString);
+    TextBox->AppendText("\nAmount to Send: ");
+    TextBox->AppendText(std::to_string(Amount));
     OrderData test;
     test=SendFundsFromAddress(SourceAdressString, DestinationAddressString, Amount, Comission, Reference, OrderTime, lines);
 
@@ -1431,6 +1429,32 @@ int64_t MainFrame::GetMainetTime()
     //cout << "Time Integer" << TimeInt << endl; // Control String to check answer.
     return TimeInt;
     
+}
+
+std::string MainFrame::AddChar(char C, const std::string& S, int N)
+{
+    std::ostringstream oss;
+    if (S.length() < N) {
+        oss << std::setw(N) << std::setfill(C) << std::right << S;
+    }
+    else {
+        oss << S;
+    }
+    return oss.str();
+    //return std::string();
+}
+
+std::string MainFrame::Int2Curr(int64_t Value)
+{
+    std::string Result = std::to_string(std::abs(Value));
+    Result = AddChar('0', Result, 9);
+    Result.insert(Result.length() - 7, ".");
+
+    if (Value < 0)
+        Result = "-" + Result;
+
+    return Result;
+    //return std::string();
 }
     
    

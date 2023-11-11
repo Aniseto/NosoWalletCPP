@@ -60,6 +60,8 @@ private:
 	std::string BMB58Resumen(const std::string& Number58);
 	void OnSendNosoButtonClicked(wxCommandEvent& evt);
 	int64_t GetMainetTime();
+	std::string AddChar(char C, const std::string& S, int N);
+	std::string Int2Curr(int64_t Value);
 
 	void OnOpen(wxCommandEvent& event);
 
