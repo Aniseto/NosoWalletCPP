@@ -87,6 +87,7 @@
                 for (size_t i = 0; i < copySize; ++i) {
                     Sender[i] = SenderAddress[i];
                 }
+                Sender[copySize] = '\0';
             }
         }
         std::string GetSenderPublicKey()
@@ -137,6 +138,7 @@
                  for (size_t i = 0; i < copySize; ++i) {
                         OrderType[i] = OrderTypeSet[i];
                    }
+                 OrderType[copySize] = '\0';
             }
         }
         void SetOrderReference(const std::string& OrderReference) 
@@ -149,6 +151,7 @@
                 for (size_t i = 0; i < copySize; ++i) {
                     Reference[i] = OrderReference[i];
                 }
+                Reference[copySize] = '\0';
             }
         }
         void SetBlock(const int block) 
@@ -231,6 +234,8 @@
                 for (size_t i = 0; i < copySize; ++i) {
                     Signature[i] = signature[i];
                 }
+                Signature[copySize] = '\0';
+
             }
         }
     
@@ -244,6 +249,7 @@
                 for (size_t i = 0; i < copySize; ++i) {
                     TrfrID[i] = trfid[i];
                 }
+                TrfrID[copySize] = '\0';
             }
         }
     };
