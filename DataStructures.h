@@ -188,6 +188,39 @@
         {
             return AmmountFee;
         }
+        int GetTrxLine()
+        {
+			return TrxLine;
+		}
+        int GetBlock()
+        {
+			return Block;
+		}
+        std::string GetOrderType()
+        {
+            return std::string(OrderType);
+        }
+        std::string GetOrderReference()
+        {
+			return std::string(Reference);
+		}
+        int GetOrderLines()
+        {
+            return OrderLines;
+        }
+        std::string GetOrderID()
+        {
+			return OrderID;
+		}
+        std::string GetSignature()
+        {
+			return std::string(Signature);
+		}
+        std::string GetTrfID()
+        {
+            return std::string(TrfrID);
+        }
+
         void SetSignature(const std::string& signature)
         {
             {

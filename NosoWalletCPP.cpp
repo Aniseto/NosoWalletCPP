@@ -391,6 +391,7 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     //TESTING SendNosoFromAddress
     
     
+    /*
     OrderData TestOrder;
     std::string SourceAddressNoso = "NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb";
     std::string DestinationAddressNoso = "N2XjEbgabYNXdH1mzoWjJWJgMyPtZFr";
@@ -402,7 +403,7 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     TestOrder = SendFundsFromAddress(SourceAddressNoso, DestinationAddressNoso, AmmountToSend, Comision, ReferenceNoso, OrderTimeTest, 1);
     bool IsValid1 = CheckIfNosoAddressExistsOnMyWallet(SourceAddressNoso, walletCPPDataLoaded);
     //bool IsValid2 = CheckIfNosoAddressIsValid(DestinationAddress);
-
+    */
 }
 
 
@@ -791,18 +792,20 @@ void MainFrame::InitializeWallet()
             std::int64_t Balance = GetBalanceFromNosoAddress(SumarydataVector, HashKeyLoaded.c_str());
             //int64_t integerNumber = 1234567890; // Your int64_t number
             //double decimalBalance = static_cast<double>(Balance); // Convert to double
-            double decimalBalance = static_cast<double>(Balance) / 100000000.0;
-            std::stringstream stream;
-            stream << std::fixed << std::setprecision(8) << decimalBalance;
-            std::string formattedDecimalBalance = stream.str();
-            
+            //double decimalBalance = static_cast<double>(Balance) / 100000000.0;
+            //std::stringstream stream;
+            //stream << std::fixed << std::setprecision(8) << decimalBalance;
+            //std::string formattedDecimalBalance = stream.str();
+            std::string ConvertedToDecimal = Int2Curr(Balance);
+
             
             NosoAddressGrid->AppendRows(1); // Add a new row
             NosoAddressGrid->SetCellValue(i, 0, HashKeyLoaded);
             NosoAddressGrid->SetCellValue(i, 1, Label);
             NosoAddressGrid->SetCellValue(i, 2, std::to_string(Pending));
-            NosoAddressGrid->SetCellValue(i, 3, formattedDecimalBalance);
-    }
+            //NosoAddressGrid->SetCellValue(i, 3, formattedDecimalBalance);
+            NosoAddressGrid->SetCellValue(i, 3, ConvertedToDecimal);
+    }          
 
     }
     else {
@@ -1018,7 +1021,7 @@ OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::strin
     TextBox->AppendText(SourceAddress);
     TextBox->AppendText("\nDestination Address : ");
     TextBox->AppendText(DestinationAddress);
-    TextBox->AppendText("\nResultado: ");
+    TextBox->AppendText("\nResult( Bool ) : ");
     TextBox->AppendText(std::to_string(Exists));
 
     if (CheckIfNosoAddressExistsOnMyWallet(SourceAddress,walletCPPDataLoaded)&&CheckIfNosoAddressIsValid(DestinationAddress))
@@ -1035,9 +1038,9 @@ OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::strin
         TextBox->AppendText(std::to_string(SourceAddressBalance));
         TextBox->AppendText("\nAmount To Send : ");
         TextBox->AppendText(std::to_string(AmountToSend));
-        ////// BUG Int64 Value.
+        
 
-        if (AmountToSend < (SourceAddressBalance + static_cast<int64_t>(0.1)))
+        if (AmountToSend < (SourceAddressBalance + 10000000))
         {
             TextBox->AppendText("\nSource Balance has enought Noso ! = >");
             TextBox->AppendText(std::to_string(AmountToSend));
@@ -1060,8 +1063,34 @@ OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::strin
                 std::to_string(Commision) + std::to_string(line), GetPrivateKeyFromNosoAddress(SourceAddress)));
             OrderInfo.SetTrfID(GetTransferHash(std::to_string(OrderInfo.GetTimeStamp()) + SourceAddress + DestinationAddress + std::to_string(AmountToSend) + CurrentBlockString));
 
-            TextBox->AppendText("\nDebug: Order Info Contents ");
+            TextBox->AppendText("\n******Debug: Order Info COMPLETED: - Showing Contents *****");
             TextBox->AppendText("\nSender Address: ");
+            TextBox->AppendText(OrderInfo.GetSenderHashAddress());
+            TextBox->AppendText("\nDestination Address: ");
+            TextBox->AppendText(OrderInfo.GetDestinationHashAddress());
+            TextBox->AppendText("\nAmount To Send: ");
+            TextBox->AppendText(std::to_string(OrderInfo.GetAmountTrfe()));
+            TextBox->AppendText("\nAmount Fee: ");
+            TextBox->AppendText(std::to_string(OrderInfo.GetAmountFee()));
+            TextBox->AppendText("\nOrder Type: ");
+            TextBox->AppendText(OrderInfo.GetOrderType());
+            TextBox->AppendText("\nOrder Reference: ");
+            TextBox->AppendText(OrderInfo.GetOrderReference());
+            TextBox->AppendText("\nOrder TimeStamp: ");
+            TextBox->AppendText(std::to_string(OrderInfo.GetTimeStamp()));
+            TextBox->AppendText("\nOrder Lines: ");
+            TextBox->AppendText(std::to_string(OrderInfo.GetOrderLines()));
+            TextBox->AppendText("\nOrder ID: ");
+            TextBox->AppendText(OrderInfo.GetOrderID());
+            TextBox->AppendText("\nOrder Type: ");
+            TextBox->AppendText(OrderInfo.GetOrderType());
+            TextBox->AppendText("\nSender Public Key: ");
+            TextBox->AppendText(OrderInfo.GetSenderPublicKey());
+            TextBox->AppendText("\nSignature: ");
+            TextBox->AppendText(OrderInfo.GetSignature());
+            TextBox->AppendText("\nTransfer Hash: ");
+            TextBox->AppendText(OrderInfo.GetTrfID());
+            TextBox->AppendText("\n******Debug: Order Info COMPLETED: - Showing Contents *****");
             //TextBox->AppendText(OrderInfo.) CREAR TOTS ELS GETTERS de ORDERINFO.
 
         }
@@ -1379,27 +1408,23 @@ std::string MainFrame::BMB58Resumen(const std::string& Number58)
 
 void MainFrame::OnSendNosoButtonClicked(wxCommandEvent& evt)
 {
-    /* SourceAddressText= new wxStaticText(panel, wxID_ANY, "Source Address: ", wxPoint(250, 50));
-    SourceAddressText->SetFont(wxFontInfo(8).Bold());
-    SourceAddressCtrl = new wxTextCtrl(panel, wxID_ANY, "", wxPoint(375, 50));
-    SourceAddressCtrl->SetSize(wxSize(200, -1));
-    DestinationAddressText = new wxStaticText(panel, wxID_ANY, "Destination Address: ", wxPoint(250, 75));
-    DestinationAddressText->SetFont(wxFontInfo(8).Bold());
-    DestinationAddressCtrl = new wxTextCtrl(panel, wxID_ANY, "", wxPoint(375, 75));
-    DestinationAddressCtrl->SetSize(wxSize(200, -1));
-    AmountToSendText = new wxStaticText(panel, wxID_ANY, "Amount To Send: ", wxPoint(250, 100));
-    AmountToSendText->SetFont(wxFontInfo(8).Bold());
-    AmountToSendCtrl = new wxTextCtrl(panel, wxID_ANY, "", wxPoint(375, 100));
-    AmountToSendCtrl->SetSize(wxSize(200, -1));
-    wxButton* SendFunds_Button = new wxButton(panel, wxID_ANY, "Send", wxPoint(425, 150), wxSize(150, 25));
-    SendFunds_Button->Bind(wxEVT_BUTTON, &MainFrame::OnSendNosoButtonClicked, this);*/
+    
     
     wxString SourceAddress = SourceAddressCtrl->GetValue();
     wxString DestinationAddress = DestinationAddressCtrl->GetValue();
     wxString AmountToSend = AmountToSendCtrl->GetValue();
     std::string SourceAdressString = SourceAddress.ToStdString();
     std::string DestinationAddressString = DestinationAddress.ToStdString();
-    int64_t Amount = std::stoll(AmountToSend.ToStdString());
+    
+    //wxString stringValue = "1.45";
+
+    double doubleValue;
+    AmountToSend.ToDouble(&doubleValue);
+
+    // int64_t conversion
+    int64_t Amount = static_cast<int64_t>(doubleValue * 100000000);
+    
+    //int64_t Amount = 100000000*(std::stoll(AmountToSend.ToStdString()));
     int64_t Comission = 0.01;
     std::string Reference = "Hello";
     std::string OrderTime = "OrderTme";
@@ -1410,7 +1435,7 @@ void MainFrame::OnSendNosoButtonClicked(wxCommandEvent& evt)
     TextBox->AppendText("\nDestination Address check: ");
     TextBox->AppendText(DestinationAddressString);
     TextBox->AppendText("\nAmount to Send: ");
-    TextBox->AppendText(std::to_string(Amount));
+    TextBox->AppendText(AmountToSend);
     OrderData test;
     test=SendFundsFromAddress(SourceAdressString, DestinationAddressString, Amount, Comission, Reference, OrderTime, lines);
 
