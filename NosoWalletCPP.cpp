@@ -6,7 +6,7 @@
 #include <wx/wfstream.h>
 #include "MainFrame.h"
 #include "DataStructures.h"
-
+#include <algorithm>
 #include <fstream>
 
 #include <wx/hash.h>
@@ -805,6 +805,8 @@ void MainFrame::InitializeWallet()
             NosoAddressGrid->SetCellValue(i, 2, std::to_string(Pending));
             //NosoAddressGrid->SetCellValue(i, 3, formattedDecimalBalance);
             NosoAddressGrid->SetCellValue(i, 3, ConvertedToDecimal);
+
+
     }          
 
     }
@@ -821,6 +823,19 @@ void MainFrame::InitializeWallet()
     MainFrame::GetPendings();
     //Update TIme
     //MainFrame::UpdateDateAndTime();
+
+    TextBox->AppendText("\nTESTING MaxAmmount To Send from 1000 Noso");
+    int64_t max = GetMaximumToSend(1000);
+    TextBox->AppendText("\nMax Ammount to Send: ");
+    TextBox->AppendText(std::to_string(max));
+    TextBox->AppendText("\n");
+    TextBox->AppendText("\nTESTING MaxAmmount To Send from 100000000 Noso");
+    max = GetMaximumToSend(100000000);
+    TextBox->AppendText("\nMax Ammount to Send: ");
+    TextBox->AppendText(std::to_string(max));
+    TextBox->AppendText("\n");
+
+
 }
 
 bool MainFrame::DoesFileExist(const std::string& filePath)
@@ -1091,7 +1106,7 @@ OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::strin
             TextBox->AppendText("\nTransfer Hash: ");
             TextBox->AppendText(OrderInfo.GetTrfID());
             TextBox->AppendText("\n******Debug: Order Info COMPLETED: - Showing Contents *****");
-            //TextBox->AppendText(OrderInfo.) CREAR TOTS ELS GETTERS de ORDERINFO.
+        
 
         }
         else {
@@ -1480,6 +1495,36 @@ std::string MainFrame::Int2Curr(int64_t Value)
 
     return Result;
     //return std::string();
+}
+
+int64_t MainFrame::Curr2Int(const std::string& CurrStr)
+{
+    int64_t Result = 0;
+	std::string Str = CurrStr;
+	Str.erase(std::remove(Str.begin(), Str.end(), ','), Str.end());
+	Str.erase(std::remove(Str.begin(), Str.end(), '.'), Str.end());
+	Result = std::stoll(Str);
+	return Result;
+	//return 0;
+    
+}
+
+int64_t MainFrame::GetMaximumToSend(int64_t ammount)
+{
+    //Calculate the maximum ammount that can be sended using a specific Ammount
+    int64_t Available = ammount;
+    int64_t maximum = (Available * Comisiontrfr) / (Comisiontrfr + 1);
+    int64_t Fee = maximum / Comisiontrfr;
+
+    if (Fee < MinimunFee) {
+        Fee = MinimunFee;
+    }
+
+    int64_t SenT = maximum + Fee;
+    int64_t Diff = Available - SenT;
+
+    return maximum + Diff;
+ 
 }
     
    

@@ -17,7 +17,8 @@ public:
 	bool DoesFileExist(const std::string& filePath);
 	std::vector<WalletData> ReadWalletDataFromNosolite(const std::string& filePath);
 	std::vector<WalletData> ReadWalletDataFromNosoCPP(const std::string& filePath);
-
+	const int64_t Comisiontrfr = 10000; // ComisionTFR 
+	const int64_t MinimunFee = 1000000; // 0.1 Noso
 
 
 private:
@@ -62,6 +63,8 @@ private:
 	int64_t GetMainetTime();
 	std::string AddChar(char C, const std::string& S, int N);
 	std::string Int2Curr(int64_t Value);
+	int64_t Curr2Int(const std::string& CurrStr);
+	int64_t GetMaximumToSend(int64_t ammount);
 
 	void OnOpen(wxCommandEvent& event);
 
