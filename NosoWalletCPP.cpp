@@ -1019,14 +1019,7 @@ std::vector<unsigned char> MainFrame::nosoBase64Decode(const std::string& input)
 
 OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::string& DestinationAddress, int64_t& AmountToSend, int64_t& Commision, std::string& Reference, std::string& OrderTime, int line)
 {
-    //SourceAddress Sender :NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb
-    //DestionAddress       :N2XjEbgabYNXdH1mzoWjJWJgMyPtZFr
-    //AmountToSend         :010000000
-    //Comision             :001000000 
-    //Reference            :Test
-    //OrderTime            :GetMainetTime
-    //Line                 :1
-    //SendFundsFromAddress(NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb,N2XjEbgabYNXdH1mzoWjJWJgMyPtZFr,010000000,001000000,Test,GetMainnetTime(),1)
+    
     TextBox->AppendText("\nTesting Send Funds From SendFundsFromAddress function -> Amount To Send:");
     //std::string octalamount=std::oct << AmountToSend;
     TextBox->AppendText(std::to_string(AmountToSend));
@@ -1106,7 +1099,21 @@ OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::strin
             TextBox->AppendText("\nTransfer Hash: ");
             TextBox->AppendText(OrderInfo.GetTrfID());
             TextBox->AppendText("\n******Debug: Order Info COMPLETED: - Showing Contents *****");
+
+            //OrderInfo DEBUG show contents
+            TextBox->AppendText("\n******Debug: Order Info PRINT: - Showing Contents *****");
+            TextBox->AppendText(OrderInfo.GetStringFromOrderData());
+            
+            
+            /*
+            //Send Order to Node
+            std::string OrderToSend = OrderInfo.GetOrderType() + "," + OrderInfo.GetSenderHashAddress() + "," + OrderInfo.GetDestinationHashAddress() + "," + std::to_string(OrderInfo.GetAmountTrfe()) + "," + std::to_string(OrderInfo.GetAmountFee()) + "," + OrderInfo.GetOrderReference() + "," + std::to_string(OrderInfo.GetTimeStamp()) + "," + OrderInfo.GetOrderID() + "," + OrderInfo.GetSenderPublicKey() + "," + OrderInfo.GetSignature() + "," + OrderInfo.GetTrfID() + "\n";
+            TextBox->AppendText("\nOrder to Send to Node: ");
+            TextBox->AppendText(OrderToSend);
+           */
         
+
+          
 
         }
         else {
@@ -1440,9 +1447,9 @@ void MainFrame::OnSendNosoButtonClicked(wxCommandEvent& evt)
     int64_t Amount = static_cast<int64_t>(doubleValue * 100000000);
     
     //int64_t Amount = 100000000*(std::stoll(AmountToSend.ToStdString()));
-    int64_t Comission = 0.01;
+    int64_t Comission = 1000000; //0.01
     std::string Reference = "Hello";
-    std::string OrderTime = "OrderTme";
+    std::string OrderTime = std::to_string(GetMainetTime());
     int lines = 1;
     TextBox->Clear();
     TextBox->AppendText("\nSource Address check: ");
@@ -1526,8 +1533,259 @@ int64_t MainFrame::GetMaximumToSend(int64_t ammount)
     return maximum + Diff;
  
 }
+
+std::string MainFrame::GetOrderHash(const std::string& textLine)
+{
+    std::string result = PublicKeyToSHA256(textLine); // Calculate SHA256
+    //result = "OR" + BMHexTo58 o HexToBase64(result, 36);
+    //Implement function BMHexTo58(numerohex:string;alphabetnumber:integer):string;
+    return result;
+}
+
+std::string MainFrame::BMHexTo58(const std::string& numerohex, int alphabetnumber)
+{
+    std::string decimalvalue = BMHexToDec(numerohex);
+    std::string resultado = "";
+    std::string AlpahbetUsed = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
+    if (alphabetnumber == 36) {
+        AlpahbetUsed = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    }
+
+    while (decimalvalue.length() >= 2) {
+        DivResult ResultadoDiv = BMDividir(decimalvalue, std::to_string(alphabetnumber));
+        decimalvalue = ResultadoDiv.cociente;
+        int restante = std::stoi(ResultadoDiv.residuo);
+        resultado = AlpahbetUsed[restante] + resultado;
+    }
+
+    if (std::stoi(decimalvalue) >= alphabetnumber) {
+        DivResult ResultadoDiv = BMDividir(decimalvalue, std::to_string(alphabetnumber));
+        decimalvalue = ResultadoDiv.cociente;
+        int restante = std::stoi(ResultadoDiv.residuo);
+        resultado = AlpahbetUsed[restante] + resultado;
+    }
+
+    if (std::stoi(decimalvalue) > 0) {
+        resultado = AlpahbetUsed[std::stoi(decimalvalue)] + resultado;
+    }
+
+    return resultado;
     
+    
+    
+}
+
+std::string MainFrame::BMHexToDec(const std::string& numerohex)
+{
+    //Pending !!!!!!!
+    
+    std::string resultado = "0";
+    int Long = numerohex.length();
+    std::string HexAlphabet = "0123456789ABCDEF";
+
+    /*
+    for (int counter = 0; counter < Long; ++counter) {
+        std::string thisDigit = std::string(1, numerohex[counter]);
+        int DecValue = HexAlphabet.find(toupper(thisDigit));
+        resultado = BMExponente("16", std::to_string(Long - counter - 1));
+        resultado = BMMultiplicar(resultado, std::to_string(DecValue));
+        resultado = BMAdicion(resultado, thisDigit);
+    } //Pending !!
+    */ 
+    return ClearLeadingCeros(resultado);
+}
+
+std::string MainFrame::BMExponente(std::string& Numero1,std::string& Numero2)
+{
+    if (Numero2 == "1") {
+        return Numero1;
+    }
+    else if (Numero2 == "0") {
+        return "1";
+    }
+    else {
+        std::string resultado = Numero1;
+        int exponente = std::stoi(Numero2);
+        for (int count = 2; count <= exponente; ++count) {
+            resultado = BMMultiplicar(resultado, Numero1);
+        }
+        return resultado;
+    }
+}
+
+std::string MainFrame::BMMultiplicar(const std::string& Numero1, const std::string& Numero2)
+{
+    int carry = 0;
+    int cantidaddeceros = 0;
+    std::string TotalSuma = "0";
+    std::vector<std::string> sumandos(Numero2.length(), "");
+
+    for (int count = Numero2.length() - 1; count >= 0; --count) {
+        for (int count2 = Numero1.length() - 1; count2 >= 0; --count2) {
+            int thiscol = (std::stoi(std::string(1, Numero2[count])) * std::stoi(std::string(1, Numero1[count2])) + carry);
+            carry = thiscol / 10;
+            thiscol -= (carry * 10);
+            sumandos[cantidaddeceros] = std::to_string(thiscol) + sumandos[cantidaddeceros];
+        }
+
+        if (carry > 0) {
+            sumandos[cantidaddeceros] = std::to_string(carry) + sumandos[cantidaddeceros];
+        }
+
+        carry = 0;
+        sumandos[cantidaddeceros] = PonerCeros(sumandos[cantidaddeceros], cantidaddeceros);
+        cantidaddeceros++;
+    }
+
+    for (auto& sumando : sumandos) {
+        TotalSuma = BMAdicion(sumando, TotalSuma);
+    }
+
+    return ClearLeadingCeros(TotalSuma);
+}
+
+std::string MainFrame::BMAdicion(std::string& numero1,std::string& numero2)
+{
+    int longitude = 0;
+    int count = 0;
+    int carry = 0;
+    std::string resultado = "";
+    int thiscol = 0;
+    int ceros = 0;
+
+    longitude = numero1.length();
+
+    if (numero2.length() > longitude) {
+        longitude = numero2.length();
+        ceros = numero2.length() - numero1.length();
+
+        while (count < ceros) {
+            numero1 = '0' + numero1;
+            count = count + 1;
+        }
+    }
+    else {
+        ceros = numero1.length() - numero2.length();
+
+        while (count < ceros) {
+            numero2 = '0' + numero2;
+            count = count + 1;
+        }
+    }
+
+    for (count = longitude - 1; count >= 0; --count) {
+        thiscol = (numero1[count] - '0') + (numero2[count] - '0') + carry;
+        carry = 0;
+
+        if (thiscol > 9) {
+            thiscol = thiscol - 10;
+            carry = 1;
+        }
+
+        resultado = std::to_string(thiscol) + resultado;
+    }
+
+    if (carry > 0) {
+        resultado = '1' + resultado;
+    }
+
+    return resultado;
+}
+
+std::string MainFrame::PonerCeros(const std::string& numero, int cuantos)
+{
+    std::string newNumber = numero;
+    for (int contador = 0; contador < cuantos; ++contador) {
+        newNumber += '0';
+    }
+    return newNumber;
+}
+
+std::string MainFrame::ClearLeadingCeros(const std::string& numero)
+{
+    std::string result = "";
+    int count = 0;
+    int movepos = 0;
+
+    if (numero[0] == '-') {
+        movepos = 1;
+    }
+
+    for (count = 1 + movepos; count <= numero.length(); ++count) {
+        if (numero[count - 1] != '0') {
+            result += numero[count - 1];
+        }
+
+        if (numero[count - 1] == '0' && result.length() > 0) {
+            result += numero[count - 1];
+        }
+    }
+
+    if (result == "") {
+        result = "0";
+    }
+
+    if (movepos == 1 && result != "0") {
+        result = "-" + result;
+    }
+
+    return result;
+}
+
+int64_t MainFrame::GetFee(int64_t amount)
+{
+    int64_t result = amount / Comisiontrfr;
+    if (result < MinimunFee) {
+        result = MinimunFee;
+    }
+    return result;
+}
+/*
+std::string MainFrame::SendTo(std::string Destination, int64_t Ammount, std::string Reference)
+{
+    std::string CurrTime;
+    int64_t fee;
+    int64_t ShowAmmount, ShowFee;
+    int64_t Remaining;
+    int64_t CoinsAvailable;
+    bool KeepProcess = true;
+    std::vector<OrderData> ArrayTrfrs;
+    int counter;
+    std::string OrderHashString;
+    int TrxLine = 0;
+    std::string ResultOrderID = "";
+    std::string OrderString;
+    int PreviousRefresh = 15;
+
+    if (Reference == "") {
+		Reference = "null";
+	}
+    CurrTime = std::to_string(GetMainetTime());
+    fee = GetFee(Ammount);
+    ShowAmmount = Ammount;
+    ShowFee = fee;
+    Remaining = Ammount + fee;
+
    
+    //Pending Implement Multisend
+
+	CoinsAvailable = GetBalanceFromNosoAddress(SumarydataVector, walletCPPDataLoaded[0].GetHash().c_str());// Only works with first address on wallet.
+    if (Remaining > CoinsAvailable) {
+		TextBox->AppendText("\nERROR: Not enought Noso on Wallet !");
+		KeepProcess = false;
+	}
+    if (KeepProcess) {
+		ArrayTrfrs.clear();
+		counter = 0;
+		OrderHashString = CurrTime;
+        TrxLine = TrxLine + 1;
+        OrderData OrderInfo;
+    
+    return std::string();
+}
+
+  */ 
 
     
     

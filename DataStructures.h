@@ -71,7 +71,11 @@
 
             return TimeStamp;
         }
+        std::string GetStringFromOrderData() {
 
+            std::string OrderToSend = GetOrderType() + " " +GetOrderID() + " " + std::to_string(GetTrxLine()) + " " + GetOrderType() + std::to_string(GetTimeStamp()) + " " + GetOrderReference() + " " + "1" + GetSenderHashAddress() + " " + GetDestinationHashAddress() + " " + std::to_string(GetAmountFee()) + std::to_string(GetAmountTrfe()) + " " + GetSignature() + " " + GetTrfID();
+            return OrderToSend;
+		}
 
 
         

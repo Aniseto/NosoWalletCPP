@@ -65,6 +65,19 @@ private:
 	std::string Int2Curr(int64_t Value);
 	int64_t Curr2Int(const std::string& CurrStr);
 	int64_t GetMaximumToSend(int64_t ammount);
+	std::string GetOrderHash(const std::string& Order);
+	std::string BMHexTo58(const std::string& numerohex, int alphabetnumber);
+	std::string BMHexToDec(const std::string& numerohex);
+	std::string BMExponente(std::string& Numero1,std::string& Numero2);
+	std::string BMMultiplicar(const std::string& Numero1, const std::string& Numero2);
+	std::string BMAdicion(std::string& numero1,std::string& numero2);
+	std::string PonerCeros(const std::string& numero, int cuantos);
+	std::string ClearLeadingCeros(const std::string& numero);
+	int64_t GetFee(int64_t amount);
+	//std::string SendTo(std::string Destination, int64_t Ammount, std::string Reference);
+
+
+
 
 	void OnOpen(wxCommandEvent& event);
 
@@ -116,6 +129,7 @@ private:
 	std::vector<TSummaryData> SumarydataVector;
 	std::string CurrentBlockString;
 	const std::string B64Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
 };
 
 
