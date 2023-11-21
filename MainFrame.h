@@ -127,6 +127,7 @@ private:
 
 	std::vector<WalletData> walletCPPDataLoaded;
 	std::vector<TSummaryData> SumarydataVector;
+	std::vector<PendingOrders> PendingOrdersVector;
 	std::string CurrentBlockString;
 	const std::string B64Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 

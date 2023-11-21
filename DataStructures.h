@@ -390,3 +390,15 @@
         std::string cociente;
         std::string residuo;
     };
+
+#pragma pack(push, 1)
+    class PendingOrders {
+    public:
+        
+        std::string OrderType;
+        std::string SourceAddress;
+        std::string DestinationAddress;
+        int64_t Amount;
+        int64_t Fee;
+    };
+#pragma pack(pop)

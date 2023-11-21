@@ -1,6 +1,7 @@
 ﻿// Start of wxWidgets "Hello World" Program  https://docs.wxwidgets.org/3.2.2.1/plat_msw_install.html#msw_build_apps
 // Includes: 
 //#include <vector>
+// UseDoxygen for code documentation
 #include <wx/wx.h>
 #include <wx/zipstrm.h>
 #include <wx/wfstream.h>
@@ -911,16 +912,47 @@ std::string MainFrame::GetPendings()
     std::string NODESTATUS_COMMAND = "NSLPEND\n";
     std::string DefaultNodeIp = "20.199.50.27";						//PENDDING: Send commmand to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
     int DefaultNodePort = 8080;										//PENDING: Set PORT from List of Nodes.
-    std::string PendingOrders = SendStringToNode(DefaultNodeIp, DefaultNodePort, NODESTATUS_COMMAND);
-    if (PendingOrders == "")
+    std::string PendingOrdersText = SendStringToNode(DefaultNodeIp, DefaultNodePort, NODESTATUS_COMMAND);
+    if (PendingOrdersText == "")
     { 
         TextBox->AppendText("No pending Orders");
         return "NULL";
     }
     else {
-        TextBox->AppendText(PendingOrders);
-        return PendingOrders;
+        TextBox->AppendText(PendingOrdersText);
+        //return PendingOrdersText;
+        std::istringstream iss(PendingOrdersText);
+        std::string line;
+        std::vector<PendingOrders> ordersVector;
+
+        while (std::getline(iss, line)) {
+            std::istringstream lineStream(line);
+            PendingOrders order;
+
+            std::getline(lineStream, order.OrderType, ',');
+            std::getline(lineStream, order.SourceAddress, ',');
+            std::getline(lineStream, order.DestinationAddress, ',');
+            lineStream >> order.Amount;
+            lineStream.ignore(); // Ignore the comma
+            lineStream >> order.Fee;
+            lineStream.ignore(); // Ignore the newline character
+
+            ordersVector.push_back(order);
+
+
+            ///DEbug:
+            for (const auto& order : ordersVector) {
+                TextBox->AppendText("\nDEBUG : Pending Order: \n");
+                TextBox->AppendText("OrderType: " + order.OrderType + "\n");
+                TextBox->AppendText("SourceAddress: " + order.SourceAddress + "\n");
+                TextBox->AppendText("DestinationAddress: " + order.DestinationAddress + "\n");
+                TextBox->AppendText("Amount: " + std::to_string(order.Amount) + "\n");
+                TextBox->AppendText("Fee: " + std::to_string(order.Fee) + "\n");
+
+            }
+            return PendingOrdersText;
     }
+	}
     //Example Answer with pending Order: Getting Pending orders from Node.
     //TRFR, NBFX6wuUKc1hwFWSA9kctv9XhohbEs, N3J2F4YDFFauC1aVBVuStFeFLwcwsDD, 2000000000, 1000000 //Example sending 20 NOSO fomr Addrress NBF* to N3J2*, wich 0.1 commission.
     //TRFR,NbvGykuZ1ZXzdbk9pKkydBFcGbX1Ft,N3J2F4YDFFauC1aVBVuStFeFLwcwsDD,2030000000,1000000 Example sending 20.3 NOSO.
@@ -934,54 +966,10 @@ int64_t MainFrame::GetAddressPendingPays(std::string NosoAddress)
 
     // 1- Get Pending Orders, if NULL then continue, else check if NosoAddress is is the list, and return the total amount pending.
     
-    std::string ListOfPendings = GetPendings();
-
-    if (ListOfPendings != "NULL")
-    {
-        return 0;
-
-
-    }
-    else 
-    {
-        std::vector<std::string> items;
-        size_t pos = 0;
-        while ((pos = ListOfPendings.find("TRFR,")) != std::string::npos) {
-            items.push_back(ListOfPendings.substr(0, pos));
-            ListOfPendings.erase(0, pos + 5); // Move past "TRFR,"
-        }
-
-        // Search for the specific address
-       // std::string search_address = "NbvGykuZ1ZXzdbk9pKkydBFcGbX1Ft";
-        for (const std::string& item : items) {
-            if (item.find(NosoAddress) != std::string::npos) {
-                // Split the item by commas to extract the desired values
-                size_t start = 0;
-                size_t end = item.find(",");
-                std::vector<std::string> values;
-                while (end != std::string::npos) {
-                    values.push_back(item.substr(start, end - start));
-                    start = end + 1;
-                    end = item.find(",", start);
-                }
-                values.push_back(item.substr(start, end));
-
-                if (values.size() >= 4) {
-                   // TRFR, NBFX6wuUKc1hwFWSA9kctv9XhohbEs, N3J2F4YDFFauC1aVBVuStFeFLwcwsDD, 3560000000, 1000000
-                    std::string address = values[0];
-                    std::string value1 = values[1];
-                    std::string value2 = values[2];
-                    std::string value3 = values[3];
-                    //std::cout << "Address: " << address << std::endl;
-                    //std::cout << "Other Values: " << value1 << ", " << value2 << ", " << value3 << std::endl;
-                    return std::stoll(value2);
-                }
-            }
-        }
-
-        
-        return 0;
-    }
+    //std::istringstream iss(GetPendings());
+    return 0;
+        ///
+    
     
    
 }
