@@ -835,6 +835,11 @@ void MainFrame::InitializeWallet()
     TextBox->AppendText("\nMax Ammount to Send: ");
     TextBox->AppendText(std::to_string(max));
     TextBox->AppendText("\n");
+    
+    TextBox->AppendText("\n SendTO Debug Test Callung function: SourceAddress: NxcLMr13oJ7bKx9dFSUhHstDiTF1DM");
+    TextBox->AppendText("\n SendTO Debug Test Calling function: DestinationAddress: NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb");
+    std::string Sendto_Result;
+    Sendto_Result=SendTo("NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb", 100000000,"Test");
 
 
 }
@@ -919,6 +924,9 @@ std::string MainFrame::GetPendings()
         return "NULL";
     }
     else {
+       // TextBox->AppendText("Pending Orders Text From Node: \n");
+        //TextBox->AppendText(PendingOrdersText);
+        TextBox->AppendText("Pending Orders: \n");
         TextBox->AppendText(PendingOrdersText);
         //return PendingOrdersText;
         std::istringstream iss(PendingOrdersText);
@@ -935,30 +943,37 @@ std::string MainFrame::GetPendings()
             lineStream >> order.Amount;
             lineStream.ignore(); // Ignore the comma
             lineStream >> order.Fee;
-            lineStream.ignore(); // Ignore the newline character
+            //lineStream.ignore(); // Ignore the newline
+  
 
             ordersVector.push_back(order);
+            TextBox->AppendText("Parsed Order: " + order.OrderType + ", " + order.SourceAddress + ", " + order.DestinationAddress + ", " + std::to_string(order.Amount) + ", " + std::to_string(order.Fee) + "\n");
 
 
-            ///DEbug:
-            for (const auto& order : ordersVector) {
-                TextBox->AppendText("\nDEBUG : Pending Order: \n");
-                TextBox->AppendText("OrderType: " + order.OrderType + "\n");
-                TextBox->AppendText("SourceAddress: " + order.SourceAddress + "\n");
-                TextBox->AppendText("DestinationAddress: " + order.DestinationAddress + "\n");
-                TextBox->AppendText("Amount: " + std::to_string(order.Amount) + "\n");
-                TextBox->AppendText("Fee: " + std::to_string(order.Fee) + "\n");
+        
+           
+        }
+        ///DEbug:
+        TextBox->AppendText("Number of Pending Orders: " + std::to_string(ordersVector.size()) + "\n");
 
-            }
-            return PendingOrdersText;
-    }
+        for (const auto& order : ordersVector) {
+            TextBox->AppendText("\nDEBUG : Pending Order: \n");
+            TextBox->AppendText("OrderType: " + order.OrderType + "\n");
+            TextBox->AppendText("SourceAddress: " + order.SourceAddress + "\n");
+            TextBox->AppendText("DestinationAddress: " + order.DestinationAddress + "\n");
+            TextBox->AppendText("Amount: " + std::to_string(order.Amount) + "\n");
+            TextBox->AppendText("Fee: " + std::to_string(order.Fee) + "\n");
+
+        }
+        return PendingOrdersText;
 	}
+}
     //Example Answer with pending Order: Getting Pending orders from Node.
     //TRFR, NBFX6wuUKc1hwFWSA9kctv9XhohbEs, N3J2F4YDFFauC1aVBVuStFeFLwcwsDD, 2000000000, 1000000 //Example sending 20 NOSO fomr Addrress NBF* to N3J2*, wich 0.1 commission.
     //TRFR,NbvGykuZ1ZXzdbk9pKkydBFcGbX1Ft,N3J2F4YDFFauC1aVBVuStFeFLwcwsDD,2030000000,1000000 Example sending 20.3 NOSO.
     //TRFR,NBFX6wuUKc1hwFWSA9kctv9XhohbEs,N3J2F4YDFFauC1aVBVuStFeFLwcwsDD,3560000000,1000000 TRFR,NbvGykuZ1ZXzdbk9pKkydBFcGbX1Ft,N3J2F4YDFFauC1aVBVuStFeFLwcwsDD,3270000000,1000000 
 
-}
+
 
 int64_t MainFrame::GetAddressPendingPays(std::string NosoAddress)
 {
@@ -1728,6 +1743,97 @@ int64_t MainFrame::GetFee(int64_t amount)
         result = MinimunFee;
     }
     return result;
+}
+std::string MainFrame::SendTo(std::string Destination, int64_t Ammount, std::string Reference)
+{
+    std::string CurrTime;
+    int64_t fee;
+    int64_t ShowAmmount;
+    int64_t ShowFee;
+    int64_t Remaining;
+    int64_t CoinsAvailable;
+    boolean KeepProcess = true;
+    OrderData OrderToSend;
+    int Counter;
+    std::string OrderHashString;
+    int TrxLine = 0;
+    std::string ResultOrderID = "";
+    std::string OrderString;
+    int PreviousRefresh;
+
+    if (Reference == "") {
+		Reference = "null";
+	}
+    CurrTime = std::to_string(GetMainetTime());
+    fee = GetFee(Ammount);
+    ShowAmmount = Ammount;
+    ShowFee = fee;
+    Remaining = Ammount + fee;
+    CoinsAvailable = GetBalanceFromNosoAddress(SumarydataVector, walletCPPDataLoaded[0].GetHash().c_str());// Only works with first address on wallet.
+    OrderHashString = CurrTime;
+    TrxLine = 1;
+    //Debug Static source Address
+    std::string SourceAddress = "NxcLMr13oJ7bKx9dFSUhHstDiTF1DM";
+    std::string DestinationAddress = "NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb";
+    OrderToSend = SendFundsFromAddress(SourceAddress, DestinationAddress, Ammount, fee, Reference, CurrTime, TrxLine);
+    OrderHashString = OrderHashString + OrderToSend.GetTrfID();
+    ResultOrderID = GetOrderHash(std::to_string(TrxLine) + OrderHashString);
+
+    //Implement GetPTCEcn OrderString := GetPTCEcn('ORDER')+'ORDER '+IntToStr(trxLine)+' $';
+    OrderString = GetPTCEcn("ORDER");
+    OrderString += "ORDER " + std::to_string(TrxLine) + " $";
+    //OrderString: = GetPTCEcn('ORDER') + 'ORDER ' + IntToStr(trxLine) + ' $';
+
+    //Implement OrderString := orderstring+GetStringfromOrder(ArrayTrfrs[counter])+' $';
+    OrderString += OrderToSend.GetStringFromOrderData() + " $";
+
+    //Implement SendOrder to NODE
+    //Pending !!!!!!
+
+    std::string SendOrderResult;
+    std::string NODESTATUS_COMMAND = OrderString;
+    std::string DefaultNodeIp = "20.199.50.27";						//PENDING: Send commmand to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
+    int DefaultNodePort = 8080;										//PENDING: Set PORT from List of Nodes.
+    std::string ResultOrder = SendStringToNode(DefaultNodeIp, DefaultNodePort, NODESTATUS_COMMAND);
+
+    
+    
+    TextBox->AppendText("\n****SendTO DEBUG****");
+    TextBox->AppendText("\nCoins Available: ");
+    TextBox->AppendText(std::to_string(CoinsAvailable));
+    TextBox->AppendText("\nFee :");
+    TextBox->AppendText(std::to_string(fee));
+    TextBox->AppendText("\nAmmount: ");
+    TextBox->AppendText(std::to_string(Ammount));
+    TextBox->AppendText("\nRemaining: ");
+    TextBox->AppendText(std::to_string(Remaining));
+    TextBox->AppendText("\n Transfer ID: ");
+    TextBox->AppendText(OrderToSend.GetTrfID());
+    TextBox->AppendText("\nOrder Hash String: ");
+    TextBox->AppendText(OrderHashString);
+    TextBox->AppendText("\nResult Order ID: ");
+    TextBox->AppendText(ResultOrderID);
+    TextBox->AppendText("\nOrder String SENDED: ");
+    TextBox->AppendText(OrderString);
+    TextBox->AppendText("\nSend Order Result: ");
+    TextBox->AppendText(ResultOrder);
+    TextBox->AppendText("\n****SendTO DEBUG****");
+
+
+
+    
+    
+    return std::string();
+}
+std::string MainFrame::GetPTCEcn(std::string OrderType)
+{
+    std::string result;
+    int64_t UTCTime = GetMainetTime();
+    std::string UTCTimeString = std::to_string(UTCTime);
+
+    result = "NSL" + OrderType + " " + Protocol + " " + ProgramVersion + " " + UTCTimeString + " ";
+    return result;
+    //return std::string();
 }
 /*
 std::string MainFrame::SendTo(std::string Destination, int64_t Ammount, std::string Reference)

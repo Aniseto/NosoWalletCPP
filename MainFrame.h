@@ -19,6 +19,8 @@ public:
 	std::vector<WalletData> ReadWalletDataFromNosoCPP(const std::string& filePath);
 	const int64_t Comisiontrfr = 10000; // ComisionTFR 
 	const int64_t MinimunFee = 1000000; // 0.1 Noso
+	std::string ProgramVersion = "1.61";
+	std::string Protocol = "2";
 
 
 private:
@@ -74,7 +76,8 @@ private:
 	std::string PonerCeros(const std::string& numero, int cuantos);
 	std::string ClearLeadingCeros(const std::string& numero);
 	int64_t GetFee(int64_t amount);
-	//std::string SendTo(std::string Destination, int64_t Ammount, std::string Reference);
+	std::string SendTo(std::string Destination, int64_t Ammount, std::string Reference);
+	std::string GetPTCEcn(std::string OrderType);
 
 
 
