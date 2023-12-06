@@ -1059,7 +1059,9 @@ OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::strin
             OrderInfo.SetOrderType("TRFR");
             OrderInfo.SetOrderReference(Reference);
             //Continue, Geting Reference.
+            //OrderInfo.SetTimeStamp(GetMainetTime());
             OrderInfo.SetTimeStamp(std::stoi(OrderTime));
+            //TextBox->AppendText()
             OrderInfo.SetOrderLines(line);
             OrderInfo.SetOrderID("");
             OrderInfo.SetOrderType("TRFR");
@@ -1238,6 +1240,8 @@ std::string MainFrame::GetTransferHash(const std::string& Transfer)
 
     
     ResultStringToSHA256 = getHashSha256ToString(Transfer);
+    //ResultStringToSHA256 = PublicKeyToSHA256(Transfer);
+    
     ResultStringToHex58 = EncodeBase58(ResultStringToSHA256);
     //Base58Sumatory = BMB58Sumatory(ResultStringToHex58);
     //sumatoria: = BMB58resumen(Resultado); Pendiente !
@@ -1952,7 +1956,8 @@ Resultado: = SendOrder(TextToSend);*/
 //std::string Sender=Get
 //std::string senderer = GetPublicKeyFromNosoAddress(GetSenderHashAddress());
 //std::string receiver = GetPublicKeyFromNosoAddress(GetSenderHashAddress());
-    std::string OrderString =  "1" + Order.GetTimeStamp() + Order.GetTrfID();
+
+    std::string OrderString =  "1" + std::to_string(Order.GetTimeStamp()) + Order.GetTrfID();
     TextBox->AppendText("\nDEBUG: transerIF value ");
     TextBox->AppendText(Order.GetTrfID());
     TextBox->AppendText("\nDEBUG : Order String: ");

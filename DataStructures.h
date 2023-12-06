@@ -251,7 +251,7 @@
         {
             {
 
-                size_t copySize = std::min(trfid.size(), sizeof(trfid) - 1);
+                size_t copySize = std::min(trfid.size(), sizeof(TrfrID) - 1);
 
                 // Copiar los datos manualmente
                 for (size_t i = 0; i < copySize; ++i) {
@@ -341,6 +341,7 @@
             for (size_t i = 0; i < copySize; ++i) {
                 PrivateKey[i] = privateKey[i];
             }
+            PrivateKey[copySize] = '\0';
         }
         void SetPublicKey(const std::string& publicKey) {
 
@@ -354,21 +355,23 @@
         }
         void SetHash(const std::string& hash) {
 
-            size_t copySize = std::min(hash.size(), sizeof(PublicKey) - 1);
+            size_t copySize = std::min(hash.size(), sizeof(Hash) - 1);
 
             // Copiar los datos manualmente
             for (size_t i = 0; i < copySize; ++i) {
                 Hash[i] = hash[i];
             }
+            Hash[copySize] = '\0';
         }
         void SetCustom(const std::string& custom) {
 
-            size_t copySize = std::min(custom.size(), sizeof(custom) - 1);
+            size_t copySize = std::min(custom.size(), sizeof(Custom) - 1);
 
             // Copiar los datos manualmente
             for (size_t i = 0; i < copySize; ++i) {
                 Custom[i] = custom[i];
             }
+            Custom[copySize] = '\0';
         }
         void SetBalance(int64_t balance) {
 
