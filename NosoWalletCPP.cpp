@@ -288,27 +288,15 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     MyWallet.SetPrivateKey(privateKeyBase64);
     MyWallet.SetPublicKey(publicKeyPointBase64);
    
-
+    TextBox->AppendText("\n\nGENERATING NOSO ADDRESS PUBLIC KEY: \n");
+    TextBox->AppendText(publicKeyPointBase64);
+    TextBox->AppendText("\n\nGENERATING NOSO ADDRESS PRIVATE KEY: \n");
+    TextBox->AppendText(privateKeyBase64);
   
 
-    //TextBox->AppendText("\nCurrent Wallet PrivateKey: ");
-    //TextBox->AppendText(MyWallet.GetPrivateKey());
-    //TextBox->AppendText("\nCurrent Wallet PublicKey: ");
-    //TextBox->AppendText(MyWallet.GetPublicKey());
-    
-    ///Show Results
-
-    //TextBox->AppendText("\n\nPUBLIC KEY: \n");
-    //TextBox->AppendText(publicKeyStr);
-    //TextBoz->AppendTest("\n PUBLIC KEY SIZE: \n")
-    //TextBox->AppendText(publicKeyPointBase64);
-    //TextBox->AppendText("\n\nPRIVATE KEY: \n");
-    //TextBox->AppendText(privateKeyStr);
-    //TextBox->AppendText(privateKeyBase64);
-
-
     //Generate NOSO ADDRESS
-    Sha256 = PublicKeyToSHA256(publicKeyPointBase64);
+    
+    Sha256 = getHashSha256ToString(publicKeyPointBase64);
     MD160 = CalculateMD160(Sha256);
     Base58= EncodeBase58(MD160);  
     Checksum = CalculateCheckSum(Base58);
@@ -830,8 +818,10 @@ void MainFrame::InitializeWallet()
     
     TextBox->AppendText("\n SendTO Debug Test Callung function: SourceAddress: NxcLMr13oJ7bKx9dFSUhHstDiTF1DM");
     TextBox->AppendText("\n SendTO Debug Test Calling function: DestinationAddress: NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb");
+    //TextBox->AppendText(GetPublicKeyFromNosoAddress("BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=");
+
     std::string Sendto_Result;
-    Sendto_Result=SendTo("NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb", 100000000,"Test");
+    Sendto_Result=SendTo("NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb", 1000000,"Test");
     TextBox->AppendText("\n SendTO Debug Test Result: ");
     TextBox->AppendText(Sendto_Result);
 
@@ -1066,8 +1056,11 @@ OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::strin
             OrderInfo.SetOrderID("");
             OrderInfo.SetOrderType("TRFR");
             OrderInfo.SetSenderPublicKey(GetPublicKeyFromNosoAddress(SourceAddress));
-            TextBox->AppendText("\nDEBUG: Sender Public Key from FETPUBLICKEYFROMNOSOADDRESS ");
+            TextBox->AppendText("\nSENDER ADDESS: ");
+            TextBox->AppendText(SourceAddress);
+            TextBox->AppendText("\nDEBUG: Sender Public Key from Address  ");
             TextBox->AppendText(GetPublicKeyFromNosoAddress(SourceAddress));
+
             TextBox->AppendText("\nDEBUG: Sender Public Key SAVED: ");
             TextBox->AppendText(OrderInfo.GetSenderPublicKey());
             TextBox->AppendText("\nPrivate Key :");
@@ -1240,7 +1233,7 @@ std::string MainFrame::GetTransferHash(const std::string& Transfer)
 
     
     ResultStringToSHA256 = getHashSha256ToString(Transfer);
-    //ResultStringToSHA256 = PublicKeyToSHA256(Transfer);
+    
     
     ResultStringToHex58 = EncodeBase58(ResultStringToSHA256);
     //Base58Sumatory = BMB58Sumatory(ResultStringToHex58);
@@ -1868,9 +1861,11 @@ Resultado: = SendOrder(TextToSend);*/
     OrderHashString = CurrTime;
     TrxLine = 1;
     //Debug Static source Address
-    std::string SourceAddress = "NxcLMr13oJ7bKx9dFSUhHstDiTF1DM";
-    std::string DestinationAddress = "NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb";
-    OrderToSend = SendFundsFromAddress(SourceAddress, DestinationAddress, Ammount, fee, Reference, CurrTime, TrxLine);
+    std::string SourceAddress = "N4J8QgxgB2wbFcfC6czVyT5e3DwWCDh";
+    //std::string SourceAddress = "NxcLMr13oJ7bKx9dFSUhHstDiTF1DM";
+    //std::string TestAddress = "N4J8QgxgB2wbFcfC6czVyT5e3DwWCDh";
+    //std::string DestinationAddress = "NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb";
+    OrderToSend = SendFundsFromAddress(SourceAddress, Destination, Ammount, fee, Reference, CurrTime, TrxLine);
     
 
     OrderHashString = CurrTime + OrderToSend.GetTrfID();
@@ -2033,6 +2028,29 @@ std::string MainFrame::getHashSha256ToString(const std::string& publicKey)
     }
 
     return result;
+
+    /*       // Create a SHA-256 hash object
+        Botan::SHA_256 sha256;
+
+        // Update the hash object with the input data
+        sha256.update(reinterpret_cast<const Botan::byte*>(publicKey.data()), publicKey.size());
+
+        // Finalize the hash and get the resulting digest
+        Botan::secure_vector<Botan::byte> digest = sha256.final();
+
+        // Convert the digest to a hexadecimal string
+        std::string hashString;
+        for (Botan::byte b : digest)
+        {
+            hashString += Botan::hex_encode(&b, 1);
+        }
+
+        std::transform(hashString.begin(), hashString.end(), hashString.begin(), [](unsigned char c) 
+            
+            {
+            return std::tolower(c);
+            });
+        return hashString;*/
 
 }
 DivResult MainFrame::DivideBigInt(const Botan::BigInt& numerator, const Botan::BigInt& denominator)
