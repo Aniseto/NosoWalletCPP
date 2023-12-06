@@ -26,8 +26,6 @@
 #include <botan/hex.h>
 #include <cctype>
 #include <botan/hash.h>
-//#include <vector>
-/// Added for Unix Like system compatibilty
 #include <filesystem>
 #include <wx/statusbr.h>
 #include <wx/statusbr.h>
@@ -62,21 +60,9 @@ namespace fs = std::filesystem;
 #include <botan/pk_keys.h>
 #include <iostream>
 #include <vector>
-//#include <cryptopp/eccrypto.h>
 #include <bitset>
 
-//const std::string B64Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-
-
-//TODO
-//1- Get a list of Master Nodes from a DNS entry.
-//2- Get a list of available Nodes ( NSO CONFIG ) and get this list as list of servers to connect and send commands, priorize older
-//nodes first, and control if there is an issue conecting then go to next node in the list. Maybe create a Random node select to balance connections
-//between current nodes ?
-//3- Create Send Noso form, adding Source Address ( from current Wallet addressess list ), Destination Address ( verifying that is a valid NOSO address, 
-//Ammount to send, checking if there is enought noso on source address ( checking if ther eis any pending operations also ).
-//4- Complete a Send Noso operation manually 
 
 MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {   //Constructor Base class
 	wxPanel* panel = new wxPanel(this);
@@ -523,7 +509,7 @@ std::string MainFrame::EncodeBase58(const std::string& MD160String)
     std::vector<uint8_t> inputData = Botan::hex_decode(MD160String);
    
     std::string base58Result = Botan::base58_encode(inputData.data(), inputData.size());
-
+   
     return base58Result;
     
 }
@@ -774,6 +760,12 @@ void MainFrame::InitializeWallet()
     //std::string WalletFullPath = (fs::current_path() / "data" / "wallet.pkw").string();
     std::string WalletCPPFullPath = (fs::current_path() / "data" / "walletcpp.pkw").string();
 
+    //
+    TextBox->AppendText("\nDEBUG Sha and Base36");
+    std::string nosoTest = "noso";
+
+
+
     if (DoesFileExist(WalletCPPFullPath))
     {
         TextBox->AppendText("\nNOSOCPP Wallet File Detected. Loading addresses\n");
@@ -840,6 +832,8 @@ void MainFrame::InitializeWallet()
     TextBox->AppendText("\n SendTO Debug Test Calling function: DestinationAddress: NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb");
     std::string Sendto_Result;
     Sendto_Result=SendTo("NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb", 100000000,"Test");
+    TextBox->AppendText("\n SendTO Debug Test Result: ");
+    TextBox->AppendText(Sendto_Result);
 
 
 }
@@ -1065,13 +1059,20 @@ OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::strin
             OrderInfo.SetOrderType("TRFR");
             OrderInfo.SetOrderReference(Reference);
             //Continue, Geting Reference.
-            OrderInfo.SetTimeStamp(GetMainetTime());
+            OrderInfo.SetTimeStamp(std::stoi(OrderTime));
             OrderInfo.SetOrderLines(line);
             OrderInfo.SetOrderID("");
             OrderInfo.SetOrderType("TRFR");
             OrderInfo.SetSenderPublicKey(GetPublicKeyFromNosoAddress(SourceAddress));
+            TextBox->AppendText("\nDEBUG: Sender Public Key from FETPUBLICKEYFROMNOSOADDRESS ");
+            TextBox->AppendText(GetPublicKeyFromNosoAddress(SourceAddress));
+            TextBox->AppendText("\nDEBUG: Sender Public Key SAVED: ");
+            TextBox->AppendText(OrderInfo.GetSenderPublicKey());
+            TextBox->AppendText("\nPrivate Key :");
+            TextBox->AppendText(GetPrivateKeyFromNosoAddress(SourceAddress));
             OrderInfo.SetSignature(SignMessage(std::to_string(OrderInfo.GetTimeStamp()) + SourceAddress + DestinationAddress + std::to_string(AmountToSend) +
                 std::to_string(Commision) + std::to_string(line), GetPrivateKeyFromNosoAddress(SourceAddress)));
+            //OrderInfo.TrfrID     := GetTransferHash(ordertime+origen+destino+IntToStr(monto)+IntToStr(WO_LastBlock));
             OrderInfo.SetTrfID(GetTransferHash(std::to_string(OrderInfo.GetTimeStamp()) + SourceAddress + DestinationAddress + std::to_string(AmountToSend) + CurrentBlockString));
 
             TextBox->AppendText("\n******Debug: Order Info COMPLETED: - Showing Contents *****");
@@ -1105,7 +1106,7 @@ OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::strin
 
             //OrderInfo DEBUG show contents
             TextBox->AppendText("\n******Debug: Order Info PRINT: - Showing Contents *****");
-            TextBox->AppendText(OrderInfo.GetStringFromOrderData());
+            TextBox->AppendText(GetStringFromOrder(OrderInfo));
             
             
             /*
@@ -1204,6 +1205,8 @@ std::string MainFrame::GetPublicKeyFromNosoAddress(const std::string & NosoAddre
     {
         if (walletCPPDataLoaded[i].GetHash() == NosoAddress)
             return walletCPPDataLoaded[i].GetPublicKey();
+            TextBox->AppendText("\nDEBUG: Found Public Key from Specific Address -> ");
+            TextBox->AppendText(NosoAddress);
     }
 
     return notfound;
@@ -1233,42 +1236,18 @@ std::string MainFrame::GetTransferHash(const std::string& Transfer)
     std::string Base58Sumatory="";
     std::string Key;
 
-    ResultStringToSHA256 = PublicKeyToSHA256(Transfer);
+    
+    ResultStringToSHA256 = getHashSha256ToString(Transfer);
     ResultStringToHex58 = EncodeBase58(ResultStringToSHA256);
-
-    Base58Sumatory = BMB58Sumatory(ResultStringToHex58);
+    //Base58Sumatory = BMB58Sumatory(ResultStringToHex58);
     //sumatoria: = BMB58resumen(Resultado); Pendiente !
+    Base58Sumatory = BMB58Resumen(ResultStringToHex58);
 
 
 
     Key = BmDecto58(Base58Sumatory);
     ResultString = "tR" + ResultStringToHex58 + Key;
-    /*
-        function GetTransferHash(TextLine:string):String;
-var
-  Resultado : String = '';
-  Sumatoria, clave : string;
-Begin
-Resultado := HashSHA256String(TextLine);
-Resultado := BMHexTo58(Resultado,58);
-sumatoria := BMB58resumen(Resultado);
-clave := BMDecTo58(sumatoria);
-Result := 'tR'+Resultado+clave;
-End;
 
-
-        
-        Resultado : String = '';
-    Sumatoria, clave : string;
-    Begin
-        Resultado : = HashSHA256String(TextLine);
-Resultado: = BMHexTo58(Resultado, 58);
-sumatoria: = BMB58resumen(Resultado);
-clave: = BMDecTo58(sumatoria);
-Result: = 'tR' + Resultado + clave;
-    End;
-    
-    */
     return ResultString;
 }
 
@@ -1408,8 +1387,12 @@ DivResult MainFrame::BMDividir(const std::string& FirstNumber, const std::string
         }
     }
 
-    result.cociente = cociente;
-    result.residuo = ThisStep;
+    //result.coefficient = std::to_integer(cociente);
+    //result.remainder = std::to_integer(ThisStep);
+    Botan::BigInt BigIntCociente = Botan::BigInt(cociente);
+    Botan::BigInt BigIntRemainder = Botan::BigInt(ThisStep);
+    result.coefficient = BigIntCociente;
+    result.remainder = BigIntRemainder;
 
     // You may want to clear leading zeros here, as in your Pascal code
     // This can be done by iterating through result.cociente and result.residuo
@@ -1539,14 +1522,46 @@ int64_t MainFrame::GetMaximumToSend(int64_t ammount)
 
 std::string MainFrame::GetOrderHash(const std::string& textLine)
 {
-    std::string result = PublicKeyToSHA256(textLine); // Calculate SHA256
+    /*function GetOrderHash(TextLine:string):String;
+Begin
+Result := HashSHA256String(TextLine);
+Result := 'OR'+BMHexTo58(Result,36);
+End;*/
+    TextBox->AppendText("\nDEBUG GET-OrderHash");
+    TextBox->AppendText("\nTextLine: ");
+    TextBox->AppendText(textLine);
+    //std::string resultToProcess = PublicKeyToSHA256(textLine); // Calculate SHA256
+    std::string resultToProcess=getHashSha256ToString(textLine);
+    TextBox->AppendText("\nSHA256: ");
+    TextBox->AppendText(resultToProcess);
+    
+
+    
+    std::string resultHex36= BMHexTo58(resultToProcess, 36); // Convert to Base36 
+    //std::string resultHex36 = Base36(resultToProcess);
+
+    TextBox->AppendText("\n****DEBUG**** noso Sha256 and Base36");
+    TextBox->AppendText(getHashSha256ToString("noso"));
+    TextBox->AppendText("\n****DEBUG**** noso Base36 :");
+    std::string resultNosoBase36 = BMHexTo58(getHashSha256ToString("noso"),36);
+    TextBox->AppendText(resultNosoBase36);
+    TextBox->AppendText("\nHEX36 : ");
+    TextBox->AppendText(resultHex36);
+    std::string result = "OR" + resultHex36;
+    TextBox->AppendText("\nResult: ");
+    TextBox->AppendText(result);
     //result = "OR" + BMHexTo58 o HexToBase64(result, 36);
     //Implement function BMHexTo58(numerohex:string;alphabetnumber:integer):string;
+    
+
+
     return result;
 }
 
-std::string MainFrame::BMHexTo58(const std::string& numerohex, int alphabetnumber)
+std::string MainFrame::BMHexTo58(const std::string& numerohex, const Botan::BigInt& alphabetnumber)
+//std::string MainFrame::BMHexTo58(const std::string& numerohex, int alphabetnumber)
 {
+    /*
     std::string decimalvalue = BMHexToDec(numerohex);
     std::string resultado = "";
     std::string AlpahbetUsed = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
@@ -1574,33 +1589,82 @@ std::string MainFrame::BMHexTo58(const std::string& numerohex, int alphabetnumbe
     }
 
     return resultado;
+    */
+    Botan::BigInt decimalValue(BMHexToDec(numerohex));
+    std::string Result = "";
+    std::string AlphabetUsed="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
+    if (alphabetnumber == 36) {
+        AlphabetUsed = "0123456789abcdefghijklmnopqrstuvwxyz" ;
+    }
+   
+
+    while (decimalValue.bits() >= 2) {
+        DivResult ResultDiv = DivideBigInt(decimalValue, alphabetnumber);
+        decimalValue = ResultDiv.coefficient;
+        int remainder = ResultDiv.remainder.to_u32bit();
+        Result = AlphabetUsed[remainder] + Result;
+    }
+
+    if (decimalValue >= alphabetnumber.to_u32bit()) {
+        DivResult ResultDiv = DivideBigInt(decimalValue, alphabetnumber);
+        decimalValue = ResultDiv.coefficient;
+        int remainder = ResultDiv.remainder.to_u32bit();
+        Result = AlphabetUsed[remainder] + Result;
+    }
+
+    if (decimalValue > 0) {
+        int value = decimalValue.to_u32bit();
+        Result = AlphabetUsed[value] + Result;
+    }
+
+    return Result;
     
-    
+
+  
     
 }
 
 std::string MainFrame::BMHexToDec(const std::string& numerohex)
 {
-    //Pending !!!!!!!
-    
-    std::string resultado = "0";
-    int Long = numerohex.length();
     std::string HexAlphabet = "0123456789ABCDEF";
+    int Long = numerohex.length();
+    std::string resultado = "0";
 
-    /*
+    std::vector<int> DecValues(Long);
+    std::vector<std::string> ExpValues(Long);
+    std::vector<std::string> MultipliValues(Long);
+
+    // Convert each hexadecimal digit to its decimal value
     for (int counter = 0; counter < Long; ++counter) {
-        std::string thisDigit = std::string(1, numerohex[counter]);
-        int DecValue = HexAlphabet.find(toupper(thisDigit));
-        resultado = BMExponente("16", std::to_string(Long - counter - 1));
-        resultado = BMMultiplicar(resultado, std::to_string(DecValue));
-        resultado = BMAdicion(resultado, thisDigit);
-    } //Pending !!
-    */ 
-    return ClearLeadingCeros(resultado);
+        DecValues[counter] = HexAlphabet.find(toupper(numerohex[counter]));
+    }
+
+    // Calculate exponentiation values
+    for (int counter = 0; counter < Long; ++counter) {
+        ExpValues[counter] = BMExponente("16", std::to_string(Long - 1 - counter));
+    }
+
+    // Calculate multiplication values
+    for (int counter = 0; counter < Long; ++counter) {
+        MultipliValues[counter] = BMMultiplicar(ExpValues[counter], std::to_string(DecValues[counter]));
+    }
+
+    // Calculate the final result by adding all multiplication values
+    for (int counter = 0; counter < Long; ++counter) {
+        resultado = BMAdicion(resultado, MultipliValues[counter]);
+    }
+
+    return resultado;
+    
+  
 }
 
-std::string MainFrame::BMExponente(std::string& Numero1,std::string& Numero2)
+std::string MainFrame::BMExponente(const std::string& Numero1,const std::string& Numero2)
 {
+    int count = 0;
+    std::string resultado = "";
+
     if (Numero2 == "1") {
         return Numero1;
     }
@@ -1608,11 +1672,12 @@ std::string MainFrame::BMExponente(std::string& Numero1,std::string& Numero2)
         return "1";
     }
     else {
-        std::string resultado = Numero1;
-        int exponente = std::stoi(Numero2);
-        for (int count = 2; count <= exponente; ++count) {
+        resultado = Numero1;
+
+        for (count = 2; count <= std::stoi(Numero2); ++count) {
             resultado = BMMultiplicar(resultado, Numero1);
         }
+
         return resultado;
     }
 }
@@ -1746,6 +1811,29 @@ int64_t MainFrame::GetFee(int64_t amount)
 }
 std::string MainFrame::SendTo(std::string Destination, int64_t Ammount, std::string Reference)
 {
+    //https://github.com/Noso-Project/consopool/blob/ab28696ca294eb39cbe6664927dfc60e681a167e/consopooldata.pas#L540
+    //Correct Order
+    /*NSLORDER 2 1.70 1700725852 ORDER 1 $TRFR OR3utfh1eg2nqnhf4sq4e9po2qymq7wt6leix6hl91out7ehb6vr 1 TRFR 1700725852 null 1 BCLjNYNmuDV+gWYWXDKsTETNKrJ5UJtI+FQ26rb+s4LTjvIIEUUC9rz1DQgy9FWDTiKHjg7tqKfX6+/nFggA/O4= N44YRyizp5LvKk4YWovr7RKLkoMcEFP N3ahnJqGC8qyzbB1chSnrr3zYBBkZFg 1000000 16880993 MEUCIBTp+CMeJMJo3ZDKIIl0nlI3y1RWAU1bqNQt5RRKhRmKAiEAiobQiQCZtiGZEVBbHZKfvpaFkFTUv09hxyGLR06ZPfU= tRESsPeNNwEabBquXtvdtp1i5UubSzRTMKfkm8uQZaWcrcRz*/
+    
+    //Current Order
+    //NSLORDER 2 1.61 1701689370 ORDER 1 $TRFR OR3w5e11264sgsf 1 TRFR 1701689370 Test 1 OR3w5e11264sgsf NxcLMr13oJ7bKx9dFSUhHstDiTF1DM NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb 1000000 100000000 MEYCIQDiPHtkAcTV1sczZUNa8MdPC5XUQFlWhaA tR7xEPj6bt8TwgPvsGB1G9b7EWxzscZCbjgGRwc
+    
+    /*Consopool Order : TextToSend: = 'NSLORDER 1 0.16 ' + TrxTime.ToString + ' ORDER 1 $TRFR ' + OrdHash + ' 1 TRFR ' + TrxTime.ToString +
+    ' PoolPay_' + PoolName + ' 1 ' + PublicKey + ' ' + PoolAddress + ' ' + Address + ' ' + Fee.ToString + ' ' + ToSend.ToString + ' ' +
+        SignString + ' ' + trfHash;
+Resultado: = SendOrder(TextToSend);*/
+
+    //https://github.com/Noso-Project/consopool/blob/ab28696ca294eb39cbe6664927dfc60e681a167e/consopooldata.pas#L546
+
+    /*TextToSend := 'NSLORDER 1 0.16 '+TrxTime.ToString+' ORDER 1 $TRFR '+OrdHash+' 1 TRFR '+TrxTime.ToString+
+              ' PoolPay_'+PoolName+' 1 '+PublicKey+' '+PoolAddress+' '+Address+' '+Fee.ToString+' '+ToSend.ToString+' '+
+              SignString+' '+trfHash;*/
+
+    //Correct ONE
+    //NSLORDER 2 1.70 1700725852 ORDER 1 $TRFR OR3utfh1eg2nqnhf4sq4e9po2qymq7wt6leix6hl91out7ehb6vr 1 TRFR 1700725852 null 1 BCLjNYNmuDV+gWYWXDKsTETNKrJ5UJtI+FQ26rb+s4LTjvIIEUUC9rz1DQgy9FWDTiKHjg7tqKfX6+/nFggA/O4= N44YRyizp5LvKk4YWovr7RKLkoMcEFP N3ahnJqGC8qyzbB1chSnrr3zYBBkZFg 1000000 16880993 MEUCIBTp+CMeJMJo3ZDKIIl0nlI3y1RWAU1bqNQt5RRKhRmKAiEAiobQiQCZtiGZEVBbHZKfvpaFkFTUv09hxyGLR06ZPfU= tRESsPeNNwEabBquXtvdtp1i5UubSzRTMKfkm8uQZaWcrcRz*/
+
+    //Current One:
+    //NSLORDER 2 1.61 1701860832 ORDER 1 $TRFR OR454ddyerm61vr1cmi3zvzn81k61gfir8ndixw44k508mpk81ro 1 TRFR 1701860828 Test 1 BNOdXGIv/1szZ/hOw3dOoFAWUr5rOjuTXVIA353GzfZSS2lry8gMAV1BCk2GQld/Y1PkZro6OxlCQKil2FyduLM= NxcLMr13oJ7bKx9dFSUhHstDiTF1DM NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb 1000000 100000000 MEUCIQC/iieEBUrN/q+s9Mhb5UlbPG1R6tJz5aC tR6mBAnkp6NynjGqGFacehBUApeyMcu4g6Xb7iL
     std::string CurrTime;
     int64_t fee;
     int64_t ShowAmmount;
@@ -1770,31 +1858,45 @@ std::string MainFrame::SendTo(std::string Destination, int64_t Ammount, std::str
     ShowFee = fee;
     Remaining = Ammount + fee;
     CoinsAvailable = GetBalanceFromNosoAddress(SumarydataVector, walletCPPDataLoaded[0].GetHash().c_str());// Only works with first address on wallet.
+    TextBox->AppendText("\n****SendTO COINS****");
+    TextBox->AppendText("\nCoins Available: ");
+    TextBox->AppendText(std::to_string(CoinsAvailable));
     OrderHashString = CurrTime;
     TrxLine = 1;
     //Debug Static source Address
     std::string SourceAddress = "NxcLMr13oJ7bKx9dFSUhHstDiTF1DM";
     std::string DestinationAddress = "NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb";
     OrderToSend = SendFundsFromAddress(SourceAddress, DestinationAddress, Ammount, fee, Reference, CurrTime, TrxLine);
-    OrderHashString = OrderHashString + OrderToSend.GetTrfID();
+    
+
+    OrderHashString = CurrTime + OrderToSend.GetTrfID();
+    TextBox->AppendText("\nDEBUG: ******OrderToSend");
+    TextBox->AppendText("\nOrder Hash String: ");
+    TextBox->AppendText(OrderHashString);
     ResultOrderID = GetOrderHash(std::to_string(TrxLine) + OrderHashString);
 
     //Implement GetPTCEcn OrderString := GetPTCEcn('ORDER')+'ORDER '+IntToStr(trxLine)+' $';
     OrderString = GetPTCEcn("ORDER");
+    TextBox->AppendText("\n GetPTCE");
+    TextBox->AppendText(OrderString);
     OrderString += "ORDER " + std::to_string(TrxLine) + " $";
+    TextBox->AppendText("\n ORDER STRING -TRXLine + $");
+    TextBox->AppendText(OrderString);
     //OrderString: = GetPTCEcn('ORDER') + 'ORDER ' + IntToStr(trxLine) + ' $';
 
     //Implement OrderString := orderstring+GetStringfromOrder(ArrayTrfrs[counter])+' $';
-    OrderString += OrderToSend.GetStringFromOrderData() + " $";
-
-    //Implement SendOrder to NODE
-    //Pending !!!!!!
+    OrderString += GetStringFromOrder(OrderToSend) + "\n";
+  
+   // TextBox->AppenText("\n OrderString To Send: ")
 
     std::string SendOrderResult;
-    std::string NODESTATUS_COMMAND = OrderString;
+    std::string SEND_COMMAND = OrderString;
+    TextBox->AppendText("\nDEBUG: SEND_COMMAND: ");
+    TextBox->AppendText(SEND_COMMAND);
+    //NSLORDER 2 1.61 1700767720 ORDER 1 $TRFR OR 1 TRFR 1700767720 Test 1 BNOdXGIv/1szZ/hOw3dOoFAWUr5rOjuTXVIA353 NxcLMr13oJ7bKx9dFSUhHstDiTF1DM NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb 1000000 100000000 MEUCIQD0PmwSgQcz5HNrpgc0pxkLbTtpPVB1f6M tRHfgVP7avof2mi8QnN45WQCVEN5EWFqWXhwhk8 $
     std::string DefaultNodeIp = "20.199.50.27";						//PENDING: Send commmand to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
     int DefaultNodePort = 8080;										//PENDING: Set PORT from List of Nodes.
-    std::string ResultOrder = SendStringToNode(DefaultNodeIp, DefaultNodePort, NODESTATUS_COMMAND);
+    std::string ResultOrder = SendStringToNode(DefaultNodeIp, DefaultNodePort, SEND_COMMAND);
 
     
     
@@ -1818,12 +1920,8 @@ std::string MainFrame::SendTo(std::string Destination, int64_t Ammount, std::str
     TextBox->AppendText("\nSend Order Result: ");
     TextBox->AppendText(ResultOrder);
     TextBox->AppendText("\n****SendTO DEBUG****");
-
-
-
     
-    
-    return std::string();
+    return ResultOrder;
 }
 std::string MainFrame::GetPTCEcn(std::string OrderType)
 {
@@ -1835,6 +1933,119 @@ std::string MainFrame::GetPTCEcn(std::string OrderType)
     return result;
     //return std::string();
 }
+std::string MainFrame::BMHexTo36(std::string result)
+{
+    
+    
+    return std::string();
+}
+std::string MainFrame::GetStringFromOrder(OrderData& Order)
+{
+    ///// WORK IN PROGESS /////
+
+        /*NSLORDER 2 1.70 1700725852 ORDER 1 $TRFR OR3utfh1eg2nqnhf4sq4e9po2qymq7wt6leix6hl91out7ehb6vr 1 TRFR 1700725852 null 1 BCLjNYNmuDV+gWYWXDKsTETNKrJ5UJtI+FQ26rb+s4LTjvIIEUUC9rz1DQgy9FWDTiKHjg7tqKfX6+/nFggA/O4= N44YRyizp5LvKk4YWovr7RKLkoMcEFP N3ahnJqGC8qyzbB1chSnrr3zYBBkZFg 1000000 16880993 MEUCIBTp+CMeJMJo3ZDKIIl0nlI3y1RWAU1bqNQt5RRKhRmKAiEAiobQiQCZtiGZEVBbHZKfvpaFkFTUv09hxyGLR06ZPfU= tRESsPeNNwEabBquXtvdtp1i5UubSzRTMKfkm8uQZaWcrcRz*/
+
+/*Consopool Order : TextToSend: = 'NSLORDER 1 0.16 ' + TrxTime.ToString + ' ORDER 1 $TRFR ' + OrdHash + ' 1 TRFR ' + TrxTime.ToString +
+' PoolPay_' + PoolName + ' 1 ' + PublicKey + ' ' + PoolAddress + ' ' + Address + ' ' + Fee.ToString + ' ' + ToSend.ToString + ' ' +
+    SignString + ' ' + trfHash;
+Resultado: = SendOrder(TextToSend);*/
+//std::string Sender=Get
+//std::string senderer = GetPublicKeyFromNosoAddress(GetSenderHashAddress());
+//std::string receiver = GetPublicKeyFromNosoAddress(GetSenderHashAddress());
+    std::string OrderString =  "1" + Order.GetTimeStamp() + Order.GetTrfID();
+    TextBox->AppendText("\nDEBUG: transerIF value ");
+    TextBox->AppendText(Order.GetTrfID());
+    TextBox->AppendText("\nDEBUG : Order String: ");
+    TextBox->AppendText(OrderString);
+    std::string OrderHashString = GetOrderHash(OrderString);
+    TextBox->AppendText("\nDEBUG: Order Hash String: ");
+    TextBox->AppendText(OrderHashString);
+
+
+    
+    
+
+//Good One.
+//NSLORDER 2 1.70 1700725852 ORDER 1 $TRFR OR3utfh1eg2nqnhf4sq4e9po2qymq7wt6leix6hl91out7ehb6vr 1 TRFR 1700725852 null 1 BCLjNYNmuDV+gWYWXDKsTETNKrJ5UJtI+FQ26rb+s4LTjvIIEUUC9rz1DQgy9FWDTiKHjg7tqKfX6+/nFggA/O4= N44YRyizp5LvKk4YWovr7RKLkoMcEFP N3ahnJqGC8qyzbB1chSnrr3zYBBkZFg 1000000 16880993 MEUCIBTp+CMeJMJo3ZDKIIl0nlI3y1RWAU1bqNQt5RRKhRmKAiEAiobQiQCZtiGZEVBbHZKfvpaFkFTUv09hxyGLR06ZPfU= tRESsPeNNwEabBquXtvdtp1i5UubSzRTMKfkm8uQZaWcrcRz*/
+ 
+//Current Order.
+//NSLORDER 2 1.61 1701861609 ORDER 1 $TRFR OR5jvrrl9scomjdrre12c3nd0tu60jlqgpzkm387xt8mygeyvzl0 1 TRFR 1701861599 Test 1 BNOdXGIv/1szZ/hOw3dOoFAWUr5rOjuTXVIA353GzfZSS2lry8gMAV1BCk2GQld/Y1PkZro6OxlCQKil2FyduLM= NxcLMr13oJ7bKx9dFSUhHstDiTF1DM NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb 1000000 100000000 MEUCICb3B9plzxCpWpAMAxiFXIyoZLBpcjU3suQAiHmMwJ1IAiEAoMHUWgcilMFR2pEubWKcCJv4t2A/0JFXPMyL12YA7lQ= tRGornqiPCiNBFrDsUJRVnsWeoNvxAtseDmeA2D    
+    //std::string OrderToSend = Order.GetOrderType() + " " + OrderHashString + " 1 TRFR " + std::to_string(Order.GetTimeStamp()) + " " + Order.GetOrderReference() + " 1 " + Order.GetSenderPublicKey() + " " + Order.GetSenderHashAddress() + " " + Order.GetDestinationHashAddress() + " " + std::to_string(Order.GetAmountFee()) + " " + std::to_string(Order.GetAmountTrfe()) + " " + Order.GetSignature() + " " + Order.GetTrfID(); //+ "\n";
+    std::string OrderToSend = Order.GetOrderType() + " " + OrderHashString + " 1 TRFR " + std::to_string(Order.GetTimeStamp()) + " " + Order.GetOrderReference() + " 1 " + Order.GetSenderPublicKey() + " " + Order.GetSenderHashAddress() + " " + Order.GetDestinationHashAddress() + " " + std::to_string(Order.GetAmountFee()) + " " + std::to_string(Order.GetAmountTrfe()) + " " + Order.GetSignature() + " " + Order.GetTrfID(); //+ "\n";
+
+    TextBox->AppendText("\nORDER TO SEND GENERATED : ");
+    TextBox->AppendText(OrderToSend);
+    
+    return OrderToSend;
+
+}
+
+std::string MainFrame::Base36(std::string& StringToConvert)
+{
+    
+    // Convert hex to decimal
+    std::istringstream iss(StringToConvert);
+    unsigned long long decimalValue;
+    iss >> std::hex >> decimalValue;
+
+    TextBox->AppendText("\nDEBUG: Decimal Value: ");
+    TextBox->AppendText(std::to_string(decimalValue));
+
+
+    // Convert decimal to base 36
+    std::string base36String;
+    while (decimalValue > 0) {
+        char digit = "0123456789abcdefghijklmnopqrstuvwxyz"[decimalValue % 36];
+        base36String = digit + base36String;
+        decimalValue /= 36;
+    }
+
+    return base36String.empty() ? "0" : base36String;
+
+}
+
+std::string MainFrame::GetHashOrder(const std::string& value)
+{
+    std::string result = getHashSha256ToString(value);
+    result = BMHexTo58(result, 36);
+    return "OR" + result;
+   
+}
+
+std::string MainFrame::getHashSha256ToString(const std::string& publicKey)
+{
+    Botan::SHA_256 sha256;
+    sha256.update(reinterpret_cast<const Botan::byte*>(publicKey.c_str()), publicKey.length());
+    Botan::secure_vector<Botan::byte> digest = sha256.final();
+
+    std::string result = hex_encode(digest);
+
+    for (char& c : result)
+    {
+        if (c == '-')
+            c = ' ';
+        c = std::toupper(c);
+    }
+
+    return result;
+
+}
+DivResult MainFrame::DivideBigInt(const Botan::BigInt& numerator, const Botan::BigInt& denominator)
+{
+        DivResult result;
+        result.coefficient = numerator / denominator;
+        result.remainder = numerator % denominator;
+        return result; 
+}
+/*
+DivResult MainFrame::_divideBigInt(Botan::BigInt numerator, Botan::BigInt denominator)
+{
+    DivResult result = DivResult();
+    result.coefficient = numerator ~/ denominator;
+    result.remainder = numerator % denominator;
+    return result;
+}*/
+
 /*
 std::string MainFrame::SendTo(std::string Destination, int64_t Ammount, std::string Reference)
 {

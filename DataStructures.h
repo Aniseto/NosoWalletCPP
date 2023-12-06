@@ -1,6 +1,10 @@
 #pragma once
 #include <iostream>
 #include <string>
+#include <botan/bigint.h>
+//#include "MainFrame.h"
+//#include "MainFrame.h"
+//#include "MainFrame.h"
 
 //NodeStatus Struct to process data from NODESTATUS command.
 
@@ -58,9 +62,9 @@
         int64_t TimeStamp;
         char Reference[64];
         int TrxLine;
-        char Sender[120];
-        char Address[40];
-        char Receiver[40];
+        char Sender[120]; //Public KJey from Sender
+        char Address[40]; //Sender Noso Address Hash
+        char Receiver[40]; //Receiver Noso Address Hash
         int64_t AmmountFee;
         int64_t AmmountTrf;
         char Signature[120];
@@ -70,39 +74,31 @@
         int64_t GetTimeStamp() {
 
             return TimeStamp;
-        }
-        std::string GetStringFromOrderData() {
-
-            std::string OrderToSend = GetOrderType() + " " +GetOrderID() + " " + std::to_string(GetTrxLine()) + " " + GetOrderType() + std::to_string(GetTimeStamp()) + " " + GetOrderReference() + " " + "1" + GetSenderHashAddress() + " " + GetDestinationHashAddress() + " " + std::to_string(GetAmountFee()) + std::to_string(GetAmountTrfe()) + " " + GetSignature() + " " + GetTrfID();
-            return OrderToSend;
-		}
-
-
-        
+        }  
         
         //Setters & Getters
-        void SetSenderPublicKey(const std::string& SenderAddress) //Save Public Key from Sender Noso Address
+        void SetSenderPublicKey(const std::string& SenderPublicKeyAddress) //Save Public Key from Sender Noso Address
         {
             {
 
-                size_t copySize = std::min(SenderAddress.size(), sizeof(SenderAddress) - 1);
-
+                size_t copySize = std::min(SenderPublicKeyAddress.size(), sizeof(Sender) - 1);
+                //TextBox->AppendText("SenderPublicKeyAddress: " + SenderPublicKeyAddress + "\n");
                 // Copiar los datos manualmente
                 for (size_t i = 0; i < copySize; ++i) {
-                    Sender[i] = SenderAddress[i];
+                    Sender[i] = SenderPublicKeyAddress[i];
                 }
                 Sender[copySize] = '\0';
             }
         }
         std::string GetSenderPublicKey()
         {
-            return Sender;
+            return std::string(Sender);
         }
         void SetSenderHashAddress(const std::string& SenderHashAddress) //Save Sender NOSO address Hash propertie
         {
             {
 
-                size_t copySize = std::min(SenderHashAddress.size(), sizeof(SenderHashAddress) - 1);
+                size_t copySize = std::min(SenderHashAddress.size(), sizeof(Address) - 1);
 
                 // Copy data manually
                 for (size_t i = 0; i < copySize; ++i) {
@@ -119,7 +115,7 @@
         {
             {
 
-                size_t copySize = std::min(ReceiverHashAddress.size(), sizeof(ReceiverHashAddress) - 1);
+                size_t copySize = std::min(ReceiverHashAddress.size(), sizeof(Receiver) - 1);
 
                 // Copiar los datos manualmente
                 for (size_t i = 0; i < copySize; ++i) {
@@ -136,7 +132,7 @@
         {
              {
 
-                 size_t copySize = std::min(OrderTypeSet.size(), sizeof(OrderTypeSet) - 1);
+                 size_t copySize = std::min(OrderTypeSet.size(), sizeof(OrderType) - 1);
 
             // Copiar los datos manualmente
                  for (size_t i = 0; i < copySize; ++i) {
@@ -149,7 +145,7 @@
         {
             {
 
-                size_t copySize = std::min(OrderReference.size(), sizeof(OrderReference) - 1);
+                size_t copySize = std::min(OrderReference.size(), sizeof(Reference) - 1);
 
                 // Copiar los datos manualmente
                 for (size_t i = 0; i < copySize; ++i) {
@@ -162,9 +158,17 @@
         {
             Block = block;
         }
-        void SetOrderID(const std::string& SetOrdferID)
+        void SetOrderID(const std::string& SetOrderID)
         {
-            OrderID = OrderID;
+                size_t copySize = std::min(SetOrderID.size(), sizeof(OrderID) - 1);
+
+                // Copiar los datos manualmente
+                for (size_t i = 0; i < copySize; ++i) {
+                    OrderID[i] = SetOrderID[i];
+                }
+                OrderID[copySize] = '\0';
+
+           // OrderID = OrderID;
         }
         void SetOrderLines(const int Orderlines)
         {
@@ -232,7 +236,7 @@
         {
             {
 
-                size_t copySize = std::min(signature.size(), sizeof(signature) - 1);
+                size_t copySize = std::min(signature.size(), sizeof(Signature) - 1);
 
                 // Copiar los datos manualmente
                 for (size_t i = 0; i < copySize; ++i) {
@@ -346,6 +350,7 @@
             for (size_t i = 0; i < copySize; ++i) {
                 PublicKey[i] = publicKey[i];
             }
+            PublicKey[copySize] = '\0';
         }
         void SetHash(const std::string& hash) {
 
@@ -385,11 +390,11 @@
 
     };
 #pragma pack(pop)
-
-    struct DivResult {
+/*
+   struct DivResult {
         std::string cociente;
         std::string residuo;
-    };
+    };*/
 
 #pragma pack(push, 1)
     class PendingOrders {
@@ -400,5 +405,15 @@
         std::string DestinationAddress;
         int64_t Amount;
         int64_t Fee;
+    };
+#pragma pack(pop)
+
+#pragma pack(push, 1)   
+    class DivResult {
+    public:
+        Botan::BigInt coefficient = Botan::BigInt(0);   //= Botan::BigInt.zero;
+        Botan::BigInt remainder = Botan::BigInt(0);    // = BigInt.zero;
+
+
     };
 #pragma pack(pop)
