@@ -86,7 +86,7 @@ private:
 	std::string getHashSha256ToString(const std::string& publicKey);
 	//DivResult _divideBigInt(Botan::BigInt numerator, Botan::BigInt denominator);
 	DivResult DivideBigInt(const Botan::BigInt& numerator, const Botan::BigInt& denominator);
-	
+	Botan::secure_vector<uint8_t> calculateSHA1(const std::vector<unsigned char>& input);
 
 
 

@@ -552,35 +552,29 @@ std::string MainFrame::SignMessage(const std::string& message, const std::string
 {
     try {
         Botan::AutoSeeded_RNG rng;
-        Botan::AlgorithmIdentifier alg_id("ECDSA", Botan::AlgorithmIdentifier::USE_NULL_PARAM);
-   
         std::vector<unsigned char> messages = nosoBase64Decode(message);
+        Botan::secure_vector<uint8_t> hash_result_Message = calculateSHA1(messages);
+        Botan::secure_vector<uint8_t> decodedPrivatKey = Botan::base64_decode(privateKeyBase64);
+        Botan::AlgorithmIdentifier alg_id("ECDSA", Botan::AlgorithmIdentifier::USE_NULL_PARAM);
 
-        Botan::secure_vector<uint8_t> decodedData = Botan::base64_decode(privateKeyBase64);
-       
-        Botan::BigInt private_key_value = Botan::BigInt::decode(decodedData.data(), decodedData.size());
+        Botan::BigInt private_key_value = Botan::BigInt::decode(decodedPrivatKey.data(), decodedPrivatKey.size());
         Botan::EC_Group secp256k1("secp256k1");
-        Botan::ECDSA_PrivateKey private_key(rng,secp256k1, private_key_value);
-    
-        Botan::PK_Signer signer(private_key, rng, "EMSA1(SHA-256)", Botan::DER_SEQUENCE);
+        Botan::ECDSA_PrivateKey private_key(rng, secp256k1, private_key_value);
+
+        Botan::PK_Signer signer(private_key, rng, "EMSA1(SHA-1)", Botan::DER_SEQUENCE);
         signer.update(messages);
         std::vector<uint8_t> signature = signer.signature(rng);
-        TextBox->AppendText("\nSignatude completed");
-     
-       // std::vector<uint8_t> signature = signer.signature(rng);
 
         std::string signature_base64 = Botan::base64_encode(signature.data(), signature.size());
-
         return signature_base64;
-        //return Botan::hex_encode(signature);
 
     }
 
 
     catch (const std::exception& ex)
     {
-            std::cerr << "Error: " << ex.what() << std::endl;
-            return ex.what();
+        std::cerr << "Error: " << ex.what() << std::endl;
+        return ex.what();
     }
 }
 
@@ -749,8 +743,8 @@ void MainFrame::InitializeWallet()
     std::string WalletCPPFullPath = (fs::current_path() / "data" / "walletcpp.pkw").string();
 
     //
-    TextBox->AppendText("\nDEBUG Sha and Base36");
-    std::string nosoTest = "noso";
+    //TextBox->AppendText("\nDEBUG Sha and Base36");
+    //std::string nosoTest = "noso";
 
 
 
@@ -759,8 +753,8 @@ void MainFrame::InitializeWallet()
         TextBox->AppendText("\nNOSOCPP Wallet File Detected. Loading addresses\n");
         //std::vector<WalletData> walletCPPDataLoaded = ReadWalletDataFromNosoCPP(WalletCPPFullPath);
         walletCPPDataLoaded = ReadWalletDataFromNosoCPP(WalletCPPFullPath);
-        TextBox->AppendText("\nTotal NOSOCPP address loaded : ");
-        TextBox->AppendText(std::to_string(walletCPPDataLoaded.size()));
+        //TextBox->AppendText("\nTotal NOSOCPP address loaded : ");
+        //TextBox->AppendText(std::to_string(walletCPPDataLoaded.size()));
 
         //Show Data on central Table
         NosoAddressGrid->DeleteRows();
@@ -805,16 +799,16 @@ void MainFrame::InitializeWallet()
     //Update TIme
     //MainFrame::UpdateDateAndTime();
 
-    TextBox->AppendText("\nTESTING MaxAmmount To Send from 1000 Noso");
-    int64_t max = GetMaximumToSend(1000);
-    TextBox->AppendText("\nMax Ammount to Send: ");
-    TextBox->AppendText(std::to_string(max));
-    TextBox->AppendText("\n");
-    TextBox->AppendText("\nTESTING MaxAmmount To Send from 100000000 Noso");
-    max = GetMaximumToSend(100000000);
-    TextBox->AppendText("\nMax Ammount to Send: ");
-    TextBox->AppendText(std::to_string(max));
-    TextBox->AppendText("\n");
+    //TextBox->AppendText("\nTESTING MaxAmmount To Send from 1000 Noso");
+    //int64_t max = GetMaximumToSend(1000);
+    //TextBox->AppendText("\nMax Ammount to Send: ");
+    //TextBox->AppendText(std::to_string(max));
+    //TextBox->AppendText("\n");
+    //TextBox->AppendText("\nTESTING MaxAmmount To Send from 100000000 Noso");
+    //max = GetMaximumToSend(100000000);
+    //TextBox->AppendText("\nMax Ammount to Send: ");
+    //TextBox->AppendText(std::to_string(max));
+   // TextBox->AppendText("\n");
     
     TextBox->AppendText("\n SendTO Debug Test Callung function: SourceAddress: NxcLMr13oJ7bKx9dFSUhHstDiTF1DM");
     TextBox->AppendText("\n SendTO Debug Test Calling function: DestinationAddress: NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb");
@@ -1199,9 +1193,12 @@ std::string MainFrame::GetPublicKeyFromNosoAddress(const std::string & NosoAddre
     for (size_t i = 0; i < walletCPPDataLoaded.size(); ++i)
     {
         if (walletCPPDataLoaded[i].GetHash() == NosoAddress)
-            return walletCPPDataLoaded[i].GetPublicKey();
+        {
             TextBox->AppendText("\nDEBUG: Found Public Key from Specific Address -> ");
             TextBox->AppendText(NosoAddress);
+            return walletCPPDataLoaded[i].GetPublicKey();
+          
+        }
     }
 
     return notfound;
@@ -2059,6 +2056,17 @@ DivResult MainFrame::DivideBigInt(const Botan::BigInt& numerator, const Botan::B
         result.coefficient = numerator / denominator;
         result.remainder = numerator % denominator;
         return result; 
+}
+Botan::secure_vector<uint8_t> MainFrame::calculateSHA1(const std::vector<unsigned char>& input)
+{
+    
+        std::unique_ptr<Botan::HashFunction> hash_function(Botan::HashFunction::create("SHA-1"));
+        hash_function->update(input.data(), input.size());
+        Botan::secure_vector<uint8_t> hash_result = hash_function->final();
+
+        return hash_result;
+    
+    //return Botan::secure_vector<uint8_t>();
 }
 /*
 DivResult MainFrame::_divideBigInt(Botan::BigInt numerator, Botan::BigInt denominator)
