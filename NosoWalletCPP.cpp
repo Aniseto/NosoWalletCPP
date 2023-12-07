@@ -1536,7 +1536,7 @@ std::string MainFrame::SendTo(std::string Destination, int64_t Ammount, std::str
     int64_t ShowFee;
     int64_t Remaining;
     int64_t CoinsAvailable;
-    boolean KeepProcess = true;
+    //boolean KeepProcess = true;
     OrderData OrderToSend;
     int Counter;
     std::string OrderHashString;
