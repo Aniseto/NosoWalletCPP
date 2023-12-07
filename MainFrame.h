@@ -33,16 +33,13 @@ private:
 	void GenerateKeys(wxCommandEvent& evt);
 	void GetMasterNodeConfig(wxCommandEvent& evt);
 	bool UnzipFile(const wxString& zipFileName, const wxString& outputDir);
-	std::string PublicKeyToSHA256(const std::string& publicKey);
 	std::string CalculateMD160(const std::string& SHA256String);
 	std::string EncodeBase58(const std::string& MD160String);
 	int CalculateCheckSum(const std::string& StringChecksum);
 	std::string BmDecto58(const std::string& number);
 	std::string SignMessage(const std::string& message, const std::string& privateKeyBase64);
 	bool VerifySignature(const std::string& message, const std::string& signatureBase64, const std::string& publicKeyBase64);
-	std::string base64ToPEMPrivateKey(const std::string& privateKeyBase64);
 	std::string addPEMHeaders(const std::string& privateKeyBase64, const std::string& header, const std::string& footer);
-	std::string HexToBase64(const std::string& hexString);
 	bool SaveWalletDataToFile(const WalletData& walletData, const std::string& filePath);
 	void UpdateDateAndTime();
 	void OnTimer(wxTimerEvent& event);
@@ -55,11 +52,9 @@ private:
 	std::string GetPublicKeyFromNosoAddress(const std::string& NosoAddress);
 	std::string GetPrivateKeyFromNosoAddress(const std::string& NosoAddress);
 	std::string GetTransferHash(const std::string& Transfer);
-	std::string BMB58Sumatory(const std::string& Base58Number);
 	bool CheckIfNosoAddressExistsOnMyWallet(const std::string& NosoAddressToCheck, std::vector<WalletData> WalletToSearch);
 	bool CheckIfNosoAddressIsValid(const std::string& NosoAddressToCheckIfValid);
 	bool IsValid58(const std::string& Base58Text);
-	DivResult BMDividir(const std::string& FirstNumber, const std::string& SecondNumber);
 	std::string BMB58Resumen(const std::string& Number58);
 	void OnSendNosoButtonClicked(wxCommandEvent& evt);
 	int64_t GetMainetTime();
@@ -68,7 +63,6 @@ private:
 	int64_t Curr2Int(const std::string& CurrStr);
 	int64_t GetMaximumToSend(int64_t ammount);
 	std::string GetOrderHash(const std::string& Order);
-	//std::string BMHexTo58(const std::string& numerohex, int alphabetnumber);
 	std::string BMHexTo58(const std::string& numerohex, const Botan::BigInt& alphabetnumber);
 	std::string BMHexToDec(const std::string& numerohex);
 	std::string BMExponente(const std::string& Numero1,const std::string& Numero2);
@@ -79,12 +73,9 @@ private:
 	int64_t GetFee(int64_t amount);
 	std::string SendTo(std::string Destination, int64_t Ammount, std::string Reference);
 	std::string GetPTCEcn(std::string OrderType);
-	std::string BMHexTo36(std::string result);
 	std::string GetStringFromOrder(OrderData& Order);
-	std::string Base36(std::string& StringToConvert);
 	std::string GetHashOrder(const std::string& value);
 	std::string getHashSha256ToString(const std::string& publicKey);
-	//DivResult _divideBigInt(Botan::BigInt numerator, Botan::BigInt denominator);
 	DivResult DivideBigInt(const Botan::BigInt& numerator, const Botan::BigInt& denominator);
 	Botan::secure_vector<uint8_t> calculateSHA1(const std::vector<unsigned char>& input);
 

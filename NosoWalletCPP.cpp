@@ -9,11 +9,9 @@
 #include "DataStructures.h"
 #include <algorithm>
 #include <fstream>
-
 #include <wx/hash.h>
 #include <iostream>
 #include <string>
-//#include <botan/botan.h>
 #include <botan/auto_rng.h>
 #include <botan/rsa.h>
 #include <botan/base58.h>
@@ -29,19 +27,14 @@
 #include <filesystem>
 #include <wx/statusbr.h>
 #include <wx/statusbr.h>
-//#include <curl/curl.h>
 #include <ctime>
 #include <wx/timer.h>
-namespace fs = std::filesystem;
-/// Added for Unix Like system compatibilty: END.
 #include <botan/auto_rng.h>
 #include <botan/ecdsa.h>
 #include <botan/hex.h>
-//#include <boost/system/detail/error_category.hpp>
 #include <botan/bigint.h>
 #include <botan/base58.h>
 #include <botan/base64.h>
-//#include <botan/sha2_56.h>
 #include <botan/hex.h>
 #include <botan/rmd160.h>
 
@@ -63,8 +56,9 @@ namespace fs = std::filesystem;
 #include <bitset>
 
 
+namespace fs = std::filesystem; /// Added for Unix Like system compatibilty: END.
 
-MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {   //Constructor Base class
+MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {   
 	wxPanel* panel = new wxPanel(this);
 
     //Menu Definition
@@ -73,6 +67,7 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {  
     openItem = new wxMenuItem(MainMenu, wxID_OPEN, "Open\tCtrl+O");
     saveItem = new wxMenuItem(MainMenu, wxID_SAVE, "Save\tCtrl+S");
     exitItem = new wxMenuItem(MainMenu, wxID_EXIT, "Exit\tAlt+F4");
+
     // Add menu items to the File menu
     MainMenu->Append(openItem);
     MainMenu->Append(saveItem);
@@ -156,7 +151,6 @@ void MainFrame::OnConnectButtonClicked(wxCommandEvent& evt)
     std::string NodeStatus = SendStringToNode(DefaultNodeIp, DefaultNodePort, NODESTATUS_COMMAND);
     std::istringstream NodeStatusIss(NodeStatus);
     NodeStatusData data;
-    //NODESTATUS 4 117969 0 0 65B69 0.4.1Aa1 1688913930 C4A6A 266 45996FF8BFA3287267CE2CE8746D3E02 FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF1 1688913600 NpryectdevepmentfundsGE 0 62 FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF1 27D68 9E57A 54526 7DEA3"
 
     NodeStatusIss >> data.NodeStatus;
     NodeStatusIss >> data.Peers;
@@ -202,7 +196,7 @@ std::vector<TSummaryData> MainFrame::DownloadSumary()
     int DefaultNodePort = 8080;
     std::string GETZIPSUMARY_COMMAND = "GETZIPSUMARY\n";
     std::string GetZipSumaryResponse = SendStringToNode(DefaultNodeIp, DefaultNodePort, GETZIPSUMARY_COMMAND);
-    //GetSumaryText->SetLabel(wxString(GetZipSumaryResponse));              // Modify Static text to show Current Block
+    
 
     wxString zipFileName = "summary.zip";
     wxString outputDir = (fs::current_path() / "").string();
@@ -259,7 +253,7 @@ void MainFrame::GetMasterNodeList(wxCommandEvent& evt)
     int DefaultNodePort = 8080;										//PENDING: Set PORT from List of Nodes.
     std::string MasterNodeListString = SendStringToNode(DefaultNodeIp, DefaultNodePort, NODESTATUS_COMMAND);
     TextBox->SetLabel(MasterNodeListString);
-    //MasterNodeListText->SetLabel("Master Node List OK");
+    
     
 }
 
@@ -275,7 +269,7 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     std::string NosoAddressTest = "Empty";
 
     
-    // Generate Keys
+    // Generate Keys using Botan Library
     Botan::AutoSeeded_RNG rng;
     Botan::ECDSA_PrivateKey private_key(rng, Botan::EC_Group("secp256k1"));
     std::vector<uint8_t> publicKeyPointBytes = private_key.public_point().encode(Botan::PointGFp::UNCOMPRESSED);
@@ -283,16 +277,11 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     std::string privateKeyBase64 = Botan::base64_encode(privateKeyBytes.data(), privateKeyBytes.size());
     std::string publicKeyPointBase64 = Botan::base64_encode(publicKeyPointBytes.data(), publicKeyPointBytes.size());
 
-    //Save Generated Keys to Wallet.
+    //Save Generated Keys, public and private to Local Memory Wallet just to use it. MyWallet is a WalletData object
 
     MyWallet.SetPrivateKey(privateKeyBase64);
     MyWallet.SetPublicKey(publicKeyPointBase64);
-   
-    TextBox->AppendText("\n\nGENERATING NOSO ADDRESS PUBLIC KEY: \n");
-    TextBox->AppendText(publicKeyPointBase64);
-    TextBox->AppendText("\n\nGENERATING NOSO ADDRESS PRIVATE KEY: \n");
-    TextBox->AppendText(privateKeyBase64);
-  
+     
 
     //Generate NOSO ADDRESS
     
@@ -305,80 +294,24 @@ void MainFrame::GenerateKeys(wxCommandEvent& evt)
     //Final Noso Address: N + Base58 + Base58(CheckSum)
     NosoAddress = "N" + Base58 + CheckSumBase58;
     MyWallet.SetHash(NosoAddress);
-    TextBox->AppendText("\nNOSO Address:\n");
+    TextBox->AppendText("\nNOSO Address Generated :\n");
     TextBox->AppendText(NosoAddress);
-    TextBox->AppendText("\n\nEND NOSO ADDRESS GENERATION\n");
 
-    //Save New NOSO Address to file.
+
+    //Save New NOSO Address to local wallet file.
 
     std::string NosoWalletCPPPath = (fs::current_path() / "data" / "walletcpp.pkw").string();
     SaveWalletDataToFile(MyWallet, NosoWalletCPPPath);
-    //std::vector<WalletData> walletCPPDataLoaded = ReadWalletDataFromNosoCPP(NosoWalletCPPPath); 
+    
+    //Load again all addresses and update table
+
+    //***** Potential Improvement, just add the new addres to Grid, do not load again all addresses from file 
+
     walletCPPDataLoaded = ReadWalletDataFromNosoCPP(NosoWalletCPPPath);
     TextBox->AppendText("\nTotal NOSOCPP address loaded : ");
     TextBox->AppendText(std::to_string(walletCPPDataLoaded.size()));
-
-    // Create a function to update GRID.
-
     UpdateTable(walletCPPDataLoaded);
 
-    /*
-    //  //SourceAddress Sender :NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb
-    //DestionAddress       :N2XjEbgabYNXdH1mzoWjJWJgMyPtZFr
-    bool IsValid = CheckIfNosoAddressIsValid("NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb");
-    if (IsValid) {
-        TextBox->AppendText("\nIs Valid");
-    }
-    else {
-        TextBox->AppendText("\nIs not Valid");
-            
-    }
-    //TEST IsValid58
-    TextBox->AppendText("\nTesting is Valid ZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb ");
-    bool valid58 = IsValid58("ZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb");
-    if (valid58)
-    {
-        TextBox->AppendText("Is Valid !");
-    }
-    else {
-        TextBox->AppendText("Is NOT Valid !");
-    }
-    TextBox->AppendText("\nTesting is Valid ZXpFV6SHcJ6xhhX2Bgid4ofQqsbE. ");
-    valid58 = IsValid58("ZXpFV6SHcJ6xhhX2Bgid4ofQqsbE.");
-    if (valid58)
-    {
-        TextBox->AppendText("Is Valid !");
-    }
-    else {
-        TextBox->AppendText("Is NOT Valid !");
-    }
-
-    TextBox->AppendText("\nTesting is Valid N2XjEbgabYNXdH1mzoWjJWJgMyPtZFr ");
-    valid58 = IsValid58("N2XjEbgabYNXdH1mzoWjJWJgMyPtZFr");
-    if (valid58)
-    {
-        TextBox->AppendText("Is Valid !");
-    }
-    else {
-        TextBox->AppendText("Is NOT Valid !");
-    }
-    */
-    //TESTING SendNosoFromAddress
-    
-    
-    /*
-    OrderData TestOrder;
-    std::string SourceAddressNoso = "NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb";
-    std::string DestinationAddressNoso = "N2XjEbgabYNXdH1mzoWjJWJgMyPtZFr";
-    std::string ReferenceNoso = "Test Reference";
-    std::string OrderTimeTest = std::to_string(GetMainetTime());
-    //1 Noso = 100000000
-    int64_t AmmountToSend = 3000000; //003000000 = 0,03 Noso
-    int64_t Comision = 1000000; // 0000100000 = 0,01 Noso
-    TestOrder = SendFundsFromAddress(SourceAddressNoso, DestinationAddressNoso, AmmountToSend, Comision, ReferenceNoso, OrderTimeTest, 1);
-    bool IsValid1 = CheckIfNosoAddressExistsOnMyWallet(SourceAddressNoso, walletCPPDataLoaded);
-    //bool IsValid2 = CheckIfNosoAddressIsValid(DestinationAddress);
-    */
 }
 
 
@@ -388,9 +321,9 @@ bool MainFrame::UnzipFile(const wxString& zipFileName, const wxString& outputDir
 
     if (!fis.IsOk())
     {
-        //wxLogError(wxS("Couldn't open the file '%s'."), zipFileName);
+       
         wxString ErrorOpening;
-        ErrorOpening.Printf("Couldn't open the file '%s'.", zipFileName);
+         
         TextBox->AppendText(ErrorOpening + "\n");
         return false;
     }
@@ -398,31 +331,31 @@ bool MainFrame::UnzipFile(const wxString& zipFileName, const wxString& outputDir
     wxZipInputStream zis(fis);
     std::unique_ptr<wxZipEntry> upZe;
 
-    while (upZe.reset(zis.GetNextEntry()), upZe) // != nullptr
+    while (upZe.reset(zis.GetNextEntry()), upZe) 
     {
-        // Access meta-data.
+       
         wxString strFileName = outputDir + wxFileName::GetPathSeparator() + upZe->GetName();
         int nPermBits = upZe->GetMode();
         wxFileName fn;
 
-        if (upZe->IsDir()) // This entry is a directory.
+        if (upZe->IsDir()) 
             fn.AssignDir(strFileName);
-        else // This entry is a regular file.
+        else 
             fn.Assign(strFileName);
 
-        // Check if the directory exists, and if not, create it recursively.
+       
         if (!wxDirExists(fn.GetPath()))
             wxFileName::Mkdir(fn.GetPath(), nPermBits, wxPATH_MKDIR_FULL);
 
-        if (upZe->IsDir()) // This entry is a directory.
-            continue; // Skip the file creation, because this entry is not a regular file, but a directory.
+        if (upZe->IsDir()) 
+            continue; 
 
-        // Read 'zis' to access the 'upZe's' data.
+        
         if (!zis.CanRead())
         {
-            wxLogError(wxS("Couldn't read the zip entry '%s'."), upZe->GetName());
+            
             wxString ErrorReading;
-            ErrorReading.Printf("Couldn't read the zip entry '%s'.", upZe->GetName());
+            
             TextBox->AppendText(ErrorReading + "\n");
             return false;
         }
@@ -431,9 +364,9 @@ bool MainFrame::UnzipFile(const wxString& zipFileName, const wxString& outputDir
 
         if (!fos.IsOk())
         {
-            wxLogError(wxS("Couldn't create the file '%s'."), strFileName);
+            
             wxString ErrorCreating;
-            ErrorCreating.Printf("Couldn't create the file '%s'.", strFileName);
+            
             TextBox->AppendText(ErrorCreating + "\n");
             return false;
         }
@@ -446,35 +379,6 @@ bool MainFrame::UnzipFile(const wxString& zipFileName, const wxString& outputDir
 
     return true;
 }
-
-std::string MainFrame::PublicKeyToSHA256(const std::string& publicKey)
-{
-
-        // Create a SHA-256 hash object
-        Botan::SHA_256 sha256;
-
-        // Update the hash object with the input data
-        sha256.update(reinterpret_cast<const Botan::byte*>(publicKey.data()), publicKey.size());
-
-        // Finalize the hash and get the resulting digest
-        Botan::secure_vector<Botan::byte> digest = sha256.final();
-
-        // Convert the digest to a hexadecimal string
-        std::string hashString;
-        for (Botan::byte b : digest)
-        {
-            hashString += Botan::hex_encode(&b, 1);
-        }
-
-        std::transform(hashString.begin(), hashString.end(), hashString.begin(), [](unsigned char c) 
-            
-            {
-            return std::tolower(c);
-            });
-        return hashString;
-    
-}
-
 
 std::string MainFrame::CalculateMD160(const std::string& SHA256String)
 {
@@ -587,7 +491,7 @@ bool MainFrame::VerifySignature(const std::string& message, const std::string& s
     Botan::secure_vector<uint8_t> decodedPublicKey = Botan::base64_decode(publicKeyBase64);
     Botan::secure_vector<uint8_t> signature = Botan::base64_decode(signatureBase64.data(), signatureBase64.size());
     std::vector<unsigned char> messages = nosoBase64Decode(message);
-    //std::vector<unsigned char> messages = core.nosoBase64Decode("VERIFICATION");
+   
 
 
     if (decodedPublicKey.size() != 65) {
@@ -619,69 +523,26 @@ bool MainFrame::VerifySignature(const std::string& message, const std::string& s
 }
 
 
-
-std::string MainFrame::base64ToPEMPrivateKey(const std::string& privateKeyBase64)
-{
-    try {
-        // Decodificar la clave privada desde Base64
-        std::string privateKeyPEM;
-        Botan::secure_vector<uint8_t> private_key_data = Botan::base64_decode(privateKeyBase64);
-
-        // Crear un objeto Private_Key usando la clave privada decodificada
-        Botan::DataSource_Memory private_key_source(private_key_data);
-        std::unique_ptr<Botan::Private_Key> private_key(Botan::PKCS8::load_key(private_key_source));
-
-        if (!private_key) {
-            std::cerr << "Error al cargar la clave privada" << std::endl;
-            return "Error";
-        }
-
-        // Exportar la clave privada en formato PEM
-        privateKeyPEM = Botan::PKCS8::PEM_encode(*private_key);
-
-        return privateKeyPEM;
-    }
-    catch (const std::exception& ex) {
-        std::cerr << "Error: " << ex.what() << std::endl;
-        return "Error";
-    }
-}
-
 std::string MainFrame::addPEMHeaders(const std::string& privateKeyBase64, const std::string& header, const std::string& footer)
 {
+    
     std::string pemPrivateKey = header + "\n";
     pemPrivateKey += privateKeyBase64 + "\n";
     pemPrivateKey += footer + "\n";
 
     return pemPrivateKey;
 }
-    //return std::string();
+    
    
-
-std::string MainFrame::HexToBase64(const std::string& hexString)
-{
-    std::vector<uint8_t> binaryData;
-
-    for (size_t i = 0; i < hexString.length(); i += 2) {
-        std::string byteStr = hexString.substr(i, 2);
-        uint8_t byte = static_cast<uint8_t>(std::stoi(byteStr, 0, 16));
-        binaryData.push_back(byte);
-    }
-
-    // Encode binary data as Base64
-    std::string base64String = Botan::base64_encode(binaryData.data(), binaryData.size());
-
-    return base64String;
-}
 bool MainFrame::SaveWalletDataToFile(const WalletData& walletData, const std::string& filePath)
 {
-    // Open the file for writing in binary append mode
-    //std::ofstream outputFile("walletcpp.pkw", std::ios::binary | std::ios::app);
+   
     std::ofstream outputFile(filePath, std::ios::binary | std::ios::app);
 
     // Check if the file was opened successfully
     if (!outputFile) {
-        std::cerr << "Error: Could not open the file for writing." << std::endl;
+      
+        TextBox->AppendText("\nError: Could not open the file for writing.");
         return false;
     }
 
@@ -690,7 +551,8 @@ bool MainFrame::SaveWalletDataToFile(const WalletData& walletData, const std::st
 
     // Check for write errors
     if (outputFile.fail()) {
-        std::cerr << "Error: Failed to write data to the file." << std::endl;
+       
+        TextBox->AppendText("\nError: Failed to write data to the file.");
         outputFile.close(); // Close the file
         return false;
     }
@@ -698,7 +560,8 @@ bool MainFrame::SaveWalletDataToFile(const WalletData& walletData, const std::st
     // Close the file
     outputFile.close();
 
-    std::cout << "WalletData appended to walletcpp.pkw" << std::endl;
+   
+    TextBox->AppendText("\nNew Address added to walletcpp.pkw");
     return true;
 }
 
@@ -707,7 +570,7 @@ void MainFrame::UpdateDateAndTime()
     wxDateTime currentDateTime = wxDateTime::Now();
     wxString dateTimeStr = currentDateTime.Format("%Y-%m-%d %H:%M:%S");
     statusBar->SetStatusText(dateTimeStr, 2);
-    //dateAndTimeText->SetLabel(dateTimeStr);
+    
 
 }
 
@@ -726,7 +589,6 @@ void MainFrame::InitializeWallet()
  
     //SetTimer
     timer->SetOwner(this);
-    //timerSetOwner(this);
     timer->Start(1000);  // 1000 ms = 1 second
     Connect(timer->GetId(), wxEVT_TIMER, wxTimerEventHandler(MainFrame::OnTimer), NULL, this);
 
@@ -734,27 +596,18 @@ void MainFrame::InitializeWallet()
     wxCommandEvent fakeEvent(wxEVT_BUTTON, wxID_ANY); // Create a fake button click event
     OnConnectButtonClicked(fakeEvent); // Call the function
     
- 
-    //OnDownloadSummaryButtonClicked(fakeEvent);
     SumarydataVector = MainFrame::DownloadSumary();
+
     //Check if walletcpp.pkw exists on /data directory, if exists load all addresses, if no create a new NOSO address, save to file and load Address
 
-    //std::string WalletFullPath = (fs::current_path() / "data" / "wallet.pkw").string();
     std::string WalletCPPFullPath = (fs::current_path() / "data" / "walletcpp.pkw").string();
-
-    //
-    //TextBox->AppendText("\nDEBUG Sha and Base36");
-    //std::string nosoTest = "noso";
-
-
 
     if (DoesFileExist(WalletCPPFullPath))
     {
         TextBox->AppendText("\nNOSOCPP Wallet File Detected. Loading addresses\n");
-        //std::vector<WalletData> walletCPPDataLoaded = ReadWalletDataFromNosoCPP(WalletCPPFullPath);
+   
         walletCPPDataLoaded = ReadWalletDataFromNosoCPP(WalletCPPFullPath);
-        //TextBox->AppendText("\nTotal NOSOCPP address loaded : ");
-        //TextBox->AppendText(std::to_string(walletCPPDataLoaded.size()));
+ 
 
         //Show Data on central Table
         NosoAddressGrid->DeleteRows();
@@ -762,15 +615,9 @@ void MainFrame::InitializeWallet()
             std::string HashKeyLoaded = walletCPPDataLoaded[i].GetHash();
             std::string Label = walletCPPDataLoaded[i].GetLabel();
             std::int64_t Pending = walletCPPDataLoaded[i].GetPending();
-            //std::int64_t Balance = walletCPPDataLoaded[i].GetBalance();
-            //std::int64_t Balance = GetBalanceFromNosoAddresswalletCPPDataLoaded[i].GetBalance();
+          
             std::int64_t Balance = GetBalanceFromNosoAddress(SumarydataVector, HashKeyLoaded.c_str());
-            //int64_t integerNumber = 1234567890; // Your int64_t number
-            //double decimalBalance = static_cast<double>(Balance); // Convert to double
-            //double decimalBalance = static_cast<double>(Balance) / 100000000.0;
-            //std::stringstream stream;
-            //stream << std::fixed << std::setprecision(8) << decimalBalance;
-            //std::string formattedDecimalBalance = stream.str();
+          
             std::string ConvertedToDecimal = Int2Curr(Balance);
 
             
@@ -778,7 +625,6 @@ void MainFrame::InitializeWallet()
             NosoAddressGrid->SetCellValue(i, 0, HashKeyLoaded);
             NosoAddressGrid->SetCellValue(i, 1, Label);
             NosoAddressGrid->SetCellValue(i, 2, std::to_string(Pending));
-            //NosoAddressGrid->SetCellValue(i, 3, formattedDecimalBalance);
             NosoAddressGrid->SetCellValue(i, 3, ConvertedToDecimal);
 
 
@@ -790,35 +636,26 @@ void MainFrame::InitializeWallet()
         TextBox->AppendText("\nWalletcpp.pkw File does not exist, some probems happened as walletcpp.pkw cannot be created in Data directory.\n ");
 
     }
-    //Download Summary
+    
   
     UpdateTable(walletCPPDataLoaded);
 
 
     MainFrame::GetPendings();
-    //Update TIme
-    //MainFrame::UpdateDateAndTime();
 
-    //TextBox->AppendText("\nTESTING MaxAmmount To Send from 1000 Noso");
-    //int64_t max = GetMaximumToSend(1000);
-    //TextBox->AppendText("\nMax Ammount to Send: ");
-    //TextBox->AppendText(std::to_string(max));
-    //TextBox->AppendText("\n");
-    //TextBox->AppendText("\nTESTING MaxAmmount To Send from 100000000 Noso");
-    //max = GetMaximumToSend(100000000);
-    //TextBox->AppendText("\nMax Ammount to Send: ");
-    //TextBox->AppendText(std::to_string(max));
-   // TextBox->AppendText("\n");
-    
+    /*********** SENDTO DEBUG TEST ******
+    //MainFrame::SendToDebugTest();
+
     TextBox->AppendText("\n SendTO Debug Test Callung function: SourceAddress: NxcLMr13oJ7bKx9dFSUhHstDiTF1DM");
     TextBox->AppendText("\n SendTO Debug Test Calling function: DestinationAddress: NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb");
-    //TextBox->AppendText(GetPublicKeyFromNosoAddress("BL17ZOMYGHMUIUpKQWM+3tXKbcXF0F+kd4QstrB0X7iWvWdOSrlJvTPLQufc1Rkxl6JpKKj/KSHpOEBK+6ukFK4=");
 
     std::string Sendto_Result;
-    Sendto_Result=SendTo("NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb", 1000000,"Test");
+    
+    //Sendto_Result=SendTo("NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb", 1000000,"Test");
     TextBox->AppendText("\n SendTO Debug Test Result: ");
     TextBox->AppendText(Sendto_Result);
-
+    ****************** SENDTO DEBUG TEST ******
+    */
 
 }
 
@@ -834,7 +671,7 @@ std::vector<WalletData> MainFrame::ReadWalletDataFromNosolite(const std::string&
     std::vector<WalletData> dataVectorWallet;
     std::ifstream inputFileWallet(filePath, std::ios::binary);
     if (!inputFileWallet) {
-        //std::cerr << "Cannot open the file." << std::endl;
+        
         wxString ErrorOpeningWalletFile;
         ErrorOpeningWalletFile.Printf("Cannot open /data/wallet.pkw file");
         TextBox->AppendText(ErrorOpeningWalletFile + "\n");
@@ -852,12 +689,8 @@ std::vector<WalletData> MainFrame::ReadWalletDataFromNosolite(const std::string&
 
     inputFileWallet.close();
 
-    //std::string test= dataVectorWallet[0].GetHash;
-
-
-
     return dataVectorWallet;
-    //return std::vector<WalletData>();
+    
 }
 
 std::vector<WalletData> MainFrame::ReadWalletDataFromNosoCPP(const std::string& filePath)
@@ -865,7 +698,7 @@ std::vector<WalletData> MainFrame::ReadWalletDataFromNosoCPP(const std::string& 
     std::vector<WalletData> dataVectorWalletCPP;
     std::ifstream inputFile(filePath, std::ios::binary);
     if (!inputFile) {
-        TextBox->AppendText("Error: Could not open NosowalletCPP.PKW the file for reading.");
+        TextBox->AppendText("\nError: Could not open NosowalletCPP.PKW the file for reading.");
         return dataVectorWalletCPP; // Return an empty vector on error
     }
     WalletData walletData;
@@ -873,13 +706,13 @@ std::vector<WalletData> MainFrame::ReadWalletDataFromNosoCPP(const std::string& 
         dataVectorWalletCPP.push_back(walletData);
     }
     if (inputFile.fail() && !inputFile.eof()) {
-        TextBox->AppendText("Error: Failed to read data from the file.");
+        TextBox->AppendText("\nError: Failed to read data from the file.");
         inputFile.close(); // Close the file
         return dataVectorWalletCPP; // Return what was read so far on error
     }
     inputFile.close();
 
-    TextBox->AppendText("Data read from "+ filePath +" and appended to the vector.");
+    TextBox->AppendText("\nData read from "+ filePath +" and appended to the vector.");
     
     return dataVectorWalletCPP;
 }
@@ -890,7 +723,7 @@ void MainFrame::OnTimer(wxTimerEvent& event) {
 
 std::string MainFrame::GetPendings()
 {
-    //TextBox->Clear();
+   
     TextBox->AppendText("\nGetting Pending orders from Node.\n");
     std::string NODESTATUS_COMMAND = "NSLPEND\n";
     std::string DefaultNodeIp = "20.199.50.27";						//PENDDING: Send commmand to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
@@ -902,11 +735,10 @@ std::string MainFrame::GetPendings()
         return "NULL";
     }
     else {
-       // TextBox->AppendText("Pending Orders Text From Node: \n");
-        //TextBox->AppendText(PendingOrdersText);
+       
         TextBox->AppendText("Pending Orders: \n");
         TextBox->AppendText(PendingOrdersText);
-        //return PendingOrdersText;
+        
         std::istringstream iss(PendingOrdersText);
         std::string line;
         std::vector<PendingOrders> ordersVector;
@@ -919,9 +751,9 @@ std::string MainFrame::GetPendings()
             std::getline(lineStream, order.SourceAddress, ',');
             std::getline(lineStream, order.DestinationAddress, ',');
             lineStream >> order.Amount;
-            lineStream.ignore(); // Ignore the comma
+            lineStream.ignore(); 
             lineStream >> order.Fee;
-            //lineStream.ignore(); // Ignore the newline
+            
   
 
             ordersVector.push_back(order);
@@ -946,11 +778,6 @@ std::string MainFrame::GetPendings()
         return PendingOrdersText;
 	}
 }
-    //Example Answer with pending Order: Getting Pending orders from Node.
-    //TRFR, NBFX6wuUKc1hwFWSA9kctv9XhohbEs, N3J2F4YDFFauC1aVBVuStFeFLwcwsDD, 2000000000, 1000000 //Example sending 20 NOSO fomr Addrress NBF* to N3J2*, wich 0.1 commission.
-    //TRFR,NbvGykuZ1ZXzdbk9pKkydBFcGbX1Ft,N3J2F4YDFFauC1aVBVuStFeFLwcwsDD,2030000000,1000000 Example sending 20.3 NOSO.
-    //TRFR,NBFX6wuUKc1hwFWSA9kctv9XhohbEs,N3J2F4YDFFauC1aVBVuStFeFLwcwsDD,3560000000,1000000 TRFR,NbvGykuZ1ZXzdbk9pKkydBFcGbX1Ft,N3J2F4YDFFauC1aVBVuStFeFLwcwsDD,3270000000,1000000 
-
 
 
 int64_t MainFrame::GetAddressPendingPays(std::string NosoAddress)
@@ -962,7 +789,6 @@ int64_t MainFrame::GetAddressPendingPays(std::string NosoAddress)
     //std::istringstream iss(GetPendings());
     return 0;
         ///
-    
     
    
 }
@@ -1158,30 +984,17 @@ void MainFrame::UpdateTable(std::vector<WalletData>& dataVectorAddress)
         std::string HashKeyLoaded = dataVectorAddress[i].GetHash();
         std::string Label = dataVectorAddress[i].GetLabel();
         std::int64_t Pending = dataVectorAddress[i].GetPending();
-        //std::int64_t Balance = dataVectorAddress[i].GetBalance();
-        //TextBox->AppendText("\Query Balance from \n");
-        //TextBox->AppendText(HashKeyLoaded);
         std::int64_t Balance = GetBalanceFromNosoAddress(SumarydataVector, HashKeyLoaded.c_str());
-        //int64_t integerNumber = 1234567890; // Your int64_t number
-        //double decimalBalance = static_cast<double>(Balance); // Convert to double
-        double decimalBalance = static_cast<double>(Balance) / 100000000.0;
+        double decimalBalance = static_cast<double>(Balance) / 100000000.0; // Show data in decimal value
         std::stringstream stream;
         stream << std::fixed << std::setprecision(8) << decimalBalance;
         std::string formattedDecimalBalance = stream.str();
-        // Output the decimal number with precision (e.g., 2 decimal places)
-        //std::cout << std::fixed << std::setprecision(2) << decimalBalance << std::endl;
-
-        //NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb 1 noso.
         NosoAddressGrid->AppendRows(1); // Add a new row
         NosoAddressGrid->SetCellValue(i, 0, HashKeyLoaded);
         NosoAddressGrid->SetCellValue(i, 1, Label);
         NosoAddressGrid->SetCellValue(i, 2, std::to_string(Pending));
         NosoAddressGrid->SetCellValue(i, 3, formattedDecimalBalance);
     }
-
-    
-
-   //Show Info on Central Table
  
 }
 
@@ -1243,24 +1056,6 @@ std::string MainFrame::GetTransferHash(const std::string& Transfer)
     ResultString = "tR" + ResultStringToHex58 + Key;
 
     return ResultString;
-}
-
-std::string MainFrame::BMB58Sumatory(const std::string& Base58Number)
-{
-    const std::string B58Alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-    int total = 0;
-
-    for (size_t counter = 0; counter < Base58Number.length(); ++counter) {
-        char currentChar = Base58Number[counter];
-        size_t pos = B58Alphabet.find(currentChar);
-
-        if (pos != std::string::npos) {
-            total += static_cast<int>(pos);
-        }
-    }
-
-    return std::to_string(total);
-   
 }
 
 bool MainFrame::CheckIfNosoAddressExistsOnMyWallet(const std::string& NosoAddressToCheck,std::vector<WalletData> WalletToSearch)
@@ -1359,43 +1154,6 @@ bool MainFrame::IsValid58(const std::string& Base58Text)
     
 }
 
-DivResult MainFrame::BMDividir(const std::string& FirstNumber, const std::string& SecondNumber)
-{
-    DivResult result;
-    int counter;
-    std::string cociente = "";
-    int longValue = FirstNumber.length();
-    int64_t Divisor = std::stoll(SecondNumber);
-    std::string ThisStep = "";
-
-    for (counter = 0; counter < longValue; counter++) {
-        ThisStep += FirstNumber[counter];
-        int64_t ThisStepInt = std::stoll(ThisStep);
-
-        if (ThisStepInt >= Divisor) {
-            cociente += std::to_string(ThisStepInt / Divisor);
-            ThisStep = std::to_string(ThisStepInt % Divisor);
-        }
-        else {
-            cociente += '0';
-        }
-    }
-
-    //result.coefficient = std::to_integer(cociente);
-    //result.remainder = std::to_integer(ThisStep);
-    Botan::BigInt BigIntCociente = Botan::BigInt(cociente);
-    Botan::BigInt BigIntRemainder = Botan::BigInt(ThisStep);
-    result.coefficient = BigIntCociente;
-    result.remainder = BigIntRemainder;
-
-    // You may want to clear leading zeros here, as in your Pascal code
-    // This can be done by iterating through result.cociente and result.residuo
-    // and removing leading '0' characters if necessary.
-
-    return result;
-    //return DivResult();
-}
-
 std::string MainFrame::BMB58Resumen(const std::string& Number58)
 {
     
@@ -1418,15 +1176,15 @@ void MainFrame::OnSendNosoButtonClicked(wxCommandEvent& evt)
     std::string SourceAdressString = SourceAddress.ToStdString();
     std::string DestinationAddressString = DestinationAddress.ToStdString();
     
-    //wxString stringValue = "1.45";
+   ;
 
     double doubleValue;
     AmountToSend.ToDouble(&doubleValue);
 
-    // int64_t conversion
+    
     int64_t Amount = static_cast<int64_t>(doubleValue * 100000000);
     
-    //int64_t Amount = 100000000*(std::stoll(AmountToSend.ToStdString()));
+    
     int64_t Comission = 1000000; //0.01
     std::string Reference = "Hello";
     std::string OrderTime = std::to_string(GetMainetTime());
@@ -1452,8 +1210,8 @@ int64_t MainFrame::GetMainetTime()
     int port = 8080;
     std::string command = "NSLTIME\n";
     std::string TimeString = SendStringToNode(ip, port, command);
-   int64_t TimeInt = stoll(TimeString);
-    //cout << "Time Integer" << TimeInt << endl; // Control String to check answer.
+    int64_t TimeInt = stoll(TimeString);
+    
     return TimeInt;
     
 }
@@ -1468,7 +1226,7 @@ std::string MainFrame::AddChar(char C, const std::string& S, int N)
         oss << S;
     }
     return oss.str();
-    //return std::string();
+    
 }
 
 std::string MainFrame::Int2Curr(int64_t Value)
@@ -1481,7 +1239,7 @@ std::string MainFrame::Int2Curr(int64_t Value)
         Result = "-" + Result;
 
     return Result;
-    //return std::string();
+    
 }
 
 int64_t MainFrame::Curr2Int(const std::string& CurrStr)
@@ -1492,7 +1250,7 @@ int64_t MainFrame::Curr2Int(const std::string& CurrStr)
 	Str.erase(std::remove(Str.begin(), Str.end(), '.'), Str.end());
 	Result = std::stoll(Str);
 	return Result;
-	//return 0;
+	
     
 }
 
@@ -1516,23 +1274,19 @@ int64_t MainFrame::GetMaximumToSend(int64_t ammount)
 
 std::string MainFrame::GetOrderHash(const std::string& textLine)
 {
-    /*function GetOrderHash(TextLine:string):String;
-Begin
-Result := HashSHA256String(TextLine);
-Result := 'OR'+BMHexTo58(Result,36);
-End;*/
+    
     TextBox->AppendText("\nDEBUG GET-OrderHash");
     TextBox->AppendText("\nTextLine: ");
     TextBox->AppendText(textLine);
-    //std::string resultToProcess = PublicKeyToSHA256(textLine); // Calculate SHA256
+    
     std::string resultToProcess=getHashSha256ToString(textLine);
     TextBox->AppendText("\nSHA256: ");
     TextBox->AppendText(resultToProcess);
     
 
     
-    std::string resultHex36= BMHexTo58(resultToProcess, 36); // Convert to Base36 
-    //std::string resultHex36 = Base36(resultToProcess);
+    std::string resultHex36= BMHexTo58(resultToProcess, 36); 
+    
 
     TextBox->AppendText("\n****DEBUG**** noso Sha256 and Base36");
     TextBox->AppendText(getHashSha256ToString("noso"));
@@ -1544,46 +1298,16 @@ End;*/
     std::string result = "OR" + resultHex36;
     TextBox->AppendText("\nResult: ");
     TextBox->AppendText(result);
-    //result = "OR" + BMHexTo58 o HexToBase64(result, 36);
-    //Implement function BMHexTo58(numerohex:string;alphabetnumber:integer):string;
+ 
     
-
 
     return result;
 }
 
 std::string MainFrame::BMHexTo58(const std::string& numerohex, const Botan::BigInt& alphabetnumber)
-//std::string MainFrame::BMHexTo58(const std::string& numerohex, int alphabetnumber)
+
 {
-    /*
-    std::string decimalvalue = BMHexToDec(numerohex);
-    std::string resultado = "";
-    std::string AlpahbetUsed = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-
-    if (alphabetnumber == 36) {
-        AlpahbetUsed = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    }
-
-    while (decimalvalue.length() >= 2) {
-        DivResult ResultadoDiv = BMDividir(decimalvalue, std::to_string(alphabetnumber));
-        decimalvalue = ResultadoDiv.cociente;
-        int restante = std::stoi(ResultadoDiv.residuo);
-        resultado = AlpahbetUsed[restante] + resultado;
-    }
-
-    if (std::stoi(decimalvalue) >= alphabetnumber) {
-        DivResult ResultadoDiv = BMDividir(decimalvalue, std::to_string(alphabetnumber));
-        decimalvalue = ResultadoDiv.cociente;
-        int restante = std::stoi(ResultadoDiv.residuo);
-        resultado = AlpahbetUsed[restante] + resultado;
-    }
-
-    if (std::stoi(decimalvalue) > 0) {
-        resultado = AlpahbetUsed[std::stoi(decimalvalue)] + resultado;
-    }
-
-    return resultado;
-    */
+ 
     Botan::BigInt decimalValue(BMHexToDec(numerohex));
     std::string Result = "";
     std::string AlphabetUsed="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
@@ -1805,29 +1529,7 @@ int64_t MainFrame::GetFee(int64_t amount)
 }
 std::string MainFrame::SendTo(std::string Destination, int64_t Ammount, std::string Reference)
 {
-    //https://github.com/Noso-Project/consopool/blob/ab28696ca294eb39cbe6664927dfc60e681a167e/consopooldata.pas#L540
-    //Correct Order
-    /*NSLORDER 2 1.70 1700725852 ORDER 1 $TRFR OR3utfh1eg2nqnhf4sq4e9po2qymq7wt6leix6hl91out7ehb6vr 1 TRFR 1700725852 null 1 BCLjNYNmuDV+gWYWXDKsTETNKrJ5UJtI+FQ26rb+s4LTjvIIEUUC9rz1DQgy9FWDTiKHjg7tqKfX6+/nFggA/O4= N44YRyizp5LvKk4YWovr7RKLkoMcEFP N3ahnJqGC8qyzbB1chSnrr3zYBBkZFg 1000000 16880993 MEUCIBTp+CMeJMJo3ZDKIIl0nlI3y1RWAU1bqNQt5RRKhRmKAiEAiobQiQCZtiGZEVBbHZKfvpaFkFTUv09hxyGLR06ZPfU= tRESsPeNNwEabBquXtvdtp1i5UubSzRTMKfkm8uQZaWcrcRz*/
-    
-    //Current Order
-    //NSLORDER 2 1.61 1701689370 ORDER 1 $TRFR OR3w5e11264sgsf 1 TRFR 1701689370 Test 1 OR3w5e11264sgsf NxcLMr13oJ7bKx9dFSUhHstDiTF1DM NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb 1000000 100000000 MEYCIQDiPHtkAcTV1sczZUNa8MdPC5XUQFlWhaA tR7xEPj6bt8TwgPvsGB1G9b7EWxzscZCbjgGRwc
-    
-    /*Consopool Order : TextToSend: = 'NSLORDER 1 0.16 ' + TrxTime.ToString + ' ORDER 1 $TRFR ' + OrdHash + ' 1 TRFR ' + TrxTime.ToString +
-    ' PoolPay_' + PoolName + ' 1 ' + PublicKey + ' ' + PoolAddress + ' ' + Address + ' ' + Fee.ToString + ' ' + ToSend.ToString + ' ' +
-        SignString + ' ' + trfHash;
-Resultado: = SendOrder(TextToSend);*/
-
-    //https://github.com/Noso-Project/consopool/blob/ab28696ca294eb39cbe6664927dfc60e681a167e/consopooldata.pas#L546
-
-    /*TextToSend := 'NSLORDER 1 0.16 '+TrxTime.ToString+' ORDER 1 $TRFR '+OrdHash+' 1 TRFR '+TrxTime.ToString+
-              ' PoolPay_'+PoolName+' 1 '+PublicKey+' '+PoolAddress+' '+Address+' '+Fee.ToString+' '+ToSend.ToString+' '+
-              SignString+' '+trfHash;*/
-
-    //Correct ONE
-    //NSLORDER 2 1.70 1700725852 ORDER 1 $TRFR OR3utfh1eg2nqnhf4sq4e9po2qymq7wt6leix6hl91out7ehb6vr 1 TRFR 1700725852 null 1 BCLjNYNmuDV+gWYWXDKsTETNKrJ5UJtI+FQ26rb+s4LTjvIIEUUC9rz1DQgy9FWDTiKHjg7tqKfX6+/nFggA/O4= N44YRyizp5LvKk4YWovr7RKLkoMcEFP N3ahnJqGC8qyzbB1chSnrr3zYBBkZFg 1000000 16880993 MEUCIBTp+CMeJMJo3ZDKIIl0nlI3y1RWAU1bqNQt5RRKhRmKAiEAiobQiQCZtiGZEVBbHZKfvpaFkFTUv09hxyGLR06ZPfU= tRESsPeNNwEabBquXtvdtp1i5UubSzRTMKfkm8uQZaWcrcRz*/
-
-    //Current One:
-    //NSLORDER 2 1.61 1701860832 ORDER 1 $TRFR OR454ddyerm61vr1cmi3zvzn81k61gfir8ndixw44k508mpk81ro 1 TRFR 1701860828 Test 1 BNOdXGIv/1szZ/hOw3dOoFAWUr5rOjuTXVIA353GzfZSS2lry8gMAV1BCk2GQld/Y1PkZro6OxlCQKil2FyduLM= NxcLMr13oJ7bKx9dFSUhHstDiTF1DM NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb 1000000 100000000 MEUCIQC/iieEBUrN/q+s9Mhb5UlbPG1R6tJz5aC tR6mBAnkp6NynjGqGFacehBUApeyMcu4g6Xb7iL
+ 
     std::string CurrTime;
     int64_t fee;
     int64_t ShowAmmount;
@@ -1927,79 +1629,18 @@ std::string MainFrame::GetPTCEcn(std::string OrderType)
 
     result = "NSL" + OrderType + " " + Protocol + " " + ProgramVersion + " " + UTCTimeString + " ";
     return result;
-    //return std::string();
-}
-std::string MainFrame::BMHexTo36(std::string result)
-{
     
-    
-    return std::string();
 }
+
 std::string MainFrame::GetStringFromOrder(OrderData& Order)
 {
-    ///// WORK IN PROGESS /////
-
-        /*NSLORDER 2 1.70 1700725852 ORDER 1 $TRFR OR3utfh1eg2nqnhf4sq4e9po2qymq7wt6leix6hl91out7ehb6vr 1 TRFR 1700725852 null 1 BCLjNYNmuDV+gWYWXDKsTETNKrJ5UJtI+FQ26rb+s4LTjvIIEUUC9rz1DQgy9FWDTiKHjg7tqKfX6+/nFggA/O4= N44YRyizp5LvKk4YWovr7RKLkoMcEFP N3ahnJqGC8qyzbB1chSnrr3zYBBkZFg 1000000 16880993 MEUCIBTp+CMeJMJo3ZDKIIl0nlI3y1RWAU1bqNQt5RRKhRmKAiEAiobQiQCZtiGZEVBbHZKfvpaFkFTUv09hxyGLR06ZPfU= tRESsPeNNwEabBquXtvdtp1i5UubSzRTMKfkm8uQZaWcrcRz*/
-
-/*Consopool Order : TextToSend: = 'NSLORDER 1 0.16 ' + TrxTime.ToString + ' ORDER 1 $TRFR ' + OrdHash + ' 1 TRFR ' + TrxTime.ToString +
-' PoolPay_' + PoolName + ' 1 ' + PublicKey + ' ' + PoolAddress + ' ' + Address + ' ' + Fee.ToString + ' ' + ToSend.ToString + ' ' +
-    SignString + ' ' + trfHash;
-Resultado: = SendOrder(TextToSend);*/
-//std::string Sender=Get
-//std::string senderer = GetPublicKeyFromNosoAddress(GetSenderHashAddress());
-//std::string receiver = GetPublicKeyFromNosoAddress(GetSenderHashAddress());
-
     std::string OrderString =  "1" + std::to_string(Order.GetTimeStamp()) + Order.GetTrfID();
-    TextBox->AppendText("\nDEBUG: transerIF value ");
-    TextBox->AppendText(Order.GetTrfID());
-    TextBox->AppendText("\nDEBUG : Order String: ");
-    TextBox->AppendText(OrderString);
     std::string OrderHashString = GetOrderHash(OrderString);
-    TextBox->AppendText("\nDEBUG: Order Hash String: ");
-    TextBox->AppendText(OrderHashString);
-
-
-    
-    
-
-//Good One.
-//NSLORDER 2 1.70 1700725852 ORDER 1 $TRFR OR3utfh1eg2nqnhf4sq4e9po2qymq7wt6leix6hl91out7ehb6vr 1 TRFR 1700725852 null 1 BCLjNYNmuDV+gWYWXDKsTETNKrJ5UJtI+FQ26rb+s4LTjvIIEUUC9rz1DQgy9FWDTiKHjg7tqKfX6+/nFggA/O4= N44YRyizp5LvKk4YWovr7RKLkoMcEFP N3ahnJqGC8qyzbB1chSnrr3zYBBkZFg 1000000 16880993 MEUCIBTp+CMeJMJo3ZDKIIl0nlI3y1RWAU1bqNQt5RRKhRmKAiEAiobQiQCZtiGZEVBbHZKfvpaFkFTUv09hxyGLR06ZPfU= tRESsPeNNwEabBquXtvdtp1i5UubSzRTMKfkm8uQZaWcrcRz*/
- 
-//Current Order.
-//NSLORDER 2 1.61 1701861609 ORDER 1 $TRFR OR5jvrrl9scomjdrre12c3nd0tu60jlqgpzkm387xt8mygeyvzl0 1 TRFR 1701861599 Test 1 BNOdXGIv/1szZ/hOw3dOoFAWUr5rOjuTXVIA353GzfZSS2lry8gMAV1BCk2GQld/Y1PkZro6OxlCQKil2FyduLM= NxcLMr13oJ7bKx9dFSUhHstDiTF1DM NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb 1000000 100000000 MEUCICb3B9plzxCpWpAMAxiFXIyoZLBpcjU3suQAiHmMwJ1IAiEAoMHUWgcilMFR2pEubWKcCJv4t2A/0JFXPMyL12YA7lQ= tRGornqiPCiNBFrDsUJRVnsWeoNvxAtseDmeA2D    
-    //std::string OrderToSend = Order.GetOrderType() + " " + OrderHashString + " 1 TRFR " + std::to_string(Order.GetTimeStamp()) + " " + Order.GetOrderReference() + " 1 " + Order.GetSenderPublicKey() + " " + Order.GetSenderHashAddress() + " " + Order.GetDestinationHashAddress() + " " + std::to_string(Order.GetAmountFee()) + " " + std::to_string(Order.GetAmountTrfe()) + " " + Order.GetSignature() + " " + Order.GetTrfID(); //+ "\n";
     std::string OrderToSend = Order.GetOrderType() + " " + OrderHashString + " 1 TRFR " + std::to_string(Order.GetTimeStamp()) + " " + Order.GetOrderReference() + " 1 " + Order.GetSenderPublicKey() + " " + Order.GetSenderHashAddress() + " " + Order.GetDestinationHashAddress() + " " + std::to_string(Order.GetAmountFee()) + " " + std::to_string(Order.GetAmountTrfe()) + " " + Order.GetSignature() + " " + Order.GetTrfID(); //+ "\n";
-
-    TextBox->AppendText("\nORDER TO SEND GENERATED : ");
-    TextBox->AppendText(OrderToSend);
     
     return OrderToSend;
-
 }
 
-std::string MainFrame::Base36(std::string& StringToConvert)
-{
-    
-    // Convert hex to decimal
-    std::istringstream iss(StringToConvert);
-    unsigned long long decimalValue;
-    iss >> std::hex >> decimalValue;
-
-    TextBox->AppendText("\nDEBUG: Decimal Value: ");
-    TextBox->AppendText(std::to_string(decimalValue));
-
-
-    // Convert decimal to base 36
-    std::string base36String;
-    while (decimalValue > 0) {
-        char digit = "0123456789abcdefghijklmnopqrstuvwxyz"[decimalValue % 36];
-        base36String = digit + base36String;
-        decimalValue /= 36;
-    }
-
-    return base36String.empty() ? "0" : base36String;
-
-}
 
 std::string MainFrame::GetHashOrder(const std::string& value)
 {
@@ -2026,28 +1667,7 @@ std::string MainFrame::getHashSha256ToString(const std::string& publicKey)
 
     return result;
 
-    /*       // Create a SHA-256 hash object
-        Botan::SHA_256 sha256;
-
-        // Update the hash object with the input data
-        sha256.update(reinterpret_cast<const Botan::byte*>(publicKey.data()), publicKey.size());
-
-        // Finalize the hash and get the resulting digest
-        Botan::secure_vector<Botan::byte> digest = sha256.final();
-
-        // Convert the digest to a hexadecimal string
-        std::string hashString;
-        for (Botan::byte b : digest)
-        {
-            hashString += Botan::hex_encode(&b, 1);
-        }
-
-        std::transform(hashString.begin(), hashString.end(), hashString.begin(), [](unsigned char c) 
-            
-            {
-            return std::tolower(c);
-            });
-        return hashString;*/
+  
 
 }
 DivResult MainFrame::DivideBigInt(const Botan::BigInt& numerator, const Botan::BigInt& denominator)
@@ -2066,62 +1686,11 @@ Botan::secure_vector<uint8_t> MainFrame::calculateSHA1(const std::vector<unsigne
 
         return hash_result;
     
-    //return Botan::secure_vector<uint8_t>();
-}
-/*
-DivResult MainFrame::_divideBigInt(Botan::BigInt numerator, Botan::BigInt denominator)
-{
-    DivResult result = DivResult();
-    result.coefficient = numerator ~/ denominator;
-    result.remainder = numerator % denominator;
-    return result;
-}*/
-
-/*
-std::string MainFrame::SendTo(std::string Destination, int64_t Ammount, std::string Reference)
-{
-    std::string CurrTime;
-    int64_t fee;
-    int64_t ShowAmmount, ShowFee;
-    int64_t Remaining;
-    int64_t CoinsAvailable;
-    bool KeepProcess = true;
-    std::vector<OrderData> ArrayTrfrs;
-    int counter;
-    std::string OrderHashString;
-    int TrxLine = 0;
-    std::string ResultOrderID = "";
-    std::string OrderString;
-    int PreviousRefresh = 15;
-
-    if (Reference == "") {
-		Reference = "null";
-	}
-    CurrTime = std::to_string(GetMainetTime());
-    fee = GetFee(Ammount);
-    ShowAmmount = Ammount;
-    ShowFee = fee;
-    Remaining = Ammount + fee;
-
-   
-    //Pending Implement Multisend
-
-	CoinsAvailable = GetBalanceFromNosoAddress(SumarydataVector, walletCPPDataLoaded[0].GetHash().c_str());// Only works with first address on wallet.
-    if (Remaining > CoinsAvailable) {
-		TextBox->AppendText("\nERROR: Not enought Noso on Wallet !");
-		KeepProcess = false;
-	}
-    if (KeepProcess) {
-		ArrayTrfrs.clear();
-		counter = 0;
-		OrderHashString = CurrTime;
-        TrxLine = TrxLine + 1;
-        OrderData OrderInfo;
     
-    return std::string();
 }
 
-  */ 
+
+ 
 
     
     
@@ -2129,91 +1698,11 @@ std::string MainFrame::SendTo(std::string Destination, int64_t Ammount, std::str
 
 
 
-
-/*
-void MainFrame::UpdateTableBalance(std::vector<TSummaryData>& dataVectorUpdate, std::vector<WalletData>& dataVectorAddress)
-{
-
-
-}
-*/  
+ 
 
 
 
-/*
-function SendTo(Destination:String;Ammount:int64;Reference:String):string;
-var
-  CurrTime : String;
-  fee : int64;
-  ShowAmmount, ShowFee : int64;
-  Remaining : int64;
-  CoinsAvailable : int64;
-  KeepProcess : boolean = true;
-  ArrayTrfrs : Array of orderdata;
-  counter : integer;
-  OrderHashString : string;
-  TrxLine : integer = 0;
-  ResultOrderID : String = '';
-  OrderString : string;
-  PreviousRefresh : integer;
-Begin
-PreviousRefresh := WO_Refreshrate;
-result := '';
-if reference = '' then reference := 'null';
-CurrTime := UTCTime.ToString;
-fee := GetFee(Ammount);
-ShowAmmount := Ammount;
-ShowFee := fee;
-Remaining := Ammount+fee;
-if WO_Multisend then CoinsAvailable := Int_WalletBalance
-else CoinsAvailable := GetAddressBalanceFromSumary(ARRAY_Addresses[0].Hash);
-if not IsValidAddressHash(Destination) then
-   Destination := ARRAY_Sumary[AddressSumaryIndex(Destination)].Hash;
 
-if Remaining > CoinsAvailable then
-      begin
-      ToLog(rsError0012);
-      KeepProcess := false;
-      end;
-if KeepProcess then
-   begin
-   Setlength(ArrayTrfrs,0);
-   counter := 0;
-   OrderHashString := currtime;
-   while Ammount > 0 do
-      begin
-      if ARRAY_Addresses[counter].Balance-GetAddressPendingPays(ARRAY_Addresses[counter].Hash) > 0 then
-         begin
-         TrxLine := TrxLine+1;
-         Setlength(ArrayTrfrs,length(arraytrfrs)+1);
-         ArrayTrfrs[length(arraytrfrs)-1]:= SendFundsFromAddress(ARRAY_Addresses[counter].Hash,
-                                            Destination,ammount, fee, reference, CurrTime,TrxLine);
-         fee := fee-ArrayTrfrs[length(arraytrfrs)-1].AmmountFee;
-         ammount := ammount-ArrayTrfrs[length(arraytrfrs)-1].AmmountTrf;
-         OrderHashString := OrderHashString+ArrayTrfrs[length(arraytrfrs)-1].TrfrID;
-         end;
-      counter := counter +1;
-      end;
-   for counter := 0 to length(ArrayTrfrs)-1 do
-      begin
-      ArrayTrfrs[counter].OrderID:=GetOrderHash(IntToStr(trxLine)+OrderHashString);
-      ArrayTrfrs[counter].OrderLines:=trxLine;
-      end;
-   ResultOrderID := GetOrderHash(IntToStr(trxLine)+OrderHashString);
-   result := ResultOrderID;
-   OrderString := GetPTCEcn('ORDER')+'ORDER '+IntToStr(trxLine)+' $';
-   for counter := 0 to length(ArrayTrfrs)-1 do
-      begin
-      OrderString := orderstring+GetStringfromOrder(ArrayTrfrs[counter])+' $';
-      end;
-   Setlength(orderstring,length(orderstring)-2);
-   //ToLog(OrderString);
-   Result := SendOrder(OrderString);
-   end;
-WO_Refreshrate := PreviousRefresh;
-End;
-
-*/
 
 
 
