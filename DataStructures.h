@@ -2,11 +2,7 @@
 #include <iostream>
 #include <string>
 #include <botan/bigint.h>
-//#include "MainFrame.h"
-//#include "MainFrame.h"
-//#include "MainFrame.h"
 
-//NodeStatus Struct to process data from NODESTATUS command.
 
     struct NodeStatusData {
 
@@ -35,7 +31,7 @@
 
  
 };
-// Sumary Struct to process Data from sumary.zip
+// Summary Struct to process Data from sumary.zip
 
 #pragma pack(push, 1)
     struct TSummaryData {
@@ -262,36 +258,7 @@
         }
     };
 #pragma pack(pop)
-  /*OrderData = Packed Record
-   Block : integer;
-   OrderID : String[64];
-   OrderLines : Integer;
-   OrderType : String[6];
-   TimeStamp : Int64;
-   Reference : String[64];
-     TrxLine : integer;
-     Sender : String[120];    // La clave publica de quien envia
-     Address : String[40];
-     Receiver : String[40];
-     AmmountFee : Int64;
-     AmmountTrf : Int64;
-     Signature : String[120];
-     TrfrID : String[64];
-   end;
-    
-
-        
-        char empty[1];     // Added because sumary.psk fine is created by a Pascal app that adds an initial Char specifying Numer of Chars
-        char Hash[40];     // Public hash (including null terminator)
-        char empty2[1];    // Added because sumary.psk fine is created by a Pascal app that adds an initial Char specifying Numer of Chars
-        char Custom[40];   // Custom alias (including null terminator)
-        int64_t Balance;   // Noso balance
-        int64_t Score;     // Token balance
-        int64_t LastOP;    // Last operation block
-    };
-#pragma pack(pop)
  
-  */  
     
     // Wallet Struct Data
 
@@ -377,7 +344,7 @@
 
             Balance = balance;
         }
-        void SetPendig(int64_t pending) {
+        void SetPending(int64_t pending) {
 
             Pending = pending;
         }
@@ -393,11 +360,7 @@
 
     };
 #pragma pack(pop)
-/*
-   struct DivResult {
-        std::string cociente;
-        std::string residuo;
-    };*/
+
 
 #pragma pack(push, 1)
     class PendingOrders {
