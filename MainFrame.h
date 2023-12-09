@@ -17,17 +17,17 @@ public:
 	bool DoesFileExist(const std::string& filePath);
 	std::vector<WalletData> ReadWalletDataFromNosolite(const std::string& filePath);
 	std::vector<WalletData> ReadWalletDataFromNosoCPP(const std::string& filePath);
-	const int64_t Comisiontrfr = 10000; // ComisionTFR 
-	const int64_t MinimunFee = 1000000; // 0.1 Noso
-	std::string ProgramVersion = "1.61";
+	const int64_t Comisiontrfr = 10000;  
+	const int64_t MinimunFee = 1000000; 
+	std::string ProgramVersion = "0.4a";
 	std::string Protocol = "2";
 
 
 private:
 
 
-	void OnConnectButtonClicked(wxCommandEvent& evt); //Call Connect to Main net and Get NODESATUS
-	std::vector<TSummaryData> DownloadSumary();
+	void OnConnectButtonClicked(wxCommandEvent& evt); 
+	std::vector<TSummaryData> DownloadSumary(); 
 	void OnClose(wxCloseEvent& evt);
 	void GetMasterNodeList(wxCommandEvent& evt);
 	void GenerateKeys(wxCommandEvent& evt);
@@ -71,13 +71,12 @@ private:
 	std::string PonerCeros(const std::string& numero, int cuantos);
 	std::string ClearLeadingCeros(const std::string& numero);
 	int64_t GetFee(int64_t amount);
-	std::string SendTo(std::string Destination, int64_t Ammount, std::string Reference);
 	std::string GetPTCEcn(std::string OrderType);
 	std::string GetStringFromOrder(OrderData& Order);
 	std::string GetHashOrder(const std::string& value);
-	std::string getHashSha256ToString(const std::string& publicKey);
+	std::string getHashSha256ToString(const std::string& publicKey); // Thanks to PasichDev
 	DivResult DivideBigInt(const Botan::BigInt& numerator, const Botan::BigInt& denominator);
-	Botan::secure_vector<uint8_t> calculateSHA1(const std::vector<unsigned char>& input);
+	Botan::secure_vector<uint8_t> calculateSHA1(const std::vector<unsigned char>& input); // Thanks to PasichDev !
 	
 	
 
@@ -135,6 +134,9 @@ private:
 	std::vector<PendingOrders> PendingOrdersVector;
 	std::string CurrentBlockString;
 	const std::string B64Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+	const std::string B58Alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+	const std::string B36Alphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
+	std::string HexAlphabet = "0123456789ABCDEF";
 
 };
 

@@ -415,7 +415,7 @@ std::string MainFrame::EncodeBase58(const std::string& MD160String)
 int MainFrame::CalculateCheckSum(const std::string& StringChecksum)
 
 {
-        const std::string B58Alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+        
        int total = 0;
 
         for (int counter = 0; counter < StringChecksum.length(); ++counter) {
@@ -428,7 +428,7 @@ int MainFrame::CalculateCheckSum(const std::string& StringChecksum)
 
 std::string MainFrame::BmDecto58(const std::string& number)
 {
-    const std::string B58Alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+    
 
     std::string decimalValue = number;
     std::string resultado = "";
@@ -845,46 +845,22 @@ std::vector<unsigned char> MainFrame::nosoBase64Decode(const std::string& input)
 
 OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::string& DestinationAddress, int64_t& AmountToSend, int64_t& Commision, std::string& Reference, std::string& OrderTime, int line)
 {
-    
-    TextBox->AppendText("\nTesting Send Funds From SendFundsFromAddress function -> Amount To Send:");
-    
-    TextBox->AppendText(std::to_string(AmountToSend));
+   
     OrderData OrderInfo;
     bool Exists = CheckIfNosoAddressExistsOnMyWallet(SourceAddress, walletCPPDataLoaded);
-    TextBox->AppendText("\nChecking if Source Address Exists on WalletCPP -> ");
-    TextBox->AppendText(SourceAddress);
-    TextBox->AppendText("\nDestination Address : ");
-    TextBox->AppendText(DestinationAddress);
-    TextBox->AppendText("\nResult( Bool ) : ");
-    TextBox->AppendText(std::to_string(Exists));
+  
 
     if (CheckIfNosoAddressExistsOnMyWallet(SourceAddress,walletCPPDataLoaded)&&CheckIfNosoAddressIsValid(DestinationAddress))
-    {
-        TextBox->AppendText("\nSource Address and Destination Address are VALID !");
+    {   
         OrderInfo.SetSenderHashAddress(SourceAddress);
-        TextBox->AppendText("\nSender Address: Added to Order Info -> ");
-        TextBox->AppendText(OrderInfo.GetSenderHashAddress());
         OrderInfo.SetReceiverHashAddress(DestinationAddress);
-        TextBox->AppendText("\nDestination Address: Added to Order Info -> ");
-        TextBox->AppendText(OrderInfo.GetDestinationHashAddress());
         int64_t SourceAddressBalance = GetBalanceFromNosoAddress(SumarydataVector,SourceAddress.c_str());
-        TextBox->AppendText("\nBalance from Source Address: ");
-        TextBox->AppendText(std::to_string(SourceAddressBalance));
-        TextBox->AppendText("\nAmount To Send : ");
-        TextBox->AppendText(std::to_string(AmountToSend));
         
-
         if (AmountToSend < (SourceAddressBalance + 1000000))
         {
-            TextBox->AppendText("\nSource Balance has enough Noso ! = >");
-            TextBox->AppendText(std::to_string(AmountToSend));
+         
             OrderInfo.SetAmmountTrfe(AmountToSend);
-            TextBox->AppendText("\nTransferring -> ");
-            TextBox->AppendText(std::to_string(OrderInfo.GetAmountTrfe()));
-            TextBox->AppendText("\nAmount to Send: ");
             OrderInfo.SetAmmountFee(Commision);
-            TextBox->AppendText("\nAmount Fee: ");
-            TextBox->AppendText(std::to_string(OrderInfo.GetAmountFee()));
             OrderInfo.SetOrderType("TRFR");
             OrderInfo.SetOrderReference(Reference);  
             OrderInfo.SetTimeStamp(std::stoi(OrderTime));
@@ -892,62 +868,11 @@ OrderData MainFrame::SendFundsFromAddress(std::string& SourceAddress, std::strin
             OrderInfo.SetOrderID("");
             OrderInfo.SetOrderType("TRFR");
             OrderInfo.SetSenderPublicKey(GetPublicKeyFromNosoAddress(SourceAddress));
-            TextBox->AppendText("\nSENDER ADDESS: ");
-            TextBox->AppendText(SourceAddress);
-            TextBox->AppendText("\nDEBUG: Sender Public Key from Address  ");
-            TextBox->AppendText(GetPublicKeyFromNosoAddress(SourceAddress));
 
-            TextBox->AppendText("\nDEBUG: Sender Public Key SAVED: ");
-            TextBox->AppendText(OrderInfo.GetSenderPublicKey());
-            TextBox->AppendText("\nPrivate Key :");
-            TextBox->AppendText(GetPrivateKeyFromNosoAddress(SourceAddress));
             OrderInfo.SetSignature(SignMessage(std::to_string(OrderInfo.GetTimeStamp()) + SourceAddress + DestinationAddress + std::to_string(AmountToSend) +
                 std::to_string(Commision) + std::to_string(line), GetPrivateKeyFromNosoAddress(SourceAddress)));
             OrderInfo.SetTrfID(GetTransferHash(std::to_string(OrderInfo.GetTimeStamp()) + SourceAddress + DestinationAddress + std::to_string(AmountToSend) + CurrentBlockString));
-
-            TextBox->AppendText("\n******Debug: Order Info COMPLETED: - Showing Contents *****");
-            TextBox->AppendText("\nSender Address: ");
-            TextBox->AppendText(OrderInfo.GetSenderHashAddress());
-            TextBox->AppendText("\nDestination Address: ");
-            TextBox->AppendText(OrderInfo.GetDestinationHashAddress());
-            TextBox->AppendText("\nAmount To Send: ");
-            TextBox->AppendText(std::to_string(OrderInfo.GetAmountTrfe()));
-            TextBox->AppendText("\nAmount Fee: ");
-            TextBox->AppendText(std::to_string(OrderInfo.GetAmountFee()));
-            TextBox->AppendText("\nOrder Type: ");
-            TextBox->AppendText(OrderInfo.GetOrderType());
-            TextBox->AppendText("\nOrder Reference: ");
-            TextBox->AppendText(OrderInfo.GetOrderReference());
-            TextBox->AppendText("\nOrder TimeStamp: ");
-            TextBox->AppendText(std::to_string(OrderInfo.GetTimeStamp()));
-            TextBox->AppendText("\nOrder Lines: ");
-            TextBox->AppendText(std::to_string(OrderInfo.GetOrderLines()));
-            TextBox->AppendText("\nOrder ID: ");
-            TextBox->AppendText(OrderInfo.GetOrderID());
-            TextBox->AppendText("\nOrder Type: ");
-            TextBox->AppendText(OrderInfo.GetOrderType());
-            TextBox->AppendText("\nSender Public Key: ");
-            TextBox->AppendText(OrderInfo.GetSenderPublicKey());
-            TextBox->AppendText("\nSignature: ");
-            TextBox->AppendText(OrderInfo.GetSignature());
-            TextBox->AppendText("\nTransfer Hash: ");
-            TextBox->AppendText(OrderInfo.GetTrfID());
-            TextBox->AppendText("\n******Debug: Order Info COMPLETED: - Showing Contents *****");
-
-            //OrderInfo DEBUG show contents
-            TextBox->AppendText("\n******Debug: Order Info PRINT: - Showing Contents *****");
-            TextBox->AppendText(GetStringFromOrder(OrderInfo));
-            
-            
-            /*
-            //Send Order to Node
-            std::string OrderToSend = OrderInfo.GetOrderType() + "," + OrderInfo.GetSenderHashAddress() + "," + OrderInfo.GetDestinationHashAddress() + "," + std::to_string(OrderInfo.GetAmountTrfe()) + "," + std::to_string(OrderInfo.GetAmountFee()) + "," + OrderInfo.GetOrderReference() + "," + std::to_string(OrderInfo.GetTimeStamp()) + "," + OrderInfo.GetOrderID() + "," + OrderInfo.GetSenderPublicKey() + "," + OrderInfo.GetSignature() + "," + OrderInfo.GetTrfID() + "\n";
-            TextBox->AppendText("\nOrder to Send to Node: ");
-            TextBox->AppendText(OrderToSend);
-           */
-        
-
-          
+         
 
         }
         else {
@@ -1017,8 +942,7 @@ std::string MainFrame::GetPublicKeyFromNosoAddress(const std::string & NosoAddre
     {
         if (walletCPPDataLoaded[i].GetHash() == NosoAddress)
         {
-            TextBox->AppendText("\nDEBUG: Found Public Key from Specific Address -> ");
-            TextBox->AppendText(NosoAddress);
+            
             return walletCPPDataLoaded[i].GetPublicKey();
           
         }
@@ -1085,7 +1009,7 @@ bool MainFrame::CheckIfNosoAddressIsValid(const std::string& NosoAddressToCheckI
     //Debug
     //TextBox->AppendText("\nTesting If Address is valid ->: ");
     //TextBox->AppendText(NosoAddressToCheckIfValid);
-   // TextBox->AppendText("\nLongitud de la dirección es de ->: ");
+   // TextBox->AppendText("\nLength ->: ");
    // TextBox->AppendText(std::to_string(NosoAddressToCheckIfValid.length()));
     //TextBox->AppendText("\nTesting If Address starts with 'N' ->: ");
     //TextBox->AppendText(NosoAddressToCheckIfValid);
@@ -1102,19 +1026,14 @@ bool MainFrame::CheckIfNosoAddressIsValid(const std::string& NosoAddressToCheckI
 
     if (NosoAddressToCheckIfValid.length() > 20 && NosoAddressToCheckIfValid[0] == 'N') {
         std::string OrigHash = NosoAddressToCheckIfValid.substr(1, NosoAddressToCheckIfValid.length() - 1);
-        //TextBox->AppendText("\nOriginal Hash :  ");
-        //TextBox->AppendText(OrigHash);
+    
         if (IsValid58(OrigHash)) {
             std:: string Hash=  OrigHash.substr(0, OrigHash.length() - 2);
             int Checksum = CalculateCheckSum(Hash);
-           // Checksum = CalculateCheckSum(Base58);
+       
             std::string CheckSumBase58 = BmDecto58(std::to_string(Checksum));
-           // TextBox->AppendText("\nCheckSumCaulated");
-           // TextBox->AppendText(CheckSumBase58);
-            //std::string Clave = BmDecto58(BMB58Resumen(OrigHash));
             OrigHash = 'N' + Hash + CheckSumBase58;
-            //TextBox->AppendText("\nComparing Keys to see if it's valid");
-           // TextBox->AppendText("");
+         
 
             if (OrigHash == NosoAddressToCheckIfValid) {
                 result = true;
@@ -1128,7 +1047,6 @@ bool MainFrame::CheckIfNosoAddressIsValid(const std::string& NosoAddressToCheckI
 
 bool MainFrame::IsValid58(const std::string& Base58Text)
 {
-    const std::string B58Alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
     bool result = true;
 
@@ -1160,8 +1078,6 @@ bool MainFrame::IsValid58(const std::string& Base58Text)
 std::string MainFrame::BMB58Resumen(const std::string& Number58)
 {
     
-    const std::string B58Alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-
     int total = 0;
         for (size_t counter = 0; counter < Number58.length(); counter++) {
             total += B58Alphabet.find(Number58[counter]) - 1;
@@ -1172,7 +1088,7 @@ std::string MainFrame::BMB58Resumen(const std::string& Number58)
 void MainFrame::OnSendNosoButtonClicked(wxCommandEvent& evt)
 {
     
-    //std::string CurrTime=
+  
     wxString SourceAddress = SourceAddressCtrl->GetValue();
     wxString DestinationAddress = DestinationAddressCtrl->GetValue();
     wxString AmountToSend = AmountToSendCtrl->GetValue();
@@ -1190,30 +1106,21 @@ void MainFrame::OnSendNosoButtonClicked(wxCommandEvent& evt)
     AmountToSend.ToDouble(&doubleValue);
     int64_t Amount = static_cast<int64_t>(doubleValue * 100000000);
     int64_t Comission = GetFee(Amount);
-    TextBox->AppendText("\nComission: ");
-    TextBox->AppendText(std::to_string(Comission));
     bool SourceAddressExists = "0";
     int64_t CheckFunds = Amount + Comission;
-    TextBox->AppendText("\nAmount to Send + Fee: ");
-    TextBox->AppendText(std::to_string(CheckFunds));
    
-    //1-Check if Noso addresses are valid, Source and Destination.
-    //2- Check if source address has enough Noso to send.amount + fee
-    //3- Check if source address has pending orders, if yes, then check if the amount to send is less than the pending orders.
     
     if (CheckIfNosoAddressIsValid(SourceAddressString) && CheckIfNosoAddressIsValid(DestinationAddressString))
     {
-		TextBox->AppendText("\nSource Address and Destination Address are VALID !");
+		
         if (CheckIfNosoAddressExistsOnMyWallet(SourceAddressString, walletCPPDataLoaded))
         {
-			TextBox->AppendText("\nSource Address Exists on WalletCPP !");
+			
            
             if (CoinsAvailable = GetBalanceFromNosoAddress(SumarydataVector, SourceAddressString.c_str()) > CheckFunds )
             {
-                TextBox->AppendText("\nCoins Available: ");
-                TextBox->AppendText(std::to_string(CoinsAvailable));
-                TextBox->AppendText("\nAmount to Send: ");
-                TextBox->AppendText(std::to_string(CheckFunds));
+               
+                TextBox->AppendText("\r Sending Order... ");
                 OrderData OrderToSend;
                 std::string OrderTime = std::to_string(GetMainetTime());
                 OrderToSend = SendFundsFromAddress(SourceAddressString, DestinationAddressString, Amount, Comission, ReferenceString, OrderTime, TrxLine);
@@ -1227,7 +1134,7 @@ void MainFrame::OnSendNosoButtonClicked(wxCommandEvent& evt)
                 std::string DefaultNodeIp = "20.199.50.27";						//PENDING: Send command to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
                 int DefaultNodePort = 8080;										//PENDING: Set PORT from List of Nodes.
                 std::string ResultOrder = SendStringToNode(DefaultNodeIp, DefaultNodePort, SEND_COMMAND);
-                TextBox->AppendText("\r Result order: ");
+                TextBox->AppendText("\r Order SENT !,OrderID :  ");
                 TextBox->AppendText(ResultOrder);
                 return;
 
@@ -1263,52 +1170,6 @@ void MainFrame::OnSendNosoButtonClicked(wxCommandEvent& evt)
 	}
     
     
-  /*
-
-    //std::string Reference = "Hello";
-    std::string OrderTime = std::to_string(GetMainetTime());
-    int lines = 1;
-    TextBox->Clear();
-    TextBox->AppendText("\nSource Address check: ");
-    TextBox->AppendText(SourceAddressString);
-    TextBox->AppendText("\nDestination Address check: ");
-    TextBox->AppendText(DestinationAddressString);
-    TextBox->AppendText("\nAmount to Send: ");
-    TextBox->AppendText(AmountToSend);
-    OrderData OrderToSend;
-    OrderToSend=SendFundsFromAddress(SourceAddressString, DestinationAddressString, Amount, Comission, ReferenceString, OrderTime, lines);
-
-    OrderHashString = OrderTime + OrderToSend.GetTrfID();
-    TextBox->AppendText("\nDEBUG: ******OrderToSend");
-    TextBox->AppendText("\nOrder Hash String: ");
-    TextBox->AppendText(OrderHashString);
-    ResultOrderID = GetOrderHash(std::to_string(TrxLine) + OrderHashString);
-
-    OrderString = GetPTCEcn("ORDER");
-    TextBox->AppendText("\n GetPTCE");
-    TextBox->AppendText(OrderString);
-    OrderString += "ORDER " + std::to_string(TrxLine) + " $";
-    TextBox->AppendText("\n ORDER STRING -TRXLine + $");
-    TextBox->AppendText(OrderString);
-
-    OrderString += GetStringFromOrder(OrderToSend) + "\n";
-
-    // TextBox->AppenText("\n OrderString To Send: ")
-
-    std::string SendOrderResult;
-    std::string SEND_COMMAND = OrderString;
-    TextBox->AppendText("\nDEBUG: SEND_COMMAND: ");
-    TextBox->AppendText(SEND_COMMAND);
-    //NSLORDER 2 1.61 1700767720 ORDER 1 $TRFR OR 1 TRFR 1700767720 Test 1 BNOdXGIv/1szZ/hOw3dOoFAWUr5rOjuTXVIA353 NxcLMr13oJ7bKx9dFSUhHstDiTF1DM NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb 1000000 100000000 MEUCIQD0PmwSgQcz5HNrpgc0pxkLbTtpPVB1f6M tRHfgVP7avof2mi8QnN45WQCVEN5EWFqWXhwhk8 $
-    std::string DefaultNodeIp = "20.199.50.27";						//PENDING: Send command to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
-    int DefaultNodePort = 8080;										//PENDING: Set PORT from List of Nodes.
-    std::string ResultOrder = SendStringToNode(DefaultNodeIp, DefaultNodePort, SEND_COMMAND);
-
-    TextBox->AppendText("\r Result order: ");
-    TextBox->AppendText(ResultOrder);
-    
-   */
-
 
 }
 
@@ -1383,31 +1244,10 @@ int64_t MainFrame::GetMaximumToSend(int64_t ammount)
 std::string MainFrame::GetOrderHash(const std::string& textLine)
 {
     
-    TextBox->AppendText("\nDEBUG GET-OrderHash");
-    TextBox->AppendText("\nTextLine: ");
-    TextBox->AppendText(textLine);
-    
     std::string resultToProcess=getHashSha256ToString(textLine);
-    TextBox->AppendText("\nSHA256: ");
-    TextBox->AppendText(resultToProcess);
-    
-
-    
     std::string resultHex36= BMHexTo58(resultToProcess, 36); 
-    
-
-    TextBox->AppendText("\n****DEBUG**** noso Sha256 and Base36");
-    TextBox->AppendText(getHashSha256ToString("noso"));
-    TextBox->AppendText("\n****DEBUG**** noso Base36 :");
-    std::string resultNosoBase36 = BMHexTo58(getHashSha256ToString("noso"),36);
-    TextBox->AppendText(resultNosoBase36);
-    TextBox->AppendText("\nHEX36 : ");
-    TextBox->AppendText(resultHex36);
+    std::string resultNosoBase36 = BMHexTo58(getHashSha256ToString("noso"), 36);
     std::string result = "OR" + resultHex36;
-    TextBox->AppendText("\nResult: ");
-    TextBox->AppendText(result);
- 
-    
 
     return result;
 }
@@ -1418,10 +1258,12 @@ std::string MainFrame::BMHexTo58(const std::string& numerohex, const Botan::BigI
  
     Botan::BigInt decimalValue(BMHexToDec(numerohex));
     std::string Result = "";
-    std::string AlphabetUsed="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-
+    std::string AlphabetUsed;// = B58Alphabet; //"123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+    if (alphabetnumber == 58) {
+        AlphabetUsed = B58Alphabet;// "0123456789abcdefghijklmnopqrstuvwxyz";
+    }
     if (alphabetnumber == 36) {
-        AlphabetUsed = "0123456789abcdefghijklmnopqrstuvwxyz" ;
+        AlphabetUsed = B36Alphabet;// "0123456789abcdefghijklmnopqrstuvwxyz";
     }
    
 
@@ -1453,7 +1295,7 @@ std::string MainFrame::BMHexTo58(const std::string& numerohex, const Botan::BigI
 
 std::string MainFrame::BMHexToDec(const std::string& numerohex)
 {
-    std::string HexAlphabet = "0123456789ABCDEF";
+    
     int Long = numerohex.length();
     std::string resultado = "0";
 
@@ -1635,97 +1477,7 @@ int64_t MainFrame::GetFee(int64_t amount)
     }
     return result;
 }
-std::string MainFrame::SendTo(std::string Destination, int64_t Ammount, std::string Reference)
-{
- 
-    std::string CurrTime;
-    int64_t fee;
-    int64_t ShowAmmount;
-    //int64_t ShowFee;
-    int64_t Remaining;
-    int64_t CoinsAvailable;
-    OrderData OrderToSend;
-    //int Counter;
-    std::string OrderHashString;
-    int TrxLine = 0;
-    std::string ResultOrderID = "";
-    std::string OrderString;
-    //int PreviousRefresh;
 
-    if (Reference == "") {
-		Reference = "null";
-	}
-    CurrTime = std::to_string(GetMainetTime());
-    fee = GetFee(Ammount);
-    ShowAmmount = Ammount;
-    //ShowFee = fee;
-    Remaining = Ammount + fee;
-    CoinsAvailable = GetBalanceFromNosoAddress(SumarydataVector, walletCPPDataLoaded[0].GetHash().c_str());// Only works with first address on wallet.
-    TextBox->AppendText("\n****SendTO COINS****");
-    TextBox->AppendText("\nCoins Available: ");
-    TextBox->AppendText(std::to_string(CoinsAvailable));
-    OrderHashString = CurrTime;
-    TrxLine = 1;
-    //Debug Static source Address
-    std::string SourceAddress = "N4J8QgxgB2wbFcfC6czVyT5e3DwWCDh";
-    //std::string SourceAddress = "NxcLMr13oJ7bKx9dFSUhHstDiTF1DM";
-    //std::string TestAddress = "N4J8QgxgB2wbFcfC6czVyT5e3DwWCDh";
-    //std::string DestinationAddress = "NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb";
-    OrderToSend = SendFundsFromAddress(SourceAddress, Destination, Ammount, fee, Reference, CurrTime, TrxLine);
-    
-
-    OrderHashString = CurrTime + OrderToSend.GetTrfID();
-    TextBox->AppendText("\nDEBUG: ******OrderToSend");
-    TextBox->AppendText("\nOrder Hash String: ");
-    TextBox->AppendText(OrderHashString);
-    ResultOrderID = GetOrderHash(std::to_string(TrxLine) + OrderHashString);
-
-    //Implement GetPTCEcn OrderString := GetPTCEcn('ORDER')+'ORDER '+IntToStr(trxLine)+' $';
-    OrderString = GetPTCEcn("ORDER");
-    TextBox->AppendText("\n GetPTCE");
-    TextBox->AppendText(OrderString);
-    OrderString += "ORDER " + std::to_string(TrxLine) + " $";
-    TextBox->AppendText("\n ORDER STRING -TRXLine + $");
-    TextBox->AppendText(OrderString);
-
-    OrderString += GetStringFromOrder(OrderToSend) + "\n";
-  
-   // TextBox->AppenText("\n OrderString To Send: ")
-
-    std::string SendOrderResult;
-    std::string SEND_COMMAND = OrderString;
-    TextBox->AppendText("\nDEBUG: SEND_COMMAND: ");
-    TextBox->AppendText(SEND_COMMAND);
-    //NSLORDER 2 1.61 1700767720 ORDER 1 $TRFR OR 1 TRFR 1700767720 Test 1 BNOdXGIv/1szZ/hOw3dOoFAWUr5rOjuTXVIA353 NxcLMr13oJ7bKx9dFSUhHstDiTF1DM NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb 1000000 100000000 MEUCIQD0PmwSgQcz5HNrpgc0pxkLbTtpPVB1f6M tRHfgVP7avof2mi8QnN45WQCVEN5EWFqWXhwhk8 $
-    std::string DefaultNodeIp = "20.199.50.27";						//PENDING: Send command to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
-    int DefaultNodePort = 8080;										//PENDING: Set PORT from List of Nodes.
-    std::string ResultOrder = SendStringToNode(DefaultNodeIp, DefaultNodePort, SEND_COMMAND);
-
-    
-    
-    TextBox->AppendText("\n****SendTO DEBUG****");
-    TextBox->AppendText("\nCoins Available: ");
-    TextBox->AppendText(std::to_string(CoinsAvailable));
-    TextBox->AppendText("\nFee :");
-    TextBox->AppendText(std::to_string(fee));
-    TextBox->AppendText("\nAmount: ");
-    TextBox->AppendText(std::to_string(Ammount));
-    TextBox->AppendText("\nRemaining: ");
-    TextBox->AppendText(std::to_string(Remaining));
-    TextBox->AppendText("\n Transfer ID: ");
-    TextBox->AppendText(OrderToSend.GetTrfID());
-    TextBox->AppendText("\nOrder Hash String: ");
-    TextBox->AppendText(OrderHashString);
-    TextBox->AppendText("\nResult Order ID: ");
-    TextBox->AppendText(ResultOrderID);
-    TextBox->AppendText("\nOrder String SENDED: ");
-    TextBox->AppendText(OrderString);
-    TextBox->AppendText("\nSend Order Result: ");
-    TextBox->AppendText(ResultOrder);
-    TextBox->AppendText("\n****SendTO DEBUG****");
-    
-    return ResultOrder;
-}
 std::string MainFrame::GetPTCEcn(std::string OrderType)
 {
     std::string result;
