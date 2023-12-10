@@ -88,23 +88,31 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {
 
     //Button Definitions
 
-	wxButton* Connect_Button = new wxButton(panel, wxID_ANY, "Connect", wxPoint(1, 1), wxSize(150, 25));
-    wxButton* GenerateKeysButton = new wxButton(panel, wxID_ANY, "Generate NOSO Address", wxPoint(1, 100), wxSize(150, 25));
-    wxStaticText* LogTextBoxLabel = new wxStaticText(panel, wxID_ANY, "Log: ", wxPoint(1, 475));
+	wxButton* Connect_Button = new wxButton(panel, wxID_ANY, "Reconnect", wxPoint(10, 1), wxSize(150, 25));
+    wxButton* GenerateKeysButton = new wxButton(panel, wxID_ANY, "Generate NOSO Address", wxPoint(10, 30), wxSize(150, 25));
+    wxStaticText* LogTextBoxLabel = new wxStaticText(panel, wxID_ANY, "Log: ", wxPoint(10, 475));
     LogTextBoxLabel->SetFont(wxFontInfo(8).Bold());
-    wxStaticText* dateTimeText = new wxStaticText(panel, wxID_ANY, "Time", wxPoint(1, 250));
+   
 
-    //Dynamic object creation
- 
-    TextBox = new wxTextCtrl(panel, wxID_ANY, "Text Box", wxPoint(1, 500), wxSize(680, 250), wxTE_MULTILINE);
-    NosoAddressGrid = new wxGrid(panel, wxID_ANY, wxPoint(1, 200), wxSize(680, 250));
+    //Grid Creation
+    wxStaticText* GridTextBoxLabel = new wxStaticText(panel, wxID_ANY, "Noso Addresses: ", wxPoint(10, 75));
+    GridTextBoxLabel->SetFont(wxFontInfo(8).Bold());
+    TextBox = new wxTextCtrl(panel, wxID_ANY, "Text Box", wxPoint(10, 500), wxSize(595, 250), wxTE_MULTILINE);
+    NosoAddressGrid = new wxGrid(panel, wxID_ANY, wxPoint(10, 75), wxSize(595, 250));
     NosoAddressGrid->HideRowLabels();
-    NosoAddressGrid->AutoSizeColumns();
-    NosoAddressGrid->CreateGrid(4, 4);
+    NosoAddressGrid->CreateGrid(4, 4);  
+    NosoAddressGrid->SetColSize(0, 250);
+    NosoAddressGrid->SetColSize(1, 75);
+    NosoAddressGrid->SetColSize(2, 125);
+    NosoAddressGrid->SetColSize(3, 125);
+
     NosoAddressGrid->SetColLabelValue(0,"Address");
     NosoAddressGrid->SetColLabelValue(1,"Label");
     NosoAddressGrid->SetColLabelValue(2,"Pending");
     NosoAddressGrid->SetColLabelValue(3,"Balance");
+   
+    //NosoAddressGrid->Hide();
+   
 
     //Bind Functions
     
@@ -122,26 +130,31 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {
     SetStatusBar(statusBar);
 
     //Send funds GUI controls
-
-    SourceAddressText= new wxStaticText(panel, wxID_ANY, "Source Address: ", wxPoint(250, 50));
+    wxFont TotalNosoFont(25, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+    wxFont TotalNosoTextFont(15, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+    SourceAddressText= new wxStaticText(panel, wxID_ANY, "Source Address: ", wxPoint(10, 350));
     SourceAddressText->SetFont(wxFontInfo(8).Bold());
-    SourceAddressCtrl = new wxTextCtrl(panel, wxID_ANY, "", wxPoint(375, 50));
-    SourceAddressCtrl->SetSize(wxSize(200, -1));
-    DestinationAddressText = new wxStaticText(panel, wxID_ANY, "Destination Address: ", wxPoint(250, 75));
+    SourceAddressCtrl = new wxTextCtrl(panel, wxID_ANY, "", wxPoint(135, 350));
+    SourceAddressCtrl->SetSize(wxSize(250, -1));
+    DestinationAddressText = new wxStaticText(panel, wxID_ANY, "Destination Address: ", wxPoint(10, 375));
     DestinationAddressText->SetFont(wxFontInfo(8).Bold());
-    DestinationAddressCtrl = new wxTextCtrl(panel, wxID_ANY, "", wxPoint(375, 75));
-    DestinationAddressCtrl->SetSize(wxSize(200, -1));
-    AmountToSendText = new wxStaticText(panel, wxID_ANY, "Amount To Send: ", wxPoint(250, 100));
+    DestinationAddressCtrl = new wxTextCtrl(panel, wxID_ANY, "", wxPoint(135, 375));
+    DestinationAddressCtrl->SetSize(wxSize(250, -1));
+    AmountToSendText = new wxStaticText(panel, wxID_ANY, "Amount To Send: ", wxPoint(10, 400));
     AmountToSendText->SetFont(wxFontInfo(8).Bold());
-    AmountToSendCtrl = new wxTextCtrl(panel, wxID_ANY, "", wxPoint(375, 100));
-    AmountToSendCtrl->SetSize(wxSize(200, -1));
-    ReferenceToSendText = new wxStaticText(panel, wxID_ANY, "Reference: ", wxPoint(250, 125));
+    AmountToSendCtrl = new wxTextCtrl(panel, wxID_ANY, "", wxPoint(135, 400));
+    AmountToSendCtrl->SetSize(wxSize(250, -1));
+    ReferenceToSendText = new wxStaticText(panel, wxID_ANY, "Reference: ", wxPoint(10, 425));
     ReferenceToSendText->SetFont(wxFontInfo(8).Bold());
-    ReferenceToSendCtrl = new wxTextCtrl(panel, wxID_ANY, "", wxPoint(375, 125));
-    ReferenceToSendCtrl->SetSize(wxSize(200, -1));
+    ReferenceToSendCtrl = new wxTextCtrl(panel, wxID_ANY, "", wxPoint(135, 425));
+    ReferenceToSendCtrl->SetSize(wxSize(250, -1));
+    TotalNosoText = new wxStaticText(panel, wxID_ANY, "Total Noso: ", wxPoint(175, 20));
+    TotalNosoText->SetFont(TotalNosoTextFont);
+    TotalNoso = new wxStaticText(panel, wxID_ANY, "125.00000000", wxPoint(350, 15));
+    TotalNoso->SetFont(TotalNosoFont);
 
 
-    wxButton* SendFunds_Button = new wxButton(panel, wxID_ANY, "Send", wxPoint(425, 150), wxSize(150, 25));
+    wxButton* SendFunds_Button = new wxButton(panel, wxID_ANY, "Send", wxPoint(175, 450), wxSize(150, 25));
     SendFunds_Button->Bind(wxEVT_BUTTON, &MainFrame::OnSendNosoButtonClicked, this);
 }
 
@@ -191,7 +204,9 @@ void MainFrame::OnConnectButtonClicked(wxCommandEvent& evt)
     statusBar->SetStatusText("Current Block: " + CurrentBlockString, 0);
 
     TextBox->AppendText("Connection Successful\n");
+    //InitializeWallet();
     }
+    //InitializeWallet();
 
 }
 
@@ -617,7 +632,8 @@ void MainFrame::InitializeWallet()
 
         //Show Data on central Table
         NosoAddressGrid->DeleteRows();
-        for (size_t i = 0; i < walletCPPDataLoaded.size(); ++i) {
+        for (size_t i = 0; i < walletCPPDataLoaded.size(); ++i) 
+        {
             std::string HashKeyLoaded = walletCPPDataLoaded[i].GetHash();
             std::string Label = walletCPPDataLoaded[i].GetLabel();
             std::int64_t Pending = walletCPPDataLoaded[i].GetPending();
@@ -632,16 +648,17 @@ void MainFrame::InitializeWallet()
             NosoAddressGrid->SetCellValue(i, 1, Label);
             NosoAddressGrid->SetCellValue(i, 2, std::to_string(Pending));
             NosoAddressGrid->SetCellValue(i, 3, ConvertedToDecimal);
+            
 
+        } 
+        
 
-    }          
-
-    }
-    else {
+        }
+        else {
         
         TextBox->AppendText("\nWalletcpp.pkw File does not exist, some problems happened as walletcpp.pkw cannot be created in Data directory.\n ");
 
-    }
+        }
     
   
     UpdateTable(walletCPPDataLoaded);
@@ -649,20 +666,7 @@ void MainFrame::InitializeWallet()
 
     MainFrame::GetPendings();
 
-    /*
-    //********** SENDTO DEBUG TEST ******
-    //MainFrame::SendToDebugTest();
 
-    TextBox->AppendText("\n SendTO Debug Test Calling function: SourceAddress: NxcLMr13oJ7bKx9dFSUhHstDiTF1DM");
-    TextBox->AppendText("\n SendTO Debug Test Calling function: DestinationAddress: NZXpFV6SHcJ6xhhX2Bgid4ofQqsbEb");
-
-    std::string Sendto_Result;
-    
-    Sendto_Result=SendTo("NdVM3CDQX82jptTEpQhWdyA9pnsJE3", 1000000,"Test");
-    TextBox->AppendText("\n SendTO Debug Test Result: ");
-    TextBox->AppendText(Sendto_Result);
-    //****************** SENDTO DEBUG TEST ******
-    */
 
 }
 
@@ -736,77 +740,167 @@ std::string MainFrame::GetPendings()
     std::string DefaultNodeIp = "20.199.50.27";						//PENDDING: Send command to NODE LIST, and connect to nodes starting from the old ones until connection is OK.
     int DefaultNodePort = 8080;										//PENDING: Set PORT from List of Nodes.
     std::string PendingOrdersText = SendStringToNode(DefaultNodeIp, DefaultNodePort, NODESTATUS_COMMAND);
+    
     if (PendingOrdersText == "")
     { 
         TextBox->AppendText("No pending Orders");
         return "NULL";
     }
-    else {
-       
+    else 
+    {
+        ordersVector.clear();
         TextBox->AppendText("Pending Orders: \n");
         TextBox->AppendText(PendingOrdersText);
+        TextBox->AppendText("Total lines ");
+        TextBox->AppendText(std::to_string(std::count(PendingOrdersText.begin(), PendingOrdersText.end(), ' ')));
         
+        //Format: TRFR,N2Xh9dUcsdarJXgx7Q1jusVn8MpLUFh,NoSLwVuSMm8K2iQni5Fk3Y2uJy8SDn,34000000000,3400000
+
         std::istringstream iss(PendingOrdersText);
-        std::string line;
-        std::vector<PendingOrders> ordersVector;
+        std::vector<std::string> attributes;
+        std::string block;
+        //ordersVector.clear();
 
-        while (std::getline(iss, line)) {
-            std::istringstream lineStream(line);
+        while (std::getline(iss, block, ' '))
+        {
+            std::istringstream block_stream(block);
+            if (block.find('\n') != std::string::npos) 
+            {
+                break;  // Exit the loop if we reached the end of the file or detects \n
+            }
+            std::string attribute;
             PendingOrders order;
+            TextBox->AppendText("\nDEBUG : Block Readed \n");
+            TextBox->AppendText(block);
+            std::getline(block_stream, attribute, ',');
+            order.OrderType = attribute;
 
-            std::getline(lineStream, order.OrderType, ',');
-            std::getline(lineStream, order.SourceAddress, ',');
-            std::getline(lineStream, order.DestinationAddress, ',');
-            lineStream >> order.Amount;
-            lineStream.ignore(); 
-            lineStream >> order.Fee;
-            
-  
+            std::getline(block_stream, attribute, ',');
+            order.SourceAddress = attribute;
+
+            std::getline(block_stream, attribute, ',');
+            order.DestinationAddress = attribute;
+
+            std::getline(block_stream, attribute, ',');
+            order.Amount = std::stoll(attribute);
+
+            std::getline(block_stream, attribute);
+            order.Fee = std::stoll(attribute);
 
             ordersVector.push_back(order);
-            TextBox->AppendText("**** DEBUG *****Parsed Order: " + order.OrderType + ", " + order.SourceAddress + ", " + order.DestinationAddress + ", " + std::to_string(order.Amount) + ", " + std::to_string(order.Fee) + "\n");
 
-
-
-
-
-        
-           
         }
-        ///DEbug:
+       
         TextBox->AppendText("Number of Pending Orders: " + std::to_string(ordersVector.size()) + "\n");
 
-        for (const auto& order : ordersVector) {
+        //int64_t TotalSource = 0;
+        for (const auto& order : ordersVector) 
+        {
             TextBox->AppendText("\nDEBUG : Pending Order: \n");
             TextBox->AppendText("OrderType: " + order.OrderType + "\n");
             TextBox->AppendText("SourceAddress: " + order.SourceAddress + "\n");
             TextBox->AppendText("DestinationAddress: " + order.DestinationAddress + "\n");
             TextBox->AppendText("Amount: " + std::to_string(order.Amount) + "\n");
             TextBox->AppendText("Fee: " + std::to_string(order.Fee) + "\n");
+            
             for (size_t i = 0; i < walletCPPDataLoaded.size(); ++i)
             {
                 if (order.SourceAddress == walletCPPDataLoaded[i].GetHash()) {
-                    // If source address is a Noso address from my wallet 
+                    
+                    TextBox->AppendText("Address" + order.SourceAddress + " is in my wallet\n");
+                    //TotalSource += order.Amount;
+                    int64_t TotalSource = GetPendingPaysFromNosoAddress(order.SourceAddress);
+                    TextBox->AppendText("\nTotal Pending Pays: " + std::to_string(TotalSource) + "\n");
+                    int TotalRows = NosoAddressGrid->GetNumberRows();
 
-                    //Check whats the destination address and the Amount and Fee
+                    for (int row = 0; row < TotalRows; ++row) {
 
+                        wxString addressValue = NosoAddressGrid->GetCellValue(row, 0);
+
+                        std::string addressString = addressValue.ToStdString();
+
+
+                        if (order.SourceAddress == addressString)
+                        {
+
+
+
+                            //float ResultToShow;
+                            double ResultToShow = static_cast<double>(TotalSource) / 100000000.0;
+                            //int64_t ResultToShow = TotalSource / 100000000.0;
+                            TextBox->AppendText(std::to_string(ResultToShow));
+                            TextBox->AppendText("\nAddress found on Grid");
+                            TextBox->AppendText("\nTotal Pending Pays to Show: " + std::to_string(ResultToShow) + "\n");
+                            if ( ResultToShow > 0)
+                            {
+
+                                NosoAddressGrid->SetCellValue(row, 2,std::to_string(ResultToShow));
+                                NosoAddressGrid->SetCellBackgroundColour(row, 2, wxColour(255, 0, 0));  // Red color
+                                //                                NosoAddressGrid->SetCellBackgroundColour(row, 2, wxColour(255, 0, 0));  // Red color
+
+                                NosoAddressGrid->SetCellTextColour(row, 2, wxColour(255, 255, 255));  // White color
+                            }
+                            if (ResultToShow < 0)
+                            {
+								NosoAddressGrid->SetCellValue(row, 2,std::to_string(ResultToShow));
+								NosoAddressGrid->SetCellBackgroundColour(row, 2, wxColour(0, 128, 0));  // Red color
+								NosoAddressGrid->SetCellTextColour(row, 2, wxColour(255, 255, 255));  // White color
+							}
+                        }
+
+
+                        
+                        if (order.DestinationAddress == addressString)
+                        {
+                            //float ResultToShow;
+                            double ResultToShow = static_cast<double>(TotalSource) / 100000000.0;
+                            //int64_t ResultToShow = TotalSource / 100000000.0;
+                            TextBox->AppendText(std::to_string(ResultToShow));
+                            TextBox->AppendText("\nAddress found on Grid");
+                            TextBox->AppendText("\nTotal Pending Pays to Show: " + std::to_string(ResultToShow) + "\n");
+                            if (ResultToShow > 0)
+                            {
+
+                                NosoAddressGrid->SetCellValue(row, 2, std::to_string(ResultToShow));
+                                NosoAddressGrid->SetCellBackgroundColour(row, 2, wxColour(0, 128, 0));  // Red color
+                                //                                NosoAddressGrid->SetCellBackgroundColour(row, 2, wxColour(255, 0, 0));  // Red color
+
+                                NosoAddressGrid->SetCellTextColour(row, 2, wxColour(255, 255, 255));  // White color
+                            }
+                            if (ResultToShow < 0)
+                            {
+                                NosoAddressGrid->SetCellValue(row, 2, std::to_string(ResultToShow));
+                                NosoAddressGrid->SetCellBackgroundColour(row, 2, wxColour(255, 0, 0));  // Red color
+                                NosoAddressGrid->SetCellTextColour(row, 2, wxColour(255, 255, 255));  // White color
+                            }
+                        }
+                    }
+
+                    
               
                 }
+                
             }
 
         }
-        return PendingOrdersText;
+        
 	}
+    return PendingOrdersText;
 }
 
 
 int64_t MainFrame::GetAddressPendingPays(std::string NosoAddress)
 {
-   // Get Pending Payments from NosoAddress Address, Send order Pending, and check if the source address has something pending.
+    // Get all Pending Orders
+    // Search for all orders with same Noso Address in Source or Destination.
+    // Add all values and return total.   
+    int64_t Total = 0;
 
-    // 1- Get Pending Orders, if NULL then continue, else check if NosoAddress is the list, and return the total amount pending.
+
+
+
   
-    return 0;
+    return Total;
         ///
     
    
@@ -1544,6 +1638,27 @@ Botan::secure_vector<uint8_t> MainFrame::calculateSHA1(const std::vector<unsigne
         return hash_result;
     
     
+}
+
+int64_t MainFrame::GetPendingPaysFromNosoAddress(const std::string& NosoAddress)
+{
+    int64_t Total = 0;
+    for (const auto& order : ordersVector)
+    {
+        if (order.SourceAddress == NosoAddress)
+        {
+            Total += order.Amount;
+        }
+        if (order.DestinationAddress == NosoAddress)
+        {
+			Total -= order.Amount;
+		}
+    }
+    //TextBox->AppendText("\nTotal Pending Pays from Address: ");
+    //TextBox->AppendText(std::to_string(Total));
+    
+    return Total;
+
 }
 
 

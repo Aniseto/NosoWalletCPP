@@ -52,7 +52,7 @@ std::string SendStringToNode(const std::string& ip, int port, const std::string&
 
     // Send message to server
     if (send(socketCliente, message.c_str(), message.size(), 0) == SOCKET_ERROR) {
-        std::cerr << "Error sendind message." << std::endl;
+        std::cerr << "Error sending message." << std::endl;
         closesocket(socketCliente);
         WSACleanup();
         return "Error sending message.";

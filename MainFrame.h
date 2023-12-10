@@ -77,6 +77,7 @@ private:
 	std::string getHashSha256ToString(const std::string& publicKey); // Thanks to PasichDev
 	DivResult DivideBigInt(const Botan::BigInt& numerator, const Botan::BigInt& denominator);
 	Botan::secure_vector<uint8_t> calculateSHA1(const std::vector<unsigned char>& input); // Thanks to PasichDev !
+	int64_t GetPendingPaysFromNosoAddress(const std::string& NosoAddress);
 	
 	
 
@@ -118,6 +119,8 @@ private:
 	wxStaticText* DestinationAddressText;
 	wxStaticText* AmountToSendText;
 	wxStaticText* ReferenceToSendText;
+	wxStaticText* TotalNosoText;
+	wxStaticText* TotalNoso;
 	wxTextCtrl* SourceAddressCtrl;
 	wxTextCtrl* DestinationAddressCtrl;
 	wxTextCtrl* AmountToSendCtrl;
@@ -137,6 +140,8 @@ private:
 	const std::string B58Alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 	const std::string B36Alphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
 	std::string HexAlphabet = "0123456789ABCDEF";
+	std::vector<PendingPaysForAddress> pendingPaysVector;
+	std::vector<PendingOrders> ordersVector;
 
 };
 

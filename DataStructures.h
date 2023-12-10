@@ -383,3 +383,31 @@
 
     };
 #pragma pack(pop)
+
+#pragma pack(push, 1)
+    class PendingPaysForAddress {
+    public:
+
+        std::string NosoAddress;
+        int64_t Income=0;
+        int64_t Outcome = 0;
+        
+        void SetNosoAddress(const std::string& nosoaddress)
+        {
+			NosoAddress = nosoaddress;
+		}
+        
+        void AddIncome(int64_t income)
+        {
+			Income += income;
+		}
+        void AddOutcome(int64_t outcome)
+        {
+            Outcome += outcome;
+        }
+        int64_t Total()
+        {
+			return Income - Outcome;
+		}
+    };
+#pragma pack(pop)
