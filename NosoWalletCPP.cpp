@@ -150,7 +150,7 @@ MainFrame::MainFrame(const wxString& title): wxFrame(nullptr,wxID_ANY,title) {
     ReferenceToSendCtrl->SetSize(wxSize(250, -1));
     TotalNosoText = new wxStaticText(panel, wxID_ANY, "Total Noso: ", wxPoint(175, 20));
     TotalNosoText->SetFont(TotalNosoTextFont);
-    TotalNoso = new wxStaticText(panel, wxID_ANY, "125.00000000", wxPoint(350, 15));
+    TotalNoso = new wxStaticText(panel, wxID_ANY, "0.00000000", wxPoint(425, 15));
     TotalNoso->SetFont(TotalNosoFont);
 
 
@@ -608,6 +608,9 @@ void MainFrame::OnExit(wxCommandEvent& event)
 void MainFrame::InitializeWallet()
 {
  
+    //TotalBalance
+    //int64_t TotalBalance = 0;
+    int64_t Accomulated = 0;
     //SetTimer
     timer->SetOwner(this);
     timer->Start(1000);  // 1000 ms = 1 second
@@ -618,7 +621,7 @@ void MainFrame::InitializeWallet()
     OnConnectButtonClicked(fakeEvent); // Call the function
     
     SumarydataVector = MainFrame::DownloadSumary();
-
+    
     //Check if walletcpp.pkw exists on /data directory, if exists load all addresses, if no create a new NOSO address, save to file and load Address
 
     std::string WalletCPPFullPath = (fs::current_path() / "data" / "walletcpp.pkw").string();
@@ -629,7 +632,7 @@ void MainFrame::InitializeWallet()
    
         walletCPPDataLoaded = ReadWalletDataFromNosoCPP(WalletCPPFullPath);
  
-
+        //int64_t TotalBalance = 0;
         //Show Data on central Table
         NosoAddressGrid->DeleteRows();
         for (size_t i = 0; i < walletCPPDataLoaded.size(); ++i) 
@@ -641,7 +644,10 @@ void MainFrame::InitializeWallet()
             std::int64_t Balance = GetBalanceFromNosoAddress(SumarydataVector, HashKeyLoaded.c_str());
           
             std::string ConvertedToDecimal = Int2Curr(Balance);
-
+            Accomulated = 0;
+            std::int64_t Accomulated = TotalBalance + Balance;
+            TotalBalance = Accomulated;
+            
             
             NosoAddressGrid->AppendRows(1); // Add a new row
             NosoAddressGrid->SetCellValue(i, 0, HashKeyLoaded);
@@ -651,7 +657,7 @@ void MainFrame::InitializeWallet()
             
 
         } 
-        
+        //TextBox->AppendText(std::to_string(TotalBalance));
 
         }
         else {
@@ -1014,7 +1020,7 @@ void MainFrame::UpdateTable(std::vector<WalletData>& dataVectorAddress)
         std::string Label = dataVectorAddress[i].GetLabel();
         std::int64_t Pending = dataVectorAddress[i].GetPending();
         std::int64_t Balance = GetBalanceFromNosoAddress(SumarydataVector, HashKeyLoaded.c_str());
-        double decimalBalance = static_cast<double>(Balance) / 100000000.0; // Show data in decimal value
+        std::string decimalBalance = Int2Curr(Balance);// Show data in decimal value
         std::stringstream stream;
         stream << std::fixed << std::setprecision(8) << decimalBalance;
         std::string formattedDecimalBalance = stream.str();
@@ -1022,9 +1028,18 @@ void MainFrame::UpdateTable(std::vector<WalletData>& dataVectorAddress)
         NosoAddressGrid->SetCellValue(i, 0, HashKeyLoaded);
         NosoAddressGrid->SetCellValue(i, 1, Label);
         NosoAddressGrid->SetCellValue(i, 2, std::to_string(Pending));
-        NosoAddressGrid->SetCellValue(i, 3, formattedDecimalBalance);
+        NosoAddressGrid->SetCellValue(i, 3, decimalBalance);
     }
- 
+    //Update Total value
+    wxString TotalNosoToShow = wxString::Format("%lld", TotalBalance);
+    //Set TotalNoso value of decimalBalance
+    std::string Nosototal = Int2Curr(TotalBalance);
+    //std::string NosoTotal = TotalNosoToShow.ToStdString();
+
+    
+    TotalNoso->SetLabel(Nosototal);
+
+    //NosoAddressGrid->SetSortingColumn(3,true); // El segundo parámetro (true) indica orden descendente
 }
 
 std::string MainFrame::GetPublicKeyFromNosoAddress(const std::string & NosoAddress)
@@ -1230,6 +1245,12 @@ void MainFrame::OnSendNosoButtonClicked(wxCommandEvent& evt)
                     std::string ResultOrder = SendStringToNode(DefaultNodeIp, DefaultNodePort, SEND_COMMAND);
                     TextBox->AppendText("\n * Order SENT !,OrderID :  ");
                     TextBox->AppendText(ResultOrder);
+                    //TextBox->Connect(wxID_ANY, wxEVT_TEXT_URL, wxTextUrlEventHandler(MyFrame::OnUrlClick), NULL, this);
+
+                    wxString url = "https://explorer.nosocoin.com/getordersinfo.html?orderid=" + ResultOrder;
+                    wxString textWithUrl = "Check Explorer: " + url;
+
+                    TextBox->AppendText(textWithUrl);
                     TextBox->AppendText("\n * Transaction details -> https://explorer.nosocoin.com/getordersinfo.html?orderid=" + ResultOrder);
                         
                     
@@ -1299,7 +1320,7 @@ std::string MainFrame::Int2Curr(int64_t Value)
 {
     std::string Result = std::to_string(std::abs(Value));
     Result = AddChar('0', Result, 9);
-    Result.insert(Result.length() - 7, ".");
+    Result.insert(Result.length() - 8, ".");
 
     if (Value < 0)
         Result = "-" + Result;

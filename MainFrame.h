@@ -21,7 +21,9 @@ public:
 	const int64_t MinimunFee = 1000000; 
 	std::string ProgramVersion = "0.4a";
 	std::string Protocol = "2";
-
+	//TotalBalance
+	int64_t TotalBalance = 0;
+	//int64_t TotalBalance = 0;
 
 private:
 
@@ -87,6 +89,8 @@ private:
 	void OnSave(wxCommandEvent& event);
 
 	void OnExit(wxCommandEvent& event);
+	
+
 	
 	//Main Menu definition
 
