@@ -220,7 +220,9 @@ std::vector<TSummaryData> MainFrame::DownloadSumary()
     
 
     wxString zipFileName = "summary.zip";
-    wxString outputDir = (fs::current_path() / "").string();
+    //wxString outputDir = (fs::current_path() / "").string();
+    wxString outputDir = (fs::current_path()).string();
+    //std::string NosoWalletCPPPath = (fs::current_path() / "data" / "walletcpp.pkw").string();
 
     UnzipFile(zipFileName, outputDir);
 
